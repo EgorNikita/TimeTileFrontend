@@ -1,37 +1,84 @@
-@import './base.css';
 @import "tailwindcss";
 
-
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+@theme {
+    --font-sans: InterVariable, sans-serif;
+    --color-softblue: #E8EBF0;
+    --color-accentcolor: #0887A0;
 }
 
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+.v-popper--theme-simple-tooltip {
+    .v-popper__inner {
+        @apply rounded-lg border border-gray-200 bg-white text-gray-800 text-sm shadow-lg px-3 py-2;
+        @apply max-w-xs break-words;
+        font-weight: 500;
+        line-height: 1.4;
+        backdrop-filter: blur(8px);
+        background-color: rgba(255, 255, 255, 0.95);
+    }
+
+    .v-popper__arrow-outer,
+    .v-popper__arrow-inner {
+        display: none;
+    }
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
+.v-popper--theme-arrowed-tooltip {
+
+    .v-popper__arrow-outer,
+    .v-popper__arrow-inner {
+        display: block !important;
+    }
+
+    .v-popper__arrow-outer {
+        @apply border-gray-200;
+    }
+
+    .v-popper__arrow-inner {
+        visibility: visible;
+        border-color: #ffffff;
+    }
 }
 
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
+/* Custom Scrollbar Styles */
+.custom-scrollbar::-webkit-scrollbar {
+    @apply w-2;
+}
 
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
+.custom-scrollbar::-webkit-scrollbar-track {
+    @apply rounded-full bg-gray-100;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-gray-300;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+}
+
+/* Alternative: Thin scrollbar */
+.thin-scrollbar::-webkit-scrollbar {
+    @apply w-1;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-gray-300;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+}
+
+/* Hidden scrollbar but still scrollable */
+.hidden-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.hidden-scrollbar::-webkit-scrollbar {
+    display: none;
 }

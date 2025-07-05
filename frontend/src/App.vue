@@ -1,20 +1,13 @@
 <script>
+import LoginView from '@/views/LoginView.vue'
+
 export default {
-  name: 'App',
-  data() {
-    return {
-      message: 'Hello, Vue!'
-    };
-  },
-  mounted() {
-    console.log(this.message);
-  }
-};
+  components: { LoginView }
+}
 </script>
 
 <template>
-  <h1>Time Tile</h1>
+  <div class="h-full">
+    <router-view />
+  </div>
 </template>
-
-<style scoped>
-</style>
