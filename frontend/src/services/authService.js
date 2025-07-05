@@ -77,7 +77,7 @@ export const authService = {
         });
 
         if (refreshResult.isSuccess) {
-            const { AccessToken, RefreshToken: NewRefreshToken } = refreshResult.data;
+            const { accessToken: AccessToken, refreshToken: NewRefreshToken } = refreshResult.data;
 
             if (!AccessToken || !NewRefreshToken) {
                 return failure({
