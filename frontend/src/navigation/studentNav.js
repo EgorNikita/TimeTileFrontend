@@ -14,7 +14,7 @@ export default [
   },
   {
     label: "Timetable",
-    name: "StudentCourses",
+    name: "StudentTimetable",
     icon: CalendarDaysIcon,
   },
   {

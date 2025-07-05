@@ -131,8 +131,8 @@ export const useAuthStore = defineStore("auth", {
         const result = this._setTokens(token, refreshToken, remembered);
 
         if (result.isFailure) {
-          failure("Token is invalid, please log in again");
           this._clearAuthState();
+          return failure("Token is invalid, please log in again");
         }
       }
 
@@ -142,9 +142,10 @@ export const useAuthStore = defineStore("auth", {
 
     async refreshTokens() {
       const token = this.refreshToken || getRefreshToken();
-      if (token) return failure("No refresh token available");
 
-      const refreshResult = await authService.refreshToken();
+      if (!token) return failure("No refresh token available");
+
+      const refreshResult = await authService.refreshToken(token);
       if (refreshResult.isFailure) {
         this._clearAuthState();
         return refreshResult;

@@ -49,7 +49,7 @@ export const useInstitutionStore = defineStore('institution', {
         },
 
         clearInstitution() {
-            this.student = initialInstitution()
+            this.institution = initialInstitution()
             this.error = null
             this.loading = false
         },
