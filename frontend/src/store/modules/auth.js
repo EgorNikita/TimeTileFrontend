@@ -131,8 +131,8 @@ export const useAuthStore = defineStore("auth", {
         const result = this._setTokens(token, refreshToken, remembered);
 
         if (result.isFailure) {
-          failure("Token is invalid, please log in again");
           this._clearAuthState();
+          return failure("Token is invalid, please log in again");
         }
       }
 

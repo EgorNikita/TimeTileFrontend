@@ -23,7 +23,11 @@ const getLessonStatus = (lesson) => {
 };
 
 // State
-const currentWeekStart = ref(new Date());
+const today = new Date();
+const day = today.getDay();
+const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Adjust when Sunday
+
+const currentWeekStart = ref(new Date(today.setDate(diff)));
 const selectedDate = ref(formatDate(new Date()));
 const currentTime = ref(new Date());
 const currentMonth = ref("");
