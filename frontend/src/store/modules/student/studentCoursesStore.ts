@@ -58,15 +58,10 @@ export const useStudentCourseStore = defineStore("studentCourse", {
       if (!this.contexts[contextKey]) {
         this.contexts[contextKey] = {
           courses: [],
-          pagination: { page: 1, pageSize: 10, total: 0 },
+          pagination: { page: 1, pageSize: 30, total: 0 },
         };
       }
       return this.contexts[contextKey];
-    },
-
-    // Current course management
-    setStudentId(studentId: number) {
-      this.studentId = studentId;
     },
 
     clearCurrentCourse() {

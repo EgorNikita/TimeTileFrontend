@@ -7,11 +7,13 @@ const props = defineProps({
     type: Object,
     required: true,
     default: () => ({
-      name: "",
-      initials: "",
-      href: "",
-      members: 0,
-      bgColor: "bg-gray-500",
+      id: 0,
+      iconUrl: "",
+      title: "",
+      subjectId: 0,
+      teacherId: 0,
+      isAdvanced: false,
+      termId: 0,
     }),
   },
 });
@@ -22,17 +24,20 @@ const props = defineProps({
     class="relative flex h-full justify-between items-center border border-gray-200 rounded-lg bg-white shadow-sm px-3 pt-3 pb-4 [&:hover:not(:has(.menu-area:hover))]:bg-gray-50"
   >
     <a
-      :href="course.href"
       v-tooltip="{
-        content: course.name,
+        content: course.title,
         theme: 'arrowed-tooltip',
+        strategy: 'fixed',
+        boundary: 'scrollParent',
+        flip: true,
+        preventOverflow: true,
       }"
       class="flex-1 flex items-center min-w-0"
     >
       <span class="relative inline-block flex-shrink-0">
         <img
           class="h-18 w-18 rounded-md"
-          src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+          :src="course.iconUrl || 'https://via.placeholder.com/72'"
           alt=""
         />
         <span
@@ -46,7 +51,7 @@ const props = defineProps({
         <div
           class="font-medium text-gray-900 hover:text-gray-600 break-words whitespace-normal"
         >
-          {{ course.name }}
+          {{ course.title }}
         </div>
         <p class="text-gray-500">{{ course.members }} Members</p>
       </div>
@@ -58,6 +63,10 @@ const props = defineProps({
         v-tooltip.right="{
           content: 'More options',
           theme: 'simple-tooltip',
+          boundary: 'scrollParent',
+          strategy: 'fixed',
+          flip: true,
+          preventOverflow: true,
         }"
       >
         <EllipsisVerticalIcon class="h-5 w-5" aria-hidden="true" />

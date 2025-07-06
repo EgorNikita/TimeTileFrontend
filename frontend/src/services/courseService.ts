@@ -1,17 +1,9 @@
 import { createApi } from "@/utils/apiClient";
 import type { ResultPattern } from "@/utils/resultPattern";
 import { success, failure } from "@/utils/resultPattern";
+import { CourseDto } from "@/types/course";
 
 const api = createApi();
-
-export interface CourseResponse {
-  id: number;
-  title: string;
-  subjectId: number;
-  teacherId: number;
-  isAdvanced: boolean;
-  termId: number;
-}
 
 export interface PagedList<T> {
   items: T[];
@@ -22,8 +14,8 @@ export interface PagedList<T> {
 }
 
 export interface PagedCourseResult
-  extends ResultPattern<PagedList<CourseResponse>> {}
-export interface CourseResult extends ResultPattern<CourseResponse> {}
+  extends ResultPattern<PagedList<CourseDto>> {}
+export interface CourseResult extends ResultPattern<CourseDto> {}
 
 export interface GetCoursesParams {
   subjectIds?: number[];
@@ -70,7 +62,20 @@ export async function fetchCourses(
 
     // The interceptor will handle success/failure wrapping, but just in case:
     if (response && response.isSuccess) {
-      return success(response.data);
+      console.log("Fetched courses:", response.data);
+      const transformedCourses = response.data.items.map(
+        (course: CourseDto) => ({
+          ...course,
+          iconUrl: `http://localhost:5282/files/${course.iconUrl}`,
+        }),
+      );
+
+      const proceedData = {
+        ...response.data,
+        items: transformedCourses,
+      };
+
+      return success(proceedData);
     } else if (response && response.isFailure) {
       return failure(response.error);
     } else {

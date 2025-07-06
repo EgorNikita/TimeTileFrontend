@@ -18,6 +18,8 @@ const { student, fullName, avatarUrl } = storeToRefs(studentStore);
 const sidebarRef = ref(null);
 const showUserMenu = ref(false);
 
+const scrollContainer = ref(null);
+
 // Example teams data (optional)
 const teams = ref([
   { id: 1, name: "Mathematics Dept", href: "#", initial: "M", current: false },
@@ -83,7 +85,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-100 flex">
+  <div class="h-screen flex overflow-hidden bg-gray-100">
     <!-- Sidebar Component -->
     <Sidebar
       ref="sidebarRef"
@@ -93,7 +95,7 @@ onUnmounted(() => {
     />
 
     <!-- Main content area -->
-    <div class="lg:pl-72 flex flex-col flex-1">
+    <div class="lg:pl-72 flex flex-col flex-1 overflow-hidden">
       <!-- Top header bar -->
       <div
         class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8"
@@ -238,8 +240,10 @@ onUnmounted(() => {
       </div>
 
       <!-- Main content -->
-      <main class="flex-1 overflow-auto">
-        <RouterView />
+      <main ref="scrollContainer" class="flex-1 overflow-y-auto">
+        <RouterView v-slot="{ Component }">
+          <component :is="Component" :scroll-container="scrollContainer" />
+        </RouterView>
       </main>
     </div>
   </div>
