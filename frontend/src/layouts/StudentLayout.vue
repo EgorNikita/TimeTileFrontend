@@ -83,7 +83,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 flex">
+  <div class="min-h-screen bg-gray-100 flex">
     <!-- Sidebar Component -->
     <Sidebar
       ref="sidebarRef"

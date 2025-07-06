@@ -2,83 +2,91 @@
 import CourseCard from "@/components/common/CourseCard.vue";
 import { UserGroupIcon } from "@heroicons/vue/24/outline";
 import draggable from "vuedraggable";
-import { ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
+import { useStudentCourseStore } from "@/store/modules/student/studentCoursesStore.js";
+import { useStudentStore } from "@/store/modules/student.js";
 
 // Make projects reactive so we can reorder them
-const projects = ref([
-  {
-    id: 1, // Add unique IDs for better tracking
-    name: "GY23x_Stufengruppe",
-    initials: "GA",
-    href: "#",
-    members: 16,
-    bgColor: "bg-pink-600",
+const props = defineProps({
+  contextKey: {
+    type: String,
+    default: "student-courses",
   },
-  {
-    id: 2,
-    name: "GYI231_LKI_PLUM",
-    initials: "CD",
-    href: "#",
-    members: 12,
-    bgColor: "bg-purple-600",
+  filters: {
+    type: Object,
+    default: () => ({}),
   },
-  {
-    id: 3,
-    name: "Spanischkurs_May_GYx23x",
-    initials: "RC",
-    href: "#",
-    members: 8,
-    bgColor: "bg-green-500",
+  allowDragAndDrop: {
+    type: Boolean,
+    default: true,
   },
-  {
-    id: 4,
-    name: "GYI231_GK_BWL_Pascher",
-    initials: "RC",
-    href: "#",
-    members: 8,
-    bgColor: "bg-green-500",
-  },
-  {
-    id: 5,
-    name: "LKM_GYI231_FRA",
-    initials: "T",
-    href: "#",
-    members: 16,
-    bgColor: "bg-yellow-500",
-  },
-  {
-    id: 6,
-    name: "GY22_23_24_Philosophie_Pascher",
-    initials: "T",
-    href: "#",
-    members: 16,
-    bgColor: "bg-yellow-500",
-  },
-]);
+});
 
-const dragging = ref(false);
+const courseStore = useStudentCourseStore();
 
-// Optional: Handle drag events
-const onDragStart = () => {
-  dragging.value = true;
-  console.log("Drag started");
-};
+const isDragging = ref(false);
+const draggableCourses = ref([]);
 
-const onDragEnd = () => {
-  dragging.value = false;
-  console.log("Drag ended");
-  console.log(
-    "New order:",
-    projects.value.map((p) => p.name),
+// Computed properties for reactive courseStore data
+const courses = computed(() => courseStore.getCourses(props.contextKey));
+const isLoading = computed(() => courseStore.loading);
+const loadError = computed(() => courseStore.error);
+const hasMore = computed(() => courseStore.hasMoreCourses(props.contextKey));
+
+// Keep draggableCourses synced with courses
+watch(
+  courses,
+  (newCourses) => {
+    draggableCourses.value = [...newCourses];
+  },
+  { immediate: true },
+);
+
+// Drag event handlers
+function onDragStart() {
+  isDragging.value = true;
+}
+
+function onDragEnd() {
+  isDragging.value = false;
+
+  // Example: update backend with new order
+  saveCoursesOrder(draggableCourses.value).catch((err) => {
+    console.error("Failed to save course order:", err);
+  });
+}
+
+function onDragChange(event) {
+  // Can debounce or throttle if needed
+}
+
+const loadCourses = async () => {
+  const result = await courseStore.loadStudentCourses(
+    props.contextKey,
+    props.filters,
   );
-
-  // Here you could save the new order to your backend
-  // saveCoursesOrder(projects.value);
+  if (result.isFailure) {
+    console.error("Failed to load courses:", result.error);
+  }
 };
 
-const onDragChange = (evt) => {
-  console.log("Drag change:", evt);
+// Load more courses if available
+const loadMoreCourses = async () => {
+  if (hasMore.value && !isLoading.value) {
+    const result = await courseStore.loadStudentCourses(
+      props.contextKey,
+      props.filters,
+      true,
+    );
+    if (result.isFailure) {
+      console.error("Failed to load courses:", result.error);
+    }
+  }
 };
+
+onMounted(async () => {
+  await loadCourses();
+});
 </script>
 
 <template>
@@ -91,7 +99,7 @@ const onDragChange = (evt) => {
     </div>
 
     <draggable
-      v-model="projects"
+      v-model="draggableCourses"
       tag="div"
       class="mt-3 grid flex-wrap gap-4"
       style="grid-template-columns: repeat(auto-fit, minmax(270px, 1fr))"

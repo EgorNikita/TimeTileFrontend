@@ -1,197 +1,98 @@
-import { createApi } from "@/utils/apiClient.js";
+import { createApi } from "@/utils/apiClient";
+import type { ResultPattern } from "@/utils/resultPattern";
 import { success, failure } from "@/utils/resultPattern";
 
-const COURSES_BASE_URL = "/courses";
 const api = createApi();
 
-/**
- * Helper function to build query parameters
- */
-function buildQueryParams(params = {}) {
-  const queryParams = new URLSearchParams();
-
-  // Array parameters
-  const arrayParams = [
-    "subjectIds",
-    "teacherIds",
-    "termIds",
-    "studentIds",
-    "groupIds",
-  ];
-  arrayParams.forEach((param) => {
-    if (params[param]?.length) {
-      params[param].forEach((id) => queryParams.append(param, id));
-    }
-  });
-
-  // Single value parameters
-  const singleParams = ["page", "pageSize", "sortBy", "descending"];
-  singleParams.forEach((param) => {
-    if (params[param] !== undefined && params[param] !== null) {
-      queryParams.append(param, params[param]);
-    }
-  });
-
-  return queryParams.toString();
+export interface CourseResponse {
+  id: number;
+  title: string;
+  subjectId: number;
+  teacherId: number;
+  isAdvanced: boolean;
+  termId: number;
 }
 
-/**
- * Helper function to handle API responses consistently
- */
-async function handleApiResponse(apiCall, errorMessage) {
-  try {
-    const response = await apiCall();
+export interface PagedList<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+}
 
-    if (response.data?.isSuccess) {
-      return success(response.data.data);
+export interface PagedCourseResult
+  extends ResultPattern<PagedList<CourseResponse>> {}
+export interface CourseResult extends ResultPattern<CourseResponse> {}
+
+export interface GetCoursesParams {
+  subjectIds?: number[];
+  teacherIds?: number[];
+  termIds?: number[];
+  studentIds?: number[];
+  groupIds?: number[];
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  descending?: boolean;
+}
+
+// Helper to serialize array query params (subjectIds=1&subjectIds=2)
+function buildQueryParams(params: GetCoursesParams): string {
+  const query = new URLSearchParams();
+
+  ["subjectIds", "teacherIds", "termIds", "studentIds", "groupIds"].forEach(
+    (key) => {
+      const value = params[key as keyof GetCoursesParams];
+      if (Array.isArray(value)) {
+        value.forEach((v) => query.append(key, String(v)));
+      }
+    },
+  );
+
+  ["page", "pageSize", "sortBy", "descending"].forEach((key) => {
+    const value = params[key as keyof GetCoursesParams];
+    if (value !== undefined && value !== null) {
+      query.append(key, String(value));
+    }
+  });
+
+  return query.toString();
+}
+
+export async function fetchCourses(
+  params: GetCoursesParams = {},
+): Promise<PagedCourseResult> {
+  try {
+    const queryString = buildQueryParams(params);
+    const url = queryString ? `/courses?${queryString}` : "/courses";
+    const response = await api.get(url);
+
+    // The interceptor will handle success/failure wrapping, but just in case:
+    if (response && response.isSuccess) {
+      return success(response.data);
+    } else if (response && response.isFailure) {
+      return failure(response.error);
     } else {
-      return failure(response.data?.error || errorMessage);
+      return failure({ message: "Unexpected API response" });
     }
   } catch (error) {
-    console.error(`API Error: ${errorMessage}`, error);
-    return failure(
-      error.response?.data?.error || error.message || errorMessage,
-    );
+    return failure({ message: (error as Error).message });
   }
 }
 
-/**
- * Fetch courses by student ID
- */
-export async function fetchCoursesByStudentId(studentId) {
-  return handleApiResponse(
-    () => api.get(`/students/${studentId}/courses`),
-    "Failed to fetch courses by student ID",
-  );
+export async function fetchCourseById(id: number): Promise<CourseResult> {
+  try {
+    const response = await api.get(`/courses/${id}`);
+
+    if (response && response.isSuccess) {
+      return success(response.data);
+    } else if (response && response.isFailure) {
+      return failure(response.error);
+    } else {
+      return failure({ message: "Unexpected API response" });
+    }
+  } catch (error) {
+    return failure({ message: (error as Error).message });
+  }
 }
-
-/**
- * Fetch courses with filtering and pagination
- */
-export async function fetchCourses(params = {}) {
-  const queryString = buildQueryParams(params);
-  const url = queryString
-    ? `${COURSES_BASE_URL}?${queryString}`
-    : COURSES_BASE_URL;
-
-  return handleApiResponse(() => api.get(url), "Failed to fetch courses");
-}
-
-/**
- * Fetch student courses (alias for better naming consistency)
- */
-export const fetchStudentCourses = fetchCourses;
-
-/**
- * Fetch single course by ID
- */
-export async function fetchCourseById(courseId) {
-  return handleApiResponse(
-    () => api.get(`${COURSES_BASE_URL}/${courseId}`),
-    "Failed to fetch course",
-  );
-}
-
-/**
- * Create a new course
- */
-export async function createCourse(courseData) {
-  return handleApiResponse(
-    () => api.post(COURSES_BASE_URL, courseData),
-    "Failed to create course",
-  );
-}
-
-/**
- * Update course information
- */
-export async function updateCourse(courseId, courseData) {
-  return handleApiResponse(
-    () => api.put(`${COURSES_BASE_URL}/${courseId}`, courseData),
-    "Failed to update course",
-  );
-}
-
-/**
- * Delete a course
- */
-export async function deleteCourse(courseId) {
-  return handleApiResponse(
-    () => api.delete(`${COURSES_BASE_URL}/${courseId}`),
-    "Failed to delete course",
-  );
-}
-
-/**
- * Update course students
- */
-export async function updateCourseStudents(courseId, studentsData) {
-  return handleApiResponse(
-    () => api.patch(`${COURSES_BASE_URL}/${courseId}/students`, studentsData),
-    "Failed to update course students",
-  );
-}
-
-/**
- * Add students to course
- */
-export async function addStudentsToCourse(courseId, studentIds) {
-  return handleApiResponse(
-    () => api.post(`${COURSES_BASE_URL}/${courseId}/students`, { studentIds }),
-    "Failed to add students to course",
-  );
-}
-
-/**
- * Remove students from course
- */
-export async function removeStudentsFromCourse(courseId, studentIds) {
-  return handleApiResponse(
-    () =>
-      api.delete(`${COURSES_BASE_URL}/${courseId}/students`, {
-        data: { studentIds },
-      }),
-    "Failed to remove students from course",
-  );
-}
-
-/**
- * Get course enrollment statistics
- */
-export async function getCourseStats(courseId) {
-  return handleApiResponse(
-    () => api.get(`${COURSES_BASE_URL}/${courseId}/stats`),
-    "Failed to fetch course statistics",
-  );
-}
-
-/**
- * Search courses by title or description
- */
-export async function searchCourses(query, params = {}) {
-  const searchParams = {
-    ...params,
-    search: query,
-  };
-
-  return fetchCourses(searchParams);
-}
-
-// Export all functions as a single object for easier importing
-export const courseApi = {
-  fetchCoursesByStudentId,
-  fetchCourses,
-  fetchStudentCourses,
-  fetchCourseById,
-  createCourse,
-  updateCourse,
-  deleteCourse,
-  updateCourseStudents,
-  addStudentsToCourse,
-  removeStudentsFromCourse,
-  getCourseStats,
-  searchCourses,
-};
-
-// Default export for convenience
-export default courseApi;

@@ -1,5 +1,5 @@
 import { TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/constants.js";
-import { failure, success } from "@/utils/resultPattern.js";
+import { failure, success } from "@/utils/resultPattern.ts";
 import { jwtDecode } from "jwt-decode";
 
 export const getAuthToken = () => {

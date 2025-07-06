@@ -1,7 +1,8 @@
 import { defineStore } from "pinia";
-import { fetchStudentCourses, fetchCourseById } from "@/services/courseService";
+import { fetchCourses, fetchCourseById } from "@/services/courseService";
 import { CourseDto } from "@/types/course";
 import { courseCache } from "@/store/cache/courseCache";
+import { failure, success } from "@/utils/resultPattern";
 
 interface Pagination {
   page: number;
@@ -15,6 +16,7 @@ interface CourseContext {
 }
 
 interface CourseFilters {
+  studentId?: number;
   subjectId?: string;
 }
 
@@ -23,6 +25,7 @@ export const useStudentCourseStore = defineStore("studentCourse", {
     loading: false,
     error: null as string | null,
     currentCourse: null as CourseDto | null,
+    studentId: null as number | null,
     contexts: {} as Record<string, CourseContext>,
   }),
 
@@ -62,9 +65,8 @@ export const useStudentCourseStore = defineStore("studentCourse", {
     },
 
     // Current course management
-    setCurrentCourse(course: CourseDto) {
-      this.currentCourse = course;
-      courseCache.set(course);
+    setStudentId(studentId: number) {
+      this.studentId = studentId;
     },
 
     clearCurrentCourse() {
@@ -79,70 +81,88 @@ export const useStudentCourseStore = defineStore("studentCourse", {
     ) {
       if (this.loading) return;
 
-      try {
-        this.loading = true;
-        this.error = null;
+      this.loading = true;
+      this.error = null;
 
-        const context = this.getContext(contextKey);
-        const page = loadMore ? context.pagination.page + 1 : 1;
+      const context = this.getContext(contextKey);
+      const page = loadMore ? context.pagination.page + 1 : 1;
 
-        const response = await fetchStudentCourses({
-          ...filters,
-          page,
-          pageSize: context.pagination.pageSize,
-        });
+      const response = await fetchCourses({
+        ...filters,
+        page: page,
+        pageSize: context.pagination.pageSize,
+      });
 
-        if (!response.isSuccess) {
-          throw new Error(response.error || "Failed to load courses");
-        }
-
-        const { items: newCourses, total } = response.data;
-
-        // Update pagination
-        context.pagination = { ...context.pagination, page, total };
-
-        // Update courses
-        if (loadMore) {
-          this.mergeCourses(context, newCourses);
-        } else {
-          context.courses = newCourses;
-        }
-
-        // Cache all courses
-        newCourses.forEach((course: CourseDto) => courseCache.set(course));
-      } catch (error) {
-        this.error = error instanceof Error ? error.message : "Unknown error";
-      } finally {
+      if (!response.isSuccess) {
+        console.log(response.error);
+        const errorMessage = response.error || "Failed to load courses";
+        this.error = errorMessage;
         this.loading = false;
+        return failure(errorMessage);
       }
+
+      if (!response.data) {
+        const errorMessage = "No data returned from API";
+        this.error = errorMessage;
+        this.loading = false;
+        return failure(errorMessage);
+      }
+
+      const { items: newCourses, totalCount: total } = response.data;
+
+      console.log(response.data);
+
+      // Update pagination
+      context.pagination = { ...context.pagination, page, total };
+
+      // Update courses
+      if (loadMore) {
+        this.mergeCourses(context, newCourses);
+      } else {
+        context.courses = newCourses;
+      }
+
+      console.log(
+        `Loaded ${newCourses.length} courses for context "${contextKey}"`,
+      );
+
+      // Cache all courses
+      newCourses.forEach((course: CourseDto) => courseCache.set(course));
+      this.loading = false;
+
+      return success({
+        courses: newCourses,
+        total,
+        hasMore: this.hasMoreCourses(contextKey),
+      });
     },
 
-    // Load single course
-    async loadSingleCourse(courseId: number) {
-      try {
-        this.loading = true;
-        this.error = null;
-
-        // Check cache first
-        const cached = courseCache.get(courseId);
-        if (cached) {
-          this.setCurrentCourse(cached);
-          return;
-        }
-
-        const response = await fetchCourseById(courseId.toString());
-        if (!response.isSuccess) {
-          throw new Error(response.error || "Course not found");
-        }
-
-        this.setCurrentCourse(response.data);
-      } catch (error) {
-        this.clearCurrentCourse();
-        this.error = error instanceof Error ? error.message : "Unknown error";
-      } finally {
-        this.loading = false;
-      }
-    },
+    // // Load single course
+    // async loadSingleCourse(courseId: number) {
+    //   try {
+    //     this.loading = true;
+    //     this.error = null;
+    //
+    //     // Check cache first
+    //     const cached = courseCache.get(courseId);
+    //     if (cached) {
+    //       this.setCurrentCourse(cached);
+    //       return;
+    //     }
+    //
+    //     const response = await fetchCourseById(courseId.toString());
+    //     if (!response.isSuccess) {
+    //       throw new Error(response.error || "Course not found");
+    //     }
+    //
+    //     this.setCurrentCourse(response.data);
+    //   } catch (error) {
+    //     this.clearCurrentCourse();
+    //     this.error = error instanceof Error ? error.message : "Unknown error";
+    //   } finally {
+    //     this.loading = false;
+    //   }
+    // },
 
     // Update course across all contexts
     updateCourse(course: CourseDto) {
