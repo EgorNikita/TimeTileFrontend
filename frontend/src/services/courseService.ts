@@ -1,5 +1,7 @@
 import { createApi } from "@/utils/apiClient"; // your axios or fetch wrapper
 import type { CourseListParams, PagedList, Course } from "@/types/course";
+import { buildQueryParams } from "@/helpers/queryParamsBuilder";
+import { API_ENDPOINTS } from "@/constants";
 
 const api = createApi();
 
@@ -7,7 +9,9 @@ export async function fetchCourses(
   params: CourseListParams = {},
 ): Promise<PagedList<Course>> {
   const queryString = buildQueryParams(params);
-  const url = queryString ? `/courses?${queryString}` : "/courses";
+  const url = queryString
+    ? `${API_ENDPOINTS.COURSES}?${queryString}`
+    : API_ENDPOINTS.COURSES;
 
   const response = await api.get(url);
 
@@ -25,16 +29,4 @@ export async function fetchCourses(
     ...response.data,
     items: transformedCourses,
   };
-}
-
-// Helper to build query params string (you may already have this)
-function buildQueryParams(params: Record<string, any>): string {
-  return Object.entries(params)
-    .filter(([_, v]) => v != null && v !== "")
-    .map(([key, value]) =>
-      Array.isArray(value)
-        ? value.map((v) => `${key}=${encodeURIComponent(v)}`).join("&")
-        : `${key}=${encodeURIComponent(value)}`,
-    )
-    .join("&");
 }

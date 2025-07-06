@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { authService } from "@/services/authService";
 import { success, failure } from "@/utils/resultPattern.js";
-import { ROLES, ROUTE_NAMES } from "@/constants.js";
+import { ROLES, ROUTE_NAMES } from "@/constants.ts";
 import {
   clearAllTokens,
   extractClaimsFromToken,

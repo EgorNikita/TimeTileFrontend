@@ -1,9 +1,9 @@
 import { useInfiniteQuery } from "@tanstack/vue-query";
 import type { PagedList } from "@/types/course";
 import { fetchGrades } from "@/services/gradeService";
-import type { Grade, GradesFilters } from "@/types/grade";
+import type { Grade, GradeFilters } from "@/types/grade";
 
-export function useGrades(filters: GradesFilters = {}, pageSize = 10) {
+export function useGrades(filters: GradeFilters = {}, pageSize = 10) {
   return useInfiniteQuery({
     queryKey: ["grades", filters] as const,
 

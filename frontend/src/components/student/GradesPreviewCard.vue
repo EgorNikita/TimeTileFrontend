@@ -1,56 +1,59 @@
 <script setup>
 import { computed } from "vue";
-import { subjectCache } from "@/store/cache/subjectCache.js";
 
 const props = defineProps({
-  grade: {
-    type: Number,
+  gradeInfo: {
+    type: Object,
     required: true,
-  },
-  subjectId: {
-    type: Number,
-    required: true,
-  },
-  type: {
-    type: String,
-    required: true,
-  },
-  date: {
-    type: String,
-    required: true,
+    default: () => ({
+      id: 0,
+      value: 0,
+      subjectId: 0,
+      subjectTitle: "",
+      type: "",
+      date: "",
+    }),
   },
 });
 
 const formattedDate = computed(() =>
-  new Intl.DateTimeFormat('uk', {
-    month: '2-digit',
-    day: '2-digit'
-  }).format(new Date(props.date))
+  new Intl.DateTimeFormat("uk", {
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(props.gradeInfo.date)),
 );
-
-const subject = subjectCache.get(props.subjectId);
-console.log(subject);
-const subjectTitle = subject.title;
-
 </script>
 
 <template>
-  <div class="flex items-center justify-between">
+  <div class="flex items-center space-x-4 w-full">
     <!-- Grade Circle -->
-    <div class="flex items-center space-x-4">
-      <div
-        class="w-14 h-14 rounded-full border-3 border-blue-400 flex items-center justify-center"
-      >
-        <span class="text-2xl font-bold text-blue-500">{{ grade }}</span>
-      </div>
+    <div
+      class="w-14 h-14 rounded-full border-3 border-blue-400 flex items-center justify-center"
+    >
+      <span class="text-2xl font-bold text-blue-500">
+        {{ gradeInfo.value }}
+      </span>
+    </div>
 
-      <!-- Subject and Work Type -->
-      <div>
-        <h3 class="font-semibold text-lg text-red-500 truncate max-w-xs">
-          {{ subjectTitle }}
-        </h3>
-        <p class="text-gray-700 text-sm">{{ type }}</p>
-      </div>
+    <!-- Text container that can shrink/grow -->
+    <div class="flex-1 min-w-0">
+      <h3
+        ref="tooltipTrigger"
+        class="truncate overflow-hidden whitespace-nowrap font-semibold text-lg text-red-500"
+        v-tooltip="{
+          content: gradeInfo.subjectTitle,
+          theme: 'arrowed-tooltip',
+          strategy: 'fixed',
+          boundary: 'scrollParent',
+          flip: true,
+          preventOverflow: true,
+        }"
+      >
+        {{ gradeInfo.subjectTitle }}
+      </h3>
+      <p class="text-gray-700 text-sm">
+        {{ gradeInfo.type }}
+      </p>
     </div>
 
     <!-- Date -->

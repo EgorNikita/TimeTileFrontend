@@ -20,12 +20,12 @@ onMounted(async () => {
     <!-- Left sidebar & main wrapper -->
     <div class="flex-1 xl:flex">
       <div
-        class="h-[calc(100vh-65px)] flex min-w-fit flex-col gap-5 border-gray-200 py-6 w-64 shrink-0 border-r pl-4 sticky top-0"
+        class="h-[calc(100vh-65px)] w-96 flex flex-col gap-5 border-gray-200 py-6 w-64 shrink-0 border-r pl-4 sticky top-0"
       >
         <div
-          class="h-1/2 relative overflow-hidden rounded-lg bg-white shadow-sm sm:pt-6"
+          class="h-1/2 relative overflow-hidden rounded-lg bg-white shadow-sm sm:pt-6 w-full"
         ></div>
-        <GradesPreview class="h-1/2" />
+        <GradesPreview class="h-1/2 w-full" />
       </div>
 
       <!-- CoursesOverview container - flows naturally with page scroll -->

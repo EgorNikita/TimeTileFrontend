@@ -1,26 +1,27 @@
-export const TOKEN_KEY = "auth_token";
-export const REFRESH_TOKEN_KEY = "refresh_token";
-export const API_BASE_URL = "http://localhost:5282";
+// constants.ts
+export const TOKEN_KEY = "auth_token" as const;
+export const REFRESH_TOKEN_KEY = "refresh_token" as const;
+export const API_BASE_URL = "http://localhost:5282" as const;
 
 // User roles - matching your backend GeneralRoles
 export const ROLES = {
   STUDENT: "Student",
-  INSTITUTION_MEMBER: "InstitutionMember", // This covers teachers and other staff
+  INSTITUTION_MEMBER: "InstitutionMember",
   ADMIN: "Admin",
-};
+} as const;
 
 // Custom claim types - matching your backend CustomClaimTypes
 export const CUSTOM_CLAIM_TYPES = {
   INSTITUTION_ID: "custom:institution_id",
   INSTITUTION_DOMAIN: "custom:institution_domain",
   PERMISSION: "custom:permission",
-};
+} as const;
 
 // Standard .NET claim types
 export const STANDARD_CLAIM_TYPES = {
   ROLE: "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
   EMAIL: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
-};
+} as const;
 
 // Route names - ensure these match your actual route definitions
 export const ROUTE_NAMES = {
@@ -37,7 +38,7 @@ export const ROUTE_NAMES = {
 
   // Institution Member routes (Teachers, Staff, etc.)
   INSTITUTION_MEMBER_HOME: "InstitutionMemberHome",
-  TEACHER_HOME: "TeacherHome", // Alias for backward compatibility
+  TEACHER_HOME: "TeacherHome",
   TEACHER_COURSES: "TeacherCourses",
   TEACHER_SCHEDULE: "TeacherSchedule",
   TEACHER_STUDENTS: "TeacherStudents",
@@ -46,7 +47,7 @@ export const ROUTE_NAMES = {
   ADMIN_HOME: "AdminHome",
   ADMIN_USERS: "AdminUsers",
   ADMIN_INSTITUTIONS: "AdminInstitutions",
-};
+} as const;
 
 // Permissions
 export const PERMISSIONS = {
@@ -67,22 +68,53 @@ export const PERMISSIONS = {
   MANAGE_INSTITUTIONS: "manage_institutions",
   VIEW_REPORTS: "view_reports",
   SYSTEM_CONFIG: "system_config",
-};
+} as const;
 
 // API endpoints
 export const API_ENDPOINTS = {
+  // Authentication endpoints
   AUTH: {
     LOGIN: "/auth/login",
     LOGOUT: "/auth/logout",
     REFRESH: "/auth/refresh",
     PROFILE: "/auth/profile",
   },
+
+  // Institution management
+  INSTITUTIONS: "/institutions",
+  INSTITUTION_MEMBERS: "/institution-members",
+
+  // User management
+  USERS: "/users",
+  ROLES: "/roles",
+
+  // Academic structure
   COURSES: "/courses",
+  SUBJECTS: {
+    BASIC: "/subjects",
+    BY_IDS: "/subjects/bulk",
+  },
+  GROUPS: "/groups",
+  TERMS: "/terms",
+
+  // People
   STUDENTS: "/students",
   TEACHERS: "/teachers",
+
+  // Scheduling and classroom management
   SCHEDULES: "/schedules",
+  LESSONS: "/lessons",
+  CLASSROOMS: "/classrooms",
+  CLASSROOM_TYPES: "/classroom-types",
+  TIMETABLE_UNITS: "/timetable-units",
+
+  // Academic records
   GRADES: "/grades",
-};
+  LESSON_STATUSES: "/lesson-statuses",
+
+  // File management
+  FILES: "/files",
+} as const;
 
 // Application settings
 export const APP_CONFIG = {
@@ -103,7 +135,7 @@ export const APP_CONFIG = {
   MAX_PASSWORD_LENGTH: 128,
   USERNAME_MIN_LENGTH: 3,
   USERNAME_MAX_LENGTH: 50,
-};
+} as const;
 
 // Error messages
 export const ERROR_MESSAGES = {
@@ -111,4 +143,13 @@ export const ERROR_MESSAGES = {
   INVALID_CREDENTIALS: "Invalid username or password",
   SESSION_EXPIRED: "Your session has expired. Please log in again.",
   ACCESS_DENIED: "You do not have permission to access this resource",
-};
+} as const;
+
+// Type definitions for better type safety
+export type Role = (typeof ROLES)[keyof typeof ROLES];
+export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
+export type RouteName = (typeof ROUTE_NAMES)[keyof typeof ROUTE_NAMES];
+export type CustomClaimType =
+  (typeof CUSTOM_CLAIM_TYPES)[keyof typeof CUSTOM_CLAIM_TYPES];
+export type StandardClaimType =
+  (typeof STANDARD_CLAIM_TYPES)[keyof typeof STANDARD_CLAIM_TYPES];

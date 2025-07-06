@@ -1,4 +1,4 @@
-import { TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/constants.js";
+import { TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/constants.ts";
 import { failure, success } from "@/utils/resultPattern.ts";
 import { jwtDecode } from "jwt-decode";
 

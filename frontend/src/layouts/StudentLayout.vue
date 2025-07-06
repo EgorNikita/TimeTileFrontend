@@ -7,7 +7,7 @@ import { useStudentStore } from "@/store/modules/student.js";
 import { storeToRefs } from "pinia";
 import { useInstitutionStore } from "@/store/modules/institution.js";
 import router from "@/router/router.js";
-import { ROUTE_NAMES } from "@/constants.js";
+import { ROUTE_NAMES } from "@/constants.ts";
 
 const auth = useAuthStore();
 const studentStore = useStudentStore();

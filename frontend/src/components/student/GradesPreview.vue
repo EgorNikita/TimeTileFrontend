@@ -1,63 +1,93 @@
-<script setup>
-import { computed, onMounted, ref, watch } from "vue";
+<script setup lang="ts">
+import { computed, ref } from "vue";
 import GradesPreviewCard from "./GradesPreviewCard.vue";
+import { GradeFilters } from "@/types/grade";
+import { useGrades } from "@/tanStackQueries/grades/useGrades";
+import { useBulkSubjectsQuery } from "@/tanStackQueries/subject/useBulkSubjects";
+import { hideAllPoppers } from "floating-vue";
 
-// Make projects reactive so we can reorder them
-const props = defineProps({
-  contextKey: {
-    type: String,
-    default: "grades",
-  },
-  filters: {
-    type: Object,
-    default: () => ({}),
-  },
+interface Props {
+  filters?: GradeFilters;
+  scrollThreshold?: number;
+  scrollContainer?: HTMLElement | null;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  filters: () => ({}),
+  scrollThreshold: 200,
 });
 
-const gradeStore = useGradesStore();
+const gradesQuery = useGrades(props.filters);
 
 // Computed properties for reactive gradeStore data
-const grades = computed(() => gradeStore.getGrades(props.contextKey));
-const isLoading = computed(() => gradeStore.loading);
-const hasMore = computed(() => gradeStore.hasMoreGrades(props.contextKey));
-
-const loadGrades = async () => {
-  const result = await gradeStore.loadGrades(props.contextKey, props.filters);
-  if (result.isFailure) {
-    console.error("Failed to load courses:", result.error);
-  }
-};
-
-onMounted(async () => {
-  await loadGrades();
+const grades = computed(() => {
+  if (!gradesQuery.data?.value) return [];
+  return gradesQuery.data.value.pages.flatMap((page) => page.items);
 });
 
-const scrollContainer = ref(null);
+const subjectIds = computed(() => {
+  const ids = grades.value.map((grade) => grade.subjectId);
+  return [...new Set(ids)]; // Remove duplicates
+});
 
-function handleScroll() {
-  const container = scrollContainer.value;
+const subjectsQuery = useBulkSubjectsQuery(
+  subjectIds,
+  computed(() => subjectIds.value.length > 0), // Only fetch when we have IDs
+);
+
+const subjectsMap = computed(() => {
+  if (!subjectsQuery.data?.value) return new Map();
+
+  const map = new Map();
+  subjectsQuery.data.value.forEach((subject) => {
+    map.set(subject.id, subject);
+  });
+  return map;
+});
+
+const gradesWithSubjects = computed(() => {
+  return grades.value.map((grade) => ({
+    ...grade,
+    subjectTitle:
+      subjectsMap.value.get(grade.subjectId)?.title || "Unknown Subject",
+  }));
+});
+
+const isLoading = computed(() => gradesQuery.isFetching?.value || false);
+const hasMore = computed(() => gradesQuery.hasNextPage?.value || false);
+
+const scrollContainer = ref<HTMLElement | null>(null);
+
+const activeScrollContainer = computed(
+  () => props.scrollContainer || scrollContainer.value,
+);
+
+const handleScroll = () => {
+  const container = activeScrollContainer.value;
   if (!container) return;
+
+  hideAllPoppers();
 
   // Check if we're near the bottom (e.g., within 100px)
   if (
     container.scrollHeight - container.scrollTop - container.clientHeight <
-    100
+    props.scrollThreshold
   ) {
     loadMoreGrades();
   }
-}
+};
 
-async function loadMoreGrades() {
+const loadMoreGrades = async () => {
   if (isLoading.value || !hasMore.value) return;
 
-  await gradeStore.loadGrades(props.contextKey, props.filters, true);
-}
+  if (gradesQuery.fetchNextPage) {
+    await gradesQuery.fetchNextPage();
+  }
+};
 </script>
 
 <template>
-  <div
-    class="relative bg-white rounded-xl shadow-lg p-6 pr-4 flex flex-col max-w-[25vw]"
-  >
+  <div class="relative bg-white rounded-xl shadow-lg p-6 pr-4 flex flex-col">
     <!-- Header -->
     <h2 class="text-2xl font-bold text-gray-800 mb-6 flex-shrink-0">
       Нові оцінки
@@ -66,17 +96,14 @@ async function loadMoreGrades() {
     <!-- Grades List -->
     <div
       ref="scrollContainer"
-      class="flex-1 overflow-y-auto min-h-0 custom-scrollbar max-h-[60vh]"
+      class="flex-1 overflow-y-auto min-h-0 custom-scrollbar"
       @scroll="handleScroll"
     >
       <div class="space-y-4 pr-3">
         <GradesPreviewCard
-          v-for="grade in grades"
+          v-for="grade in gradesWithSubjects"
           :key="grade.id"
-          :grade="grade.value"
-          :subject-id="grade.subjectId"
-          :type="grade.type"
-          :date="grade.date"
+          :grade-info="grade"
         />
       </div>
     </div>
