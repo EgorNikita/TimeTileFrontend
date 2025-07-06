@@ -11,6 +11,7 @@ const props = defineProps({
       iconUrl: "",
       title: "",
       subjectId: 0,
+      subjectTitle: "",
       teacherId: 0,
       isAdvanced: false,
       termId: 0,
@@ -53,7 +54,7 @@ const props = defineProps({
         >
           {{ course.title }}
         </div>
-        <p class="text-gray-500">{{ course.members }} Members</p>
+        <p class="text-gray-500">{{ course.subjectTitle }}</p>
       </div>
     </a>
 

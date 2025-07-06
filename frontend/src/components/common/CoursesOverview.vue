@@ -1,116 +1,113 @@
-<script setup>
+<script setup lang="ts">
 import CourseCard from "@/components/common/CourseCard.vue";
 import { UserGroupIcon } from "@heroicons/vue/24/outline";
 import draggable from "vuedraggable";
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
-import { useStudentCourseStore } from "@/store/modules/student/studentCoursesStore.js";
+import { computed, ref, watch, nextTick, onMounted, onUnmounted } from "vue";
 
-const props = defineProps({
-  contextKey: {
-    type: String,
-    default: "student-courses",
-  },
-  filters: {
-    type: Object,
-    default: () => ({}),
-  },
-  allowDragAndDrop: {
-    type: Boolean,
-    default: true,
-  },
-  scrollThreshold: {
-    type: Number,
-    default: 200, // pixels from bottom to trigger load
-  },
-  scrollContainer: {
-    type: Object,
-    required: true,
-  },
+import { useCourses } from "@/tanStackQueries/course/useCourses";
+import type { Course, CourseFilters } from "@/types/course";
+import { useBulkSubjectsQuery } from "@/tanStackQueries/subject/useBulkSubjects";
+
+// Props
+interface Props {
+  filters?: CourseFilters;
+  allowDragAndDrop?: boolean;
+  scrollThreshold?: number;
+  scrollContainer: HTMLElement | null;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  filters: () => ({}),
+  allowDragAndDrop: true,
+  scrollThreshold: 200,
 });
 
-const courseStore = useStudentCourseStore();
-const isLoadingMore = ref(false);
+// Constants
+const PAGE_SIZE = 20;
+const SCROLL_THROTTLE_MS = 100;
+
+// Reactive state
 const isDragging = ref(false);
-const draggableCourses = ref([]);
-let scrollTimeout = null;
+const draggableCourses = ref<Course[]>([]);
+const isLoadingMore = ref(false);
+let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
 
-// Computed properties for reactive courseStore data
-const courses = computed(() => courseStore.getCourses(props.contextKey));
-const isLoading = computed(() => courseStore.loading);
-const loadError = computed(() => courseStore.error);
-const hasMore = computed(() => courseStore.hasMoreCourses(props.contextKey));
+// Queries
+const coursesQuery = useCourses(props.filters, PAGE_SIZE);
 
-// Keep draggableCourses synced with courses
-watch(
-  courses,
-  (newCourses) => {
-    draggableCourses.value = [...newCourses];
-  },
-  { immediate: true },
-);
+// Computed properties
+const allCourses = computed(() => {
+  if (!coursesQuery.data?.value) return [];
+  return coursesQuery.data.value.pages.flatMap((page) => page.items);
+});
 
-// Drag event handlers
-function onDragStart() {
+const subjectIds = computed(() => [
+  ...new Set(allCourses.value.map((course) => course.subjectId)),
+]);
+
+const subjectsQuery = useBulkSubjectsQuery(subjectIds);
+
+const subjectTitleMap = computed(() => {
+  const map = new Map<number, string>();
+  if (subjectsQuery.data?.value) {
+    subjectsQuery.data.value.forEach((subject) => {
+      map.set(subject.id, subject.title);
+    });
+  }
+  return map;
+});
+
+const enrichedCourses = computed(() => {
+  return allCourses.value.map((course) => ({
+    ...course,
+    subjectTitle:
+      subjectTitleMap.value.get(course.subjectId) ?? "Unknown Subject",
+  }));
+});
+
+const hasMore = computed(() => coursesQuery.hasNextPage.value ?? false);
+const isLoading = computed(() => coursesQuery.isFetching.value);
+
+// Drag and drop handlers
+const handleDragStart = () => {
   isDragging.value = true;
-}
+};
 
-function onDragEnd() {
+const handleDragEnd = async () => {
   isDragging.value = false;
-  saveCoursesOrder(draggableCourses.value).catch((err) => {
-    console.error("Failed to save course order:", err);
-  });
-}
-
-function onDragChange(event) {
-  // Can debounce or throttle if needed
-}
-
-const loadCourses = async () => {
-  const result = await courseStore.loadStudentCourses(
-    props.contextKey,
-    props.filters,
-  );
-  if (result.isFailure) {
-    console.error("Failed to load courses:", result.error);
+  try {
+    await saveCoursesOrder(draggableCourses.value);
+  } catch (error) {
+    console.error("Failed to save course order:", error);
   }
 };
 
+// Infinite scroll logic
 const loadMoreCourses = async () => {
   if (hasMore.value && !isLoading.value && !isLoadingMore.value) {
     isLoadingMore.value = true;
-    const result = await courseStore.loadStudentCourses(
-      props.contextKey,
-      props.filters,
-      true,
-    );
-    if (result.isFailure) {
-      console.error("Failed to load courses:", result.error);
+    try {
+      await coursesQuery.fetchNextPage();
+    } catch (error) {
+      console.error("Failed to load more courses:", error);
+    } finally {
+      isLoadingMore.value = false;
     }
-    isLoadingMore.value = false;
   }
 };
 
 const handlePageScroll = async () => {
-  // The scrollContainer prop is already a ref, so we need to access its value
   const container = props.scrollContainer;
   if (!container || isLoadingMore.value || isDragging.value) return;
 
   const { scrollTop, scrollHeight, clientHeight } = container;
-  const scrolledToBottom =
-    scrollHeight - scrollTop - clientHeight <= props.scrollThreshold;
+  const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
 
-  console.log({
-    scrollTop,
-    scrollHeight,
-    clientHeight,
-    distanceFromBottom: scrollHeight - scrollTop - clientHeight,
-    hasMore: hasMore.value,
-    isLoading: isLoading.value,
-    isLoadingMore: isLoadingMore.value,
-  });
-
-  if (scrolledToBottom && hasMore.value && !isLoading.value) {
-    console.log("Loading more courses...");
+  if (
+    distanceFromBottom <= props.scrollThreshold &&
+    hasMore.value &&
+    !isLoading.value
+  ) {
     await loadMoreCourses();
   }
 };
@@ -121,55 +118,59 @@ const throttledScrollHandler = () => {
   scrollTimeout = setTimeout(() => {
     handlePageScroll();
     scrollTimeout = null;
-  }, 100);
+  }, SCROLL_THROTTLE_MS);
 };
 
-// Watch for scroll container changes and add/remove event listeners
-watch(
-  () => props.scrollContainer,
-  (newContainer, oldContainer) => {
-    // Remove listener from old container
-    if (oldContainer?.value) {
-      oldContainer.value.removeEventListener("scroll", throttledScrollHandler);
-    }
+// Scroll container management
+const setupScrollListener = (container: HTMLElement | null) => {
+  if (container) {
+    container.addEventListener("scroll", throttledScrollHandler, {
+      passive: true,
+    });
+  }
+};
 
-    // Add listener to new container
-    if (newContainer?.value) {
-      newContainer.value.addEventListener("scroll", throttledScrollHandler, {
-        passive: true,
-      });
-    }
-  },
-  { immediate: true },
-);
+const removeScrollListener = (container: HTMLElement | null) => {
+  if (container) {
+    container.removeEventListener("scroll", throttledScrollHandler);
+  }
+};
 
-// Placeholder function for saving course order
-async function saveCoursesOrder(courses) {
+// API calls
+const saveCoursesOrder = async (courses: Course[]) => {
   console.log(
     "Saving course order:",
     courses.map((c) => c.id),
   );
-  // Implement your API call here
-}
+  // TODO: implement API call to save order
+};
 
+// Watchers
+watch(
+  enrichedCourses,
+  (newCourses) => {
+    draggableCourses.value = [...newCourses];
+  },
+  { immediate: true },
+);
+
+watch(
+  () => props.scrollContainer,
+  (newContainer, oldContainer) => {
+    removeScrollListener(oldContainer);
+    setupScrollListener(newContainer);
+  },
+  { immediate: true },
+);
+
+// Lifecycle hooks
 onMounted(async () => {
-  await loadCourses();
-
-  // Ensure scroll container is attached after mount
   await nextTick();
-
-  if (props.scrollContainer) {
-    props.scrollContainer.addEventListener("scroll", throttledScrollHandler, {
-      passive: true,
-    });
-  }
+  setupScrollListener(props.scrollContainer);
 });
 
 onUnmounted(() => {
-  // Clean up scroll listener and timeout
-  if (props.scrollContainer) {
-    props.scrollContainer.removeEventListener("scroll", throttledScrollHandler);
-  }
+  removeScrollListener(props.scrollContainer);
   if (scrollTimeout) {
     clearTimeout(scrollTimeout);
   }
@@ -180,34 +181,64 @@ onUnmounted(() => {
   <div
     class="relative rounded-lg bg-white px-4 pt-5 pb-12 shadow-md sm:px-6 sm:pt-6 flex flex-col h-full"
   >
+    <!-- Header -->
     <div class="flex items-center space-x-2">
       <UserGroupIcon class="size-6 shrink-0 text-gray-900" />
       <h2 class="text-lg font-bold text-gray-900">Courses</h2>
     </div>
 
-    <!-- Scrollable area -->
+    <!-- Course Grid -->
     <draggable
-      v-model="courses"
+      v-model="draggableCourses"
       tag="div"
       class="grid flex-wrap gap-4 mt-2"
       style="grid-template-columns: repeat(auto-fit, minmax(270px, 1fr))"
-      :animation="200"
+      :animation="500"
+      :disabled="!allowDragAndDrop"
       ghost-class="ghost-card"
       chosen-class="chosen-card"
       drag-class="drag-card"
       :force-fallback="false"
       :scroll-sensitivity="100"
-      :scroll-speed="10"
-      @start="onDragStart"
-      @end="onDragEnd"
-      @change="onDragChange"
+      :scroll-speed="2"
+      @start="handleDragStart"
+      @end="handleDragEnd"
       item-key="id"
     >
-      <template #item="{ element: project }">
+      <template #item="{ element: course }">
         <div class="course-item">
-          <CourseCard :course="project" />
+          <CourseCard :course="course" />
         </div>
       </template>
     </draggable>
+
+    <!-- Loading indicator -->
+    <div v-if="isLoadingMore" class="flex justify-center mt-4">
+      <div
+        class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"
+      ></div>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.ghost-card {
+  opacity: 0.5;
+}
+
+.chosen-card {
+  cursor: grabbing;
+}
+
+.drag-card {
+  transform: rotate(5deg);
+}
+
+.course-item {
+  transition: transform 0.2s ease;
+}
+
+.course-item:hover {
+  transform: translateY(-2px);
+}
+</style>
