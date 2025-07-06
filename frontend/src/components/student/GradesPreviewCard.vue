@@ -1,18 +1,17 @@
 <script setup>
-defineProps({
+import { computed } from "vue";
+import { subjectCache } from "@/store/cache/subjectCache.js";
+
+const props = defineProps({
   grade: {
     type: Number,
     required: true,
   },
-  subject: {
-    type: String,
+  subjectId: {
+    type: Number,
     required: true,
   },
-  subjectColor: {
-    type: String,
-    default: "text-red-500",
-  },
-  workType: {
+  type: {
     type: String,
     required: true,
   },
@@ -21,6 +20,18 @@ defineProps({
     required: true,
   },
 });
+
+const formattedDate = computed(() =>
+  new Intl.DateTimeFormat('uk', {
+    month: '2-digit',
+    day: '2-digit'
+  }).format(new Date(props.date))
+);
+
+const subject = subjectCache.get(props.subjectId);
+console.log(subject);
+const subjectTitle = subject.title;
+
 </script>
 
 <template>
@@ -35,16 +46,16 @@ defineProps({
 
       <!-- Subject and Work Type -->
       <div>
-        <h3 class="font-semibold text-lg" :class="subjectColor">
-          {{ subject }}
+        <h3 class="font-semibold text-lg text-red-500 truncate max-w-xs">
+          {{ subjectTitle }}
         </h3>
-        <p class="text-gray-700 text-sm">{{ workType }}</p>
+        <p class="text-gray-700 text-sm">{{ type }}</p>
       </div>
     </div>
 
     <!-- Date -->
     <div class="text-right ml-5">
-      <span class="text-gray-600 font-medium">{{ date }}</span>
+      <span class="text-gray-600 font-medium">{{ formattedDate }}</span>
     </div>
   </div>
 </template>
