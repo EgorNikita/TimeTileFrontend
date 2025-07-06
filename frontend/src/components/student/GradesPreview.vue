@@ -1,7 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
 import GradesPreviewCard from "./GradesPreviewCard.vue";
-import { useGradesStore } from "@/store/modules/gradesStore.js";
 
 // Make projects reactive so we can reorder them
 const props = defineProps({
@@ -12,7 +11,7 @@ const props = defineProps({
   filters: {
     type: Object,
     default: () => ({}),
-  }
+  },
 });
 
 const gradeStore = useGradesStore();
@@ -23,10 +22,7 @@ const isLoading = computed(() => gradeStore.loading);
 const hasMore = computed(() => gradeStore.hasMoreGrades(props.contextKey));
 
 const loadGrades = async () => {
-  const result = await gradeStore.loadGrades(
-    props.contextKey,
-    props.filters,
-  );
+  const result = await gradeStore.loadGrades(props.contextKey, props.filters);
   if (result.isFailure) {
     console.error("Failed to load courses:", result.error);
   }
@@ -43,7 +39,10 @@ function handleScroll() {
   if (!container) return;
 
   // Check if we're near the bottom (e.g., within 100px)
-  if (container.scrollHeight - container.scrollTop - container.clientHeight < 100) {
+  if (
+    container.scrollHeight - container.scrollTop - container.clientHeight <
+    100
+  ) {
     loadMoreGrades();
   }
 }
@@ -53,12 +52,12 @@ async function loadMoreGrades() {
 
   await gradeStore.loadGrades(props.contextKey, props.filters, true);
 }
-
-
 </script>
 
 <template>
-  <div class="relative bg-white rounded-xl shadow-lg p-6 pr-4 flex flex-col max-w-[25vw]">
+  <div
+    class="relative bg-white rounded-xl shadow-lg p-6 pr-4 flex flex-col max-w-[25vw]"
+  >
     <!-- Header -->
     <h2 class="text-2xl font-bold text-gray-800 mb-6 flex-shrink-0">
       Нові оцінки

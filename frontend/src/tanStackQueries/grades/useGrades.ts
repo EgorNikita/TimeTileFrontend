@@ -1,0 +1,26 @@
+import { useInfiniteQuery } from "@tanstack/vue-query";
+import type { PagedList } from "@/types/course";
+import { fetchGrades } from "@/services/gradeService";
+import type { Grade, GradesFilters } from "@/types/grade";
+
+export function useGrades(filters: GradesFilters = {}, pageSize = 10) {
+  return useInfiniteQuery({
+    queryKey: ["grades", filters] as const,
+
+    queryFn: async ({ pageParam = 1 }) => {
+      return fetchGrades({ ...filters, page: pageParam, pageSize });
+    },
+
+    getNextPageParam: (
+      lastPage: PagedList<Grade>,
+      allPages: PagedList<Grade>[],
+    ) => {
+      const total = lastPage.totalCount;
+      const nextPage = allPages.length + 1;
+      return (nextPage - 1) * pageSize < total ? nextPage : undefined;
+    },
+
+    staleTime: 1000 * 60 * 5,
+    initialPageParam: 1,
+  });
+}
