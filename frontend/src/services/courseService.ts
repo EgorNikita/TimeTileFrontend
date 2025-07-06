@@ -1,29 +1,15 @@
 import { createApi } from "@/utils/apiClient";
 import type { ResultPattern } from "@/utils/resultPattern";
 import { success, failure } from "@/utils/resultPattern";
+import { PagedList } from "@/common/types/pagedList";
+import { CourseDto } from "@/types/course";
+import { buildQueryParams } from "@/helpers/queryParamsBuilder";
+import { Routes } from "@/common/routes";
 
 const api = createApi();
 
-export interface CourseResponse {
-  id: number;
-  title: string;
-  subjectId: number;
-  teacherId: number;
-  isAdvanced: boolean;
-  termId: number;
-}
-
-export interface PagedList<T> {
-  items: T[];
-  page: number;
-  pageSize: number;
-  totalCount: number;
-  totalPages: number;
-}
-
-export interface PagedCourseResult
-  extends ResultPattern<PagedList<CourseResponse>> {}
-export interface CourseResult extends ResultPattern<CourseResponse> {}
+export interface PagedCourseResult extends ResultPattern<PagedList<CourseDto>> {}
+export interface CourseResult extends ResultPattern<CourseDto> {}
 
 export interface GetCoursesParams {
   subjectIds?: number[];
@@ -37,62 +23,33 @@ export interface GetCoursesParams {
   descending?: boolean;
 }
 
-// Helper to serialize array query params (subjectIds=1&subjectIds=2)
-function buildQueryParams(params: GetCoursesParams): string {
-  const query = new URLSearchParams();
-
-  ["subjectIds", "teacherIds", "termIds", "studentIds", "groupIds"].forEach(
-    (key) => {
-      const value = params[key as keyof GetCoursesParams];
-      if (Array.isArray(value)) {
-        value.forEach((v) => query.append(key, String(v)));
-      }
-    },
-  );
-
-  ["page", "pageSize", "sortBy", "descending"].forEach((key) => {
-    const value = params[key as keyof GetCoursesParams];
-    if (value !== undefined && value !== null) {
-      query.append(key, String(value));
-    }
-  });
-
-  return query.toString();
-}
-
 export async function fetchCourses(
   params: GetCoursesParams = {},
 ): Promise<PagedCourseResult> {
-  try {
-    const queryString = buildQueryParams(params);
-    const url = queryString ? `/courses?${queryString}` : "/courses";
-    const response = await api.get(url);
+  const arrayKeys: (keyof GetCoursesParams)[] = [
+    "subjectIds",
+    "teacherIds",
+    "termIds",
+    "studentIds",
+    "groupIds"
+  ];
 
-    // The interceptor will handle success/failure wrapping, but just in case:
-    if (response && response.isSuccess) {
-      return success(response.data);
-    } else if (response && response.isFailure) {
-      return failure(response.error);
-    } else {
-      return failure({ message: "Unexpected API response" });
-    }
-  } catch (error) {
-    return failure({ message: (error as Error).message });
-  }
+  const scalarKeys: (keyof GetCoursesParams)[] = [
+    "page",
+    "pageSize",
+    "sortBy",
+    "descending"
+  ];
+
+  const queryString = buildQueryParams(params, arrayKeys, scalarKeys);
+  const url = queryString ? `${Routes.Courses}?${queryString}` : Routes.Courses;
+  const response = await api.get(url);
+
+  return success(response.data);
 }
 
 export async function fetchCourseById(id: number): Promise<CourseResult> {
-  try {
-    const response = await api.get(`/courses/${id}`);
+  const response = await api.get(`${Routes.Courses}/${id}`);
 
-    if (response && response.isSuccess) {
-      return success(response.data);
-    } else if (response && response.isFailure) {
-      return failure(response.error);
-    } else {
-      return failure({ message: "Unexpected API response" });
-    }
-  } catch (error) {
-    return failure({ message: (error as Error).message });
-  }
+  return success(response.data);
 }
