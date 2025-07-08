@@ -87,7 +87,7 @@ const loadMoreGrades = async () => {
 </script>
 
 <template>
-  <div class="relative bg-white rounded-xl shadow-lg p-6 pr-4 flex flex-col">
+  <div class="relative bg-white rounded-xl shadow-md p-6 pr-4 flex flex-col">
     <!-- Header -->
     <h2 class="text-2xl font-bold text-gray-800 mb-6 flex-shrink-0">
       Нові оцінки

@@ -1,27 +1,30 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from "vue";
 
-const props = defineProps({
-  gradeInfo: {
-    type: Object,
-    required: true,
-    default: () => ({
-      id: 0,
-      value: 0,
-      subjectId: 0,
-      subjectTitle: "",
-      type: "",
-      date: "",
-    }),
-  },
-});
+interface GradeInfo {
+  id: number;
+  value: number;
+  subjectId: number;
+  subjectTitle: string;
+  type: string;
+  date: string;
+}
 
-const formattedDate = computed(() =>
-  new Intl.DateTimeFormat("uk", {
+const props = defineProps<{
+  gradeInfo: GradeInfo;
+}>();
+
+const formattedDate = computed(() => {
+  if (!props.gradeInfo.date) return "";
+
+  const date = new Date(props.gradeInfo.date);
+  if (isNaN(date.getTime())) return "";
+
+  return new Intl.DateTimeFormat("uk", {
     month: "2-digit",
     day: "2-digit",
-  }).format(new Date(props.gradeInfo.date)),
-);
+  }).format(date);
+});
 </script>
 
 <template>

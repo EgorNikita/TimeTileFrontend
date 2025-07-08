@@ -1,20 +1,16 @@
 <script setup>
 import { ref } from "vue";
-import {
-  Listbox,
-  ListboxButton,
-  ListboxLabel,
-  ListboxOption,
-  ListboxOptions,
-} from "@headlessui/vue";
-import { CheckIcon, ChevronUpDownIcon } from "@heroicons/vue/24/outline";
+import TermSelector from "@/components/common/TermSelector.vue";
+import CourseCard from "@/components/student/GradeCourseCard.vue";
 
 const courseGrades = ref([
   {
     id: 1,
+    title: "Mathematics_LK_GYI231",
     subject: "Mathematics",
+    color: "from-blue-400 to-blue-600",
     termMark: 85,
-    avarageMark: 88,
+    averageMark: 88,
     totalLessons: 30,
     completedLessons: 28,
     lessons: [
@@ -85,9 +81,11 @@ const courseGrades = ref([
   },
   {
     id: 2,
+    title: "Physics_LK_GYI231",
     subject: "Physics",
+    color: "from-purple-400 to-purple-600",
     termMark: 90,
-    avarageMark: 92,
+    averageMark: 92,
     totalLessons: 25,
     completedLessons: 24,
     lessons: [
@@ -151,9 +149,11 @@ const courseGrades = ref([
   },
   {
     id: 3,
+    title: "Chemistry_LK_GYI231",
     subject: "Chemistry",
+    color: "from-green-400 to-green-600",
     termMark: 88,
-    avarageMark: 90,
+    averageMark: 90,
     totalLessons: 28,
     completedLessons: 27,
     lessons: [
@@ -217,9 +217,11 @@ const courseGrades = ref([
   },
   {
     id: 4,
+    title: "Biology_LK_GYI231",
     subject: "Biology",
+    color: "from-teal-400 to-teal-600",
     termMark: 92,
-    avarageMark: 91,
+    averageMark: 91,
     totalLessons: 26,
     completedLessons: 25,
     lessons: [
@@ -283,8 +285,9 @@ const courseGrades = ref([
   },
   {
     id: 5,
+    title: "English Literature_LK_GYI231",
     subject: "English Literature",
-    color: "bg-red-500",
+    color: "from-red-400 to-red-600",
     termMark: 88,
     averageMark: 89,
     totalLessons: 15,
@@ -372,100 +375,37 @@ const courseGrades = ref([
 ]);
 
 const terms = [
-  { id: 1, name: "Wade Cooper" },
-  { id: 2, name: "Arlene Mccoy" },
-  { id: 3, name: "Devon Webb" },
-  { id: 4, name: "Tom Cook" },
-  { id: 5, name: "Tanya Fox" },
-  { id: 6, name: "Hellen Schmidt" },
-  { id: 7, name: "Caroline Schultz" },
-  { id: 8, name: "Mason Heaney" },
-  { id: 9, name: "Claudie Smitham" },
-  { id: 10, name: "Emil Schaefer" },
+  { id: 1, title: "Term 1", start_date: "2024-01-01", end_date: "2024-03-31" },
+  { id: 2, title: "Term 2", start_date: "2024-04-01", end_date: "2024-06-30" },
+  { id: 3, title: "Term 3", start_date: "2024-07-01", end_date: "2024-09-30" },
 ];
 
 const selectedTerm = ref(terms[0]);
+
+const handleTermChange = (term) => {
+  selectedTerm.value = term;
+};
 </script>
 
 <template>
   <div class="p-4 space-y-4">
-    <!-- Term selection (optional) -->
-    <div>
-      <Listbox v-model="selectedTerm">
-        <div class="relative mt-1">
-          <ListboxButton
-            class="relative w-64 cursor-pointer rounded-lg bg-white py-2 pl-3 pr-10 text-left border shadow-md focus:outline-none"
-          >
-            <span class="block truncate">{{ selectedTerm.name }}</span>
-            <span
-              class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2"
-            >
-              <ChevronUpDownIcon
-                class="h-5 w-5 text-gray-400"
-                aria-hidden="true"
-              />
-            </span>
-          </ListboxButton>
-          <ListboxOptions
-            class="absolute mt-1 w-64 max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10"
-          >
-            <ListboxOption
-              v-for="term in terms"
-              :key="term.id"
-              :value="term"
-              class="cursor-pointer select-none relative py-2 pl-10 pr-4 hover:bg-blue-100"
-            >
-              {{ term.name }}
-            </ListboxOption>
-          </ListboxOptions>
-        </div>
-      </Listbox>
-    </div>
+    <!-- Term Selection Component -->
+    <TermSelector
+      :terms="terms"
+      :selectedTerm="selectedTerm"
+      @update:selectedTerm="handleTermChange"
+    />
 
-    <!-- Subject Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div
+    <!-- Course Cards Grid -->
+    <div
+      class="grid flex-wrap gap-5 mt-2"
+      style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr))"
+    >
+      <CourseCard
         v-for="subject in courseGrades"
         :key="subject.id"
-        class="bg-white border rounded-lg shadow p-5"
-      >
-        <h2 class="text-xl font-bold text-gray-800 mb-2">
-          {{ subject.subject }}
-        </h2>
-        <p class="text-sm text-gray-600">
-          Term Mark: <span class="font-medium">{{ subject.termMark }}</span>
-        </p>
-        <p class="text-sm text-gray-600">
-          Average Mark:
-          <span class="font-medium">{{
-            subject.avarageMark || subject.averageMark
-          }}</span>
-        </p>
-        <p class="text-sm text-gray-600">
-          Completed Lessons:
-          <span class="font-medium"
-            >{{ subject.completedLessons }}/{{ subject.totalLessons }}</span
-          >
-        </p>
-
-        <div class="mt-4">
-          <h3 class="text-sm font-semibold text-gray-700 mb-1">Lessons</h3>
-          <ul class="space-y-1 max-h-48 overflow-y-auto pr-2">
-            <li
-              v-for="lesson in subject.lessons"
-              :key="lesson.id"
-              class="text-sm text-gray-700 border-b py-1"
-            >
-              <span class="font-medium">{{ lesson.title }}</span
-              ><br />
-              <span class="text-xs text-gray-500"
-                >Classwork: {{ lesson.classwork }}, Homework:
-                {{ lesson.homework }}</span
-              >
-            </li>
-          </ul>
-        </div>
-      </div>
+        :course="subject"
+      />
     </div>
   </div>
 </template>

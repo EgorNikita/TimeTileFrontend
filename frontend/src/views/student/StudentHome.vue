@@ -23,7 +23,7 @@ onMounted(async () => {
         class="h-[calc(100vh-65px)] w-96 flex flex-col gap-5 border-gray-200 py-6 w-64 shrink-0 border-r pl-4 sticky top-0"
       >
         <div
-          class="h-1/2 relative overflow-hidden rounded-lg bg-white shadow-sm sm:pt-6 w-full"
+          class="h-1/2 relative overflow-hidden rounded-lg bg-white shadow-md sm:pt-6 w-full"
         ></div>
         <GradesPreview class="h-1/2 w-full" />
       </div>

@@ -124,7 +124,7 @@ setInterval(() => {
 </script>
 
 <template>
-  <div class="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
+  <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
     <!-- Header -->
     <div class="flex items-center justify-between mb-2">
       <div class="flex flex-col">
