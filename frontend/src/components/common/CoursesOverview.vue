@@ -2,11 +2,12 @@
 import CourseCard from "@/components/common/CourseCard.vue";
 import { UserGroupIcon } from "@heroicons/vue/24/outline";
 import draggable from "vuedraggable";
-import { computed, ref, watch, nextTick, onMounted, onUnmounted } from "vue";
+import { computed, ref, watch } from "vue";
 
 import { useCourses } from "@/tanStackQueries/student/course/useCourses";
 import type { Course, CourseFilters } from "@/types/course";
 import { useBulkSubjectsQuery } from "@/tanStackQueries/student/subject/useBulkSubjects";
+import LazyScrollWrapper from "@/components/common/LazyScrollWrapper.vue";
 
 // Props
 interface Props {
@@ -22,18 +23,12 @@ const props = withDefaults(defineProps<Props>(), {
   scrollThreshold: 200,
 });
 
-// Constants
-const PAGE_SIZE = 20;
-const SCROLL_THROTTLE_MS = 100;
-
 // Reactive state
 const isDragging = ref(false);
 const draggableCourses = ref<Course[]>([]);
-const isLoadingMore = ref(false);
-let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // Queries
-const coursesQuery = useCourses(props.filters, PAGE_SIZE);
+const coursesQuery = useCourses(props.filters);
 
 // Computed properties
 const allCourses = computed(() => {
@@ -65,9 +60,6 @@ const enrichedCourses = computed(() => {
   }));
 });
 
-const hasMore = computed(() => coursesQuery.hasNextPage.value ?? false);
-const isLoading = computed(() => coursesQuery.isFetching.value);
-
 // Drag and drop handlers
 const handleDragStart = () => {
   isDragging.value = true;
@@ -79,60 +71,6 @@ const handleDragEnd = async () => {
     await saveCoursesOrder(draggableCourses.value);
   } catch (error) {
     console.error("Failed to save course order:", error);
-  }
-};
-
-// Infinite scroll logic
-const loadMoreCourses = async () => {
-  if (hasMore.value && !isLoading.value && !isLoadingMore.value) {
-    isLoadingMore.value = true;
-    try {
-      await coursesQuery.fetchNextPage();
-    } catch (error) {
-      console.error("Failed to load more courses:", error);
-    } finally {
-      isLoadingMore.value = false;
-    }
-  }
-};
-
-const handlePageScroll = async () => {
-  const container = props.scrollContainer;
-  if (!container || isLoadingMore.value || isDragging.value) return;
-
-  const { scrollTop, scrollHeight, clientHeight } = container;
-  const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-
-  if (
-    distanceFromBottom <= props.scrollThreshold &&
-    hasMore.value &&
-    !isLoading.value
-  ) {
-    await loadMoreCourses();
-  }
-};
-
-const throttledScrollHandler = () => {
-  if (scrollTimeout) return;
-
-  scrollTimeout = setTimeout(() => {
-    handlePageScroll();
-    scrollTimeout = null;
-  }, SCROLL_THROTTLE_MS);
-};
-
-// Scroll container management
-const setupScrollListener = (container: HTMLElement | null) => {
-  if (container) {
-    container.addEventListener("scroll", throttledScrollHandler, {
-      passive: true,
-    });
-  }
-};
-
-const removeScrollListener = (container: HTMLElement | null) => {
-  if (container) {
-    container.removeEventListener("scroll", throttledScrollHandler);
   }
 };
 
@@ -153,28 +91,6 @@ watch(
   },
   { immediate: true },
 );
-
-watch(
-  () => props.scrollContainer,
-  (newContainer, oldContainer) => {
-    removeScrollListener(oldContainer);
-    setupScrollListener(newContainer);
-  },
-  { immediate: true },
-);
-
-// Lifecycle hooks
-onMounted(async () => {
-  await nextTick();
-  setupScrollListener(props.scrollContainer);
-});
-
-onUnmounted(() => {
-  removeScrollListener(props.scrollContainer);
-  if (scrollTimeout) {
-    clearTimeout(scrollTimeout);
-  }
-});
 </script>
 
 <template>
@@ -187,37 +103,35 @@ onUnmounted(() => {
       <h2 class="text-lg font-bold text-gray-900">Courses</h2>
     </div>
 
-    <!-- Course Grid -->
-    <draggable
-      v-model="draggableCourses"
-      tag="div"
-      class="grid flex-wrap gap-4 mt-2"
-      style="grid-template-columns: repeat(auto-fit, minmax(270px, 1fr))"
-      :animation="500"
-      :disabled="!allowDragAndDrop"
-      ghost-class="ghost-card"
-      chosen-class="chosen-card"
-      drag-class="drag-card"
-      :force-fallback="false"
-      :scroll-sensitivity="100"
-      :scroll-speed="2"
-      @start="handleDragStart"
-      @end="handleDragEnd"
-      item-key="id"
+    <LazyScrollWrapper
+      :scroll-container="props.scrollContainer"
+      :query="coursesQuery"
     >
-      <template #item="{ element: course }">
-        <div class="course-item">
-          <CourseCard :course="course" />
-        </div>
-      </template>
-    </draggable>
-
-    <!-- Loading indicator -->
-    <div v-if="isLoadingMore" class="flex justify-center mt-4">
-      <div
-        class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"
-      ></div>
-    </div>
+      <!-- Course Grid -->
+      <draggable
+        v-model="draggableCourses"
+        tag="div"
+        class="grid flex-wrap gap-4 mt-2"
+        style="grid-template-columns: repeat(auto-fit, minmax(270px, 1fr))"
+        :animation="500"
+        :disabled="!allowDragAndDrop"
+        ghost-class="ghost-card"
+        chosen-class="chosen-card"
+        drag-class="drag-card"
+        :force-fallback="false"
+        :scroll-sensitivity="100"
+        :scroll-speed="2"
+        @start="handleDragStart"
+        @end="handleDragEnd"
+        item-key="id"
+      >
+        <template #item="{ element: course }">
+          <div class="course-item">
+            <CourseCard :course="course" />
+          </div>
+        </template>
+      </draggable>
+    </LazyScrollWrapper>
   </div>
 </template>
 

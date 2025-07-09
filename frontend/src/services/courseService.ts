@@ -15,6 +15,8 @@ export async function fetchCourses(
     ? `${API_ENDPOINTS.COURSES}?${queryString}`
     : API_ENDPOINTS.COURSES;
 
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
   const response = await api.get(url);
 
   if (!response || !response.isSuccess || !response.data) {
