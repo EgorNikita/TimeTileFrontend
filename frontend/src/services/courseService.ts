@@ -1,12 +1,14 @@
 import { createApi } from "@/utils/apiClient"; // your axios or fetch wrapper
-import type { CourseListParams, PagedList, Course } from "@/types/course";
+import type { Course, CourseFilters } from "@/types/course";
 import { buildQueryParams } from "@/helpers/queryParamsBuilder";
 import { API_ENDPOINTS } from "@/constants";
+import { PagedList } from "@/common/types/pagedList";
+import { PagedListParams } from "@/types/common/PagedList";
 
 const api = createApi();
 
 export async function fetchCourses(
-  params: CourseListParams = {},
+  params: PagedListParams<CourseFilters> = {},
 ): Promise<PagedList<Course>> {
   const queryString = buildQueryParams(params);
   const url = queryString

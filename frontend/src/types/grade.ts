@@ -15,20 +15,7 @@ enum GradeType {
 }
 
 export interface GradeFilters {
-  subjectIds?: number[];
-  teacherIds?: number[];
-  termIds?: number[];
+  coursesIds?: number[];
   studentIds?: number[];
-  groupIds?: number[];
-}
-
-export interface GradeListParams {
-  page?: number;
-  pageSize?: number;
-  sortBy?: string;
-  descending?: boolean;
   lessonIds?: number[];
-  studentIds?: number[];
-  courseIds?: number[];
-  types?: GradeType[];
 }

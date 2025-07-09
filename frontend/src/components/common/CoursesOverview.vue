@@ -4,9 +4,9 @@ import { UserGroupIcon } from "@heroicons/vue/24/outline";
 import draggable from "vuedraggable";
 import { computed, ref, watch, nextTick, onMounted, onUnmounted } from "vue";
 
-import { useCourses } from "@/tanStackQueries/course/useCourses";
+import { useCourses } from "@/tanStackQueries/student/course/useCourses";
 import type { Course, CourseFilters } from "@/types/course";
-import { useBulkSubjectsQuery } from "@/tanStackQueries/subject/useBulkSubjects";
+import { useBulkSubjectsQuery } from "@/tanStackQueries/student/subject/useBulkSubjects";
 
 // Props
 interface Props {

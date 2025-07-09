@@ -2,8 +2,8 @@
 import { computed, ref } from "vue";
 import GradesPreviewCard from "./GradesPreviewCard.vue";
 import { GradeFilters } from "@/types/grade";
-import { useGrades } from "@/tanStackQueries/grades/useGrades";
-import { useBulkSubjectsQuery } from "@/tanStackQueries/subject/useBulkSubjects";
+import { useGrades } from "@/tanStackQueries/student/grades/useGrades";
+import { useBulkSubjectsQuery } from "@/tanStackQueries/student/subject/useBulkSubjects";
 import { hideAllPoppers } from "floating-vue";
 
 interface Props {

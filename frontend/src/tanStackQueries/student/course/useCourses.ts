@@ -1,6 +1,7 @@
 import { useInfiniteQuery } from "@tanstack/vue-query";
-import type { CourseFilters, PagedList, Course } from "@/types/course";
+import type { CourseFilters, Course } from "@/types/course";
 import { fetchCourses } from "@/services/courseService";
+import { PagedList } from "@/common/types/pagedList";
 
 export function useCourses(filters: CourseFilters = {}, pageSize = 20) {
   return useInfiniteQuery({

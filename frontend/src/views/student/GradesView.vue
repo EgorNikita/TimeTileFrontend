@@ -8,7 +8,7 @@ const courseGrades = ref([
     id: 1,
     title: "Mathematics_LK_GYI231",
     subject: "Mathematics",
-    color: "from-blue-400 to-blue-600",
+    color: "from-stone-950 to-stone-950",
     termMark: 85,
     averageMark: 88,
     totalLessons: 30,
