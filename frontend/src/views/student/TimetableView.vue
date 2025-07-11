@@ -1,8 +1,8 @@
 <!-- Main Timetable Component -->
 <template>
-  <div class="flex flex-col h-full overflow-hidden">
+  <div class="flex flex-col h-full overflow-y-auto">
     <!-- Header -->
-    <div class="sticky top-0 z-30">
+    <div class="sticky top-0 z-30 bg-gray-100">
       <TimetableHeader
         :current-date="currentDate"
         :display-date="displayDate"
@@ -17,7 +17,7 @@
     </div>
 
     <!-- Timetable Grid Container -->
-    <div class="flex-1 bg-white shadow-md m-5 mt-0 rounded-lg overflow-hidden">
+    <div class="flex-1 m-4 mt-0 bg-white shadow-md rounded-lg overflow-clip">
       <TimetableGrid
         ref="timetableGridRef"
         :timetable-units="timetableUnits"

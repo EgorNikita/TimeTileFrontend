@@ -1,17 +1,18 @@
 <template>
   <div class="flex flex-col h-full">
-    <!-- Sticky weekday headers -->
+    <!-- Sticky weekday headers with rounded top corners -->
     <div
-      class="sticky top-0 z-20 bg-white grid lg:grid-cols-[100px_repeat(7,1fr)] sm:grid-cols-[50px_repeat(7,1fr)] border-b-2 border-gray-200 divide-x divide-gray-100"
+      class="sticky top-[64px] z-31 grid lg:grid-cols-[100px_repeat(7,1fr)] sm:grid-cols-[50px_repeat(7,1fr)] border-b-2 border-gray-200 divide-x divide-gray-100 rounded-t-lg"
     >
       <!-- Time column header -->
-      <div class="bg-white" />
+      <div class="bg-white rounded-tl-lg" />
 
       <!-- Weekday headers -->
       <div
         v-for="(day, index) in weekDays"
         :key="index"
-        class="flex items-center justify-center py-3 cursor-pointer hover:bg-gray-50"
+        class="flex bg-white items-center justify-center py-3 cursor-pointer hover:bg-gray-50"
+        :class="index === weekDays.length - 1 ? 'rounded-tr-lg' : ''"
       >
         <span class="flex items-baseline">
           {{ day.full }}
@@ -30,7 +31,7 @@
     </div>
 
     <!-- Timetable body -->
-    <div class="flex-1 overflow-y-auto relative">
+    <div class="relative flex-1">
       <div
         class="grid lg:grid-cols-[100px_repeat(7,1fr)] sm:grid-cols-[50px_repeat(7,1fr)] divide-x divide-y divide-gray-100"
         :style="{
