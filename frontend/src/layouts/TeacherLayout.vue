@@ -1,15 +1,15 @@
 <script setup>
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/store/modules/auth';
-import navItems from '@/navigation/teacherNav';
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/store/modules/auth.ts.js";
+import navItems from "@/navigation/teacherNav";
 import Sidebar from "@/components/common/Sidebar.vue";
 
 const auth = useAuthStore();
 const router = useRouter();
 
-const visibleNavItems = navItems.filter(item => {
+const visibleNavItems = navItems.filter((item) => {
   if (!item.permissions) return true;
-  return item.permissions.every(p => auth.permissions.includes(p));
+  return item.permissions.every((p) => auth.permissions.includes(p));
 });
 </script>
 

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from "vue";
-import { useAuthStore } from "@/store/modules/auth";
-import navItems from "@/navigation/studentNav.js"; // or studentNav based on role
+import { useAuthStore } from "@/store/modules/auth.ts";
+import navItems from "@/navigation/studentNav.js";
 import Sidebar from "@/components/common/Sidebar.vue";
 import { useStudentStore } from "@/store/modules/student.js";
 import { storeToRefs } from "pinia";

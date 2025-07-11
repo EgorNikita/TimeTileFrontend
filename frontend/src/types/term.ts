@@ -7,4 +7,5 @@ export interface Term {
 
 export interface TermFilters {
   studentIds?: number[];
+  startDateUntil?: string;
 }

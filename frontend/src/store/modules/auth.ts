@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { authService } from "@/services/authService";
-import { success, failure } from "@/utils/resultPattern.js";
-import { ROLES, ROUTE_NAMES } from "@/constants.ts";
+import { success, failure } from "@/utils/resultPattern";
+import { ROLES, ROUTE_NAMES } from "@/constants";
 import {
   clearAllTokens,
   extractClaimsFromToken,
@@ -10,9 +10,57 @@ import {
   isTokenExpired,
   isTokenRemembered,
   storeTokens,
-} from "@/utils/tokenUtils.js";
+} from "@/utils/tokenUtils";
 
-const initialUser = () => ({
+// Types and Interfaces
+interface User {
+  role: string | null;
+  institutionDomain: string | null;
+  institutionId: string | null;
+  userId: string | null;
+  email: string | null;
+}
+
+interface LoginCredentials {
+  username: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
+interface LoginResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
+interface LoginSuccessData {
+  user: User;
+  token: string;
+  message: string;
+}
+
+interface AuthState {
+  token: string | null;
+  refreshToken: string | null;
+  user: User;
+  isInitialized: boolean;
+  loginAttempts: number;
+  lastLoginError: string | null;
+}
+
+interface RouteConfig {
+  name: string;
+  params: {
+    institutionDomain: string;
+  };
+}
+
+interface InstitutionClaims {
+  institutionDomain: string | null;
+  institutionId: string | null;
+}
+
+// Helper function
+const initialUser = (): User => ({
   role: null,
   institutionDomain: null,
   institutionId: null,
@@ -21,7 +69,7 @@ const initialUser = () => ({
 });
 
 export const useAuthStore = defineStore("auth", {
-  state: () => ({
+  state: (): AuthState => ({
     token: null,
     refreshToken: null,
     user: initialUser(),
@@ -31,31 +79,39 @@ export const useAuthStore = defineStore("auth", {
   }),
 
   getters: {
-    isAuthenticated: (state) => {
-      return !!state.token && !!state.user.role && !state.isTokenExpired;
+    isAuthenticated: (state: AuthState): boolean => {
+      return !!state.token && !!state.user.role && !isTokenExpired(state.token);
     },
 
-    isTokenExpired: (state) => {
+    isTokenExpired: (state: AuthState): boolean => {
       if (!state.token) return true;
       return isTokenExpired(state.token);
     },
 
-    userId: (state) => state.user.userId,
-    userRole: (state) => state.user.role,
-    institutionDomain: (state) => state.user.institutionDomain,
-    institutionId: (state) => state.user.institutionId,
+    userId: (state: AuthState): string | null => state.user.userId,
+    userRole: (state: AuthState): string | null => state.user.role,
+    institutionDomain: (state: AuthState): string | null =>
+      state.user.institutionDomain,
+    institutionId: (state: AuthState): string | null =>
+      state.user.institutionId,
 
-    hasRole: (state) => (role) => state.user.role === role,
-    hasAnyRole: (state) => (roles) => roles.includes(state.user.role),
+    hasRole:
+      (state: AuthState) =>
+      (role: string): boolean =>
+        state.user.role === role,
+    hasAnyRole:
+      (state: AuthState) =>
+      (roles: string[]): boolean =>
+        roles.includes(state.user.role || ""),
 
-    isStudent: (state) => state.user.role === ROLES.STUDENT,
-    isInstitutionMember: (state) =>
+    isStudent: (state: AuthState): boolean => state.user.role === ROLES.STUDENT,
+    isInstitutionMember: (state: AuthState): boolean =>
       state.user.role === ROLES.INSTITUTION_MEMBER,
 
-    defaultRoute: (state) => {
+    defaultRoute: (state: AuthState): RouteConfig | null => {
       if (!state.user.role || !state.user.institutionDomain) return null;
 
-      const routeName =
+      const routeName: string =
         state.user.role === ROLES.STUDENT
           ? ROUTE_NAMES.STUDENT_HOME
           : ROUTE_NAMES.TEACHER_HOME;
@@ -66,21 +122,24 @@ export const useAuthStore = defineStore("auth", {
       };
     },
 
-    institutionClaims: (state) => ({
+    institutionClaims: (state: AuthState): InstitutionClaims => ({
       institutionDomain: state.user.institutionDomain,
       institutionId: state.user.institutionId,
     }),
   },
 
   actions: {
-    async login(credentials) {
+    async login(
+      credentials: LoginCredentials,
+    ): Promise<Result<LoginSuccessData, string>> {
       const { username, password, rememberMe = false } = credentials;
 
       if (!username?.trim() || !password?.trim()) {
         return failure("Username and password are required");
       }
 
-      const loginResult = await authService.login(username, password);
+      const loginResult: Result<LoginResponse, string> =
+        await authService.login(username, password);
 
       if (loginResult.isFailure) {
         this._handleFailedLogin(loginResult.error);
@@ -96,26 +155,26 @@ export const useAuthStore = defineStore("auth", {
       this.isInitialized = true;
       return success({
         user: this.user,
-        token: this.token,
+        token: this.token!,
         message: "Login successful",
       });
     },
 
-    async logout() {
+    async logout(): Promise<void> {
       await authService.logout();
       this._clearAuthState();
     },
 
-    async logoutAll() {
+    async logoutAll(): Promise<void> {
       await authService.logoutAll();
       this._clearAuthState();
     },
 
-    async initializeAuth() {
+    async initializeAuth(): Promise<Result<boolean, string>> {
       if (this.isInitialized) return success(true);
 
       // Listen for token expiration events from API interceptor
-      //window.addEventListener('auth:token-expired', this._clearAuthState);
+      // window.addEventListener('auth:token-expired', this._clearAuthState);
 
       const token = getAuthToken();
       const refreshToken = getRefreshToken();
@@ -140,12 +199,13 @@ export const useAuthStore = defineStore("auth", {
       return success(true);
     },
 
-    async refreshTokens() {
+    async refreshTokens(): Promise<Result<boolean, string>> {
       const token = this.refreshToken || getRefreshToken();
 
       if (!token) return failure("No refresh token available");
 
-      const refreshResult = await authService.refreshToken(token);
+      const refreshResult: Result<LoginResponse, string> =
+        await authService.refreshToken(token);
       if (refreshResult.isFailure) {
         this._clearAuthState();
         return refreshResult;
@@ -156,7 +216,11 @@ export const useAuthStore = defineStore("auth", {
       return this._setTokens(accessToken, refreshToken, remembered);
     },
 
-    _setTokens(accessToken, refreshToken, rememberMe = false) {
+    _setTokens(
+      accessToken: string | null,
+      refreshToken: string | null,
+      rememberMe: boolean = false,
+    ): Result<boolean, string> {
       if (!accessToken || !refreshToken) {
         return failure("Missing tokens");
       }
@@ -171,13 +235,13 @@ export const useAuthStore = defineStore("auth", {
       return success(true);
     },
 
-    _handleFailedLogin(error) {
+    _handleFailedLogin(error: string): void {
       this.loginAttempts += 1;
       this.lastLoginError = error;
       this._clearAuthState();
     },
 
-    _clearAuthState() {
+    _clearAuthState(): void {
       this.token = null;
       this.refreshToken = null;
       this.user = initialUser();

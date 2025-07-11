@@ -4,7 +4,6 @@ import LessonList from "./LessonList.vue";
 interface Course {
   title: string;
   subject: string;
-  color: string;
   termMark: number;
   averageMark: number;
   completedLessons: number;
@@ -39,7 +38,7 @@ const getProgressPercentage = (completed: number, total: number): number => {
 <template>
   <div class="bg-white rounded-lg shadow-md overflow-hidden">
     <!-- Card Header -->
-    <div :class="`bg-gradient-to-r ${course.color} p-6 text-white`">
+    <div class="bg-stone-900 p-6 text-white">
       <div class="flex items-center justify-between">
         <div
           class="min-w-0 flex-1 mr-10"
@@ -93,7 +92,7 @@ const getProgressPercentage = (completed: number, total: number): number => {
         </div>
         <div class="w-full bg-gray-200 rounded-full h-3">
           <div
-            :class="`bg-gradient-to-r ${course.color} h-3 rounded-full transition-all duration-500`"
+            class="bg-stone-800 h-3 rounded-full transition-all duration-500"
             :style="`width: ${getProgressPercentage(course.completedLessons, course.totalLessons)}%`"
           ></div>
         </div>

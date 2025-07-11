@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { success, failure } from "@/utils/resultPattern.js";
-import { fetchStudentById } from "@/services/studentService.js";
+import { fetchStudentById } from "@/services/studentService.ts";
 
 const initialStudent = () => ({
   id: null,

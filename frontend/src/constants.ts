@@ -91,14 +91,17 @@ export const API_ENDPOINTS = {
   // Academic structure
   COURSES: "/courses",
   SUBJECTS: {
-    BASIC: "/subjects",
+    DEFAULT: "/subjects",
     BY_IDS: "/subjects/bulk",
   },
   GROUPS: "/groups",
   TERMS: "/terms",
 
   // People
-  STUDENTS: "/students",
+  STUDENTS: {
+    DEFAULT: "/students",
+    COURSES: (id: number | string) => `/students/${id}/courses`,
+  },
   TEACHERS: "/teachers",
 
   // Scheduling and classroom management

@@ -1,7 +1,7 @@
 import { createApi } from "@/utils/apiClient"; // your axios or fetch wrapper
 import type { Course, CourseFilters } from "@/types/course";
 import { buildQueryParams } from "@/helpers/queryParamsBuilder";
-import { API_ENDPOINTS } from "@/constants";
+import { API_BASE_URL, API_ENDPOINTS } from "@/constants";
 import { PagedList } from "@/common/types/pagedList";
 import { PagedListParams } from "@/types/common/PagedList";
 
@@ -15,8 +15,6 @@ export async function fetchCourses(
     ? `${API_ENDPOINTS.COURSES}?${queryString}`
     : API_ENDPOINTS.COURSES;
 
-  await new Promise((resolve) => setTimeout(resolve, 2000));
-
   const response = await api.get(url);
 
   if (!response || !response.isSuccess || !response.data) {
@@ -26,7 +24,7 @@ export async function fetchCourses(
   // Transform icon URLs:
   const transformedCourses = response.data.items.map((course: Course) => ({
     ...course,
-    iconUrl: `http://localhost:5282/files/${course.iconUrl}`,
+    iconUrl: `${API_BASE_URL}${API_ENDPOINTS.FILES}/${course.iconUrl}`,
   }));
 
   return {

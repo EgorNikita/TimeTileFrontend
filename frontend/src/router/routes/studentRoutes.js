@@ -14,7 +14,7 @@ export const studentRoutes = [
       {
         path: "timetable",
         name: "StudentTimetable",
-        component: () => import("@/views/student/StudentCourses.vue"),
+        component: () => import("@/views/student/TimetableView.vue"),
       },
       {
         path: "assignments",

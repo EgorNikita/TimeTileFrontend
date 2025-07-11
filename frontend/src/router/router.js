@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { useAuthStore } from "@/store/modules/auth";
+import { useAuthStore } from "@/store/modules/auth.ts";
 import { studentRoutes } from "./routes/studentRoutes.js";
 import { teacherRoutes } from "./routes/teacherRoutes.js";
 import { ROLES, ROUTE_NAMES } from "@/constants.ts";

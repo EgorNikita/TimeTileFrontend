@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { useRoute } from "vue-router";
-import { useAuthStore } from "@/store/modules/auth";
+import { useAuthStore } from "@/store/modules/auth.ts";
 
 /* ---------- props ---------- */
 const props = defineProps({
