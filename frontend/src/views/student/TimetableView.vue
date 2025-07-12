@@ -2,7 +2,7 @@
 <template>
   <div class="flex flex-col h-full overflow-y-auto">
     <!-- Header -->
-    <div class="sticky top-0 z-30 bg-gray-100">
+    <div class="sticky top-0 z-31 bg-gray-100">
       <TimetableHeader
         :current-date="currentDate"
         :display-date="displayDate"
@@ -20,8 +20,10 @@
     <div class="flex-1 m-4 mt-0 bg-white shadow-md rounded-lg overflow-clip">
       <TimetableGrid
         ref="timetableGridRef"
+        :currentDate="currentDate"
+        :currentView="currentView"
         :timetable-units="timetableUnits"
-        :events="events"
+        :lessons="events"
         @day-click="handleDayClick"
         @event-click="handleEventClick"
       />
@@ -30,7 +32,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import TimetableHeader from "@/components/common/timetable/TimetableHeader.vue";
 import TimetableGrid from "@/components/common/timetable/TimetableGrid.vue";
 
@@ -39,10 +41,16 @@ const container = ref(null);
 const timetableGridRef = ref(null);
 
 // Reactive data
-const currentDate = ref("2022-01");
-const displayDate = ref("January 2022");
+const currentDate = ref(new Date());
 const currentView = ref("Week view");
-const views = ref(["Day view", "Week view", "Month view", "Year view"]);
+const views = ref(["Day view", "Week view"]);
+
+const displayDate = computed(() =>
+  currentDate.value.toLocaleDateString(undefined, {
+    month: "long",
+    year: "numeric",
+  }),
+);
 
 // Sample events data
 const events = ref([
@@ -92,12 +100,6 @@ const timetableUnits = ref([
     endTime: "09:20",
   },
   {
-    id: 3,
-    title: "Break",
-    startTime: "09:20",
-    endTime: "09:40",
-  },
-  {
     id: 4,
     title: "3.",
     startTime: "09:40",
@@ -108,12 +110,6 @@ const timetableUnits = ref([
     title: "4.",
     startTime: "10:25",
     endTime: "11:10",
-  },
-  {
-    id: 6,
-    title: "Break",
-    startTime: "11:10",
-    endTime: "11:30",
   },
   {
     id: 7,
@@ -128,12 +124,6 @@ const timetableUnits = ref([
     endTime: "13:00",
   },
   {
-    id: 9,
-    title: "Break",
-    startTime: "13:00",
-    endTime: "13:15",
-  },
-  {
     id: 10,
     title: "7.",
     startTime: "13:15",
@@ -144,12 +134,6 @@ const timetableUnits = ref([
     title: "8.",
     startTime: "14:00",
     endTime: "14:45",
-  },
-  {
-    id: 12,
-    title: "Break",
-    startTime: "14:45",
-    endTime: "15:05",
   },
   {
     id: 13,
@@ -164,12 +148,6 @@ const timetableUnits = ref([
     endTime: "16:35",
   },
   {
-    id: 15,
-    title: "Break",
-    startTime: "16:35",
-    endTime: "16:50",
-  },
-  {
     id: 16,
     title: "11.",
     startTime: "16:50",
@@ -181,12 +159,7 @@ const timetableUnits = ref([
     startTime: "17:35",
     endTime: "18:20",
   },
-  {
-    id: 18,
-    title: "Break",
-    startTime: "18:20",
-    endTime: "18:30",
-  },
+
   {
     id: 19,
     title: "13.",
@@ -199,12 +172,7 @@ const timetableUnits = ref([
     startTime: "19:15",
     endTime: "20:00",
   },
-  {
-    id: 21,
-    title: "Break",
-    startTime: "20:00",
-    endTime: "20:15",
-  },
+
   {
     id: 22,
     title: "15.",
@@ -219,64 +187,89 @@ const timetableUnits = ref([
   },
 ]);
 
-// Helper function to convert time string to minutes
+// Utility
 const timeToMinutes = (timeStr) => {
-  const [hours, minutes] = timeStr.split(":").map(Number);
-  return hours * 60 + minutes;
+  const [h, m] = timeStr.split(":").map(Number);
+  return h * 60 + m;
 };
 
-// Event handlers
+// Scroll to current time
+function scrollToCurrentTime() {
+  if (!container.value || !timetableUnits.value.length) return;
+
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const start = timeToMinutes(timetableUnits.value[0].startTime);
+  const end = timeToMinutes(
+    timetableUnits.value[timetableUnits.value.length - 1].endTime,
+  );
+
+  if (currentMinutes >= start && currentMinutes <= end) {
+    const progress = (currentMinutes - start) / (end - start);
+    const maxScroll =
+      container.value.scrollHeight - container.value.clientHeight;
+    container.value.scrollTop = progress * maxScroll;
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    scrollToCurrentTime();
+  }, 100);
+});
+
+watch(currentDate, () => {
+  setTimeout(() => {
+    scrollToCurrentTime();
+  }, 100);
+});
+
+// Handlers
 const handlePrevious = () => {
-  console.log("Previous week clicked");
-  // Add your navigation logic here
+  try {
+    const change = currentView.value === "Week view" ? -7 : -1;
+    const newDate = new Date(currentDate.value);
+    newDate.setDate(newDate.getDate() + change);
+    currentDate.value = newDate;
+  } catch (error) {
+    console.error("Error in handlePrevious:", error);
+  }
 };
 
 const handleNext = () => {
-  console.log("Next week clicked");
-  // Add your navigation logic here
+  try {
+    const change = currentView.value === "Week view" ? 7 : 1;
+    const newDate = new Date(currentDate.value);
+    newDate.setDate(newDate.getDate() + change);
+    currentDate.value = newDate;
+  } catch (error) {
+    console.error("Error in handleNext:", error);
+  }
 };
 
 const handleToday = () => {
-  console.log("Today clicked");
-  // Add your today navigation logic here
+  try {
+    currentDate.value = new Date();
+  } catch (error) {
+    console.error("Error in handleToday:", error);
+  }
 };
 
 const handleViewChange = (view) => {
-  console.log("View changed to:", view);
-  currentView.value = view;
-  // Add your view change logic here
+  if (views.value.includes(view)) {
+    currentView.value = view;
+  }
 };
 
 const handleAddEvent = () => {
   console.log("Add event clicked");
-  // Add your event creation logic here
 };
 
 const handleDayClick = (day) => {
   console.log("Day clicked:", day);
-  // Add your day click logic here
 };
 
 const handleEventClick = (event) => {
-  console.log("Event clicked in parent:", event);
-  // Add your event handling logic here
+  console.log("Event clicked:", event);
 };
-
-onMounted(() => {
-  // Set the container scroll position based on the current time
-  const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-  // Find current position in timetable
-  const startTime = timeToMinutes(timetableUnits.value[0].startTime);
-  const endTime = timeToMinutes(
-    timetableUnits.value[timetableUnits.value.length - 1].endTime,
-  );
-
-  if (currentMinutes >= startTime && currentMinutes <= endTime) {
-    const progress = (currentMinutes - startTime) / (endTime - startTime);
-    container.value.scrollTop =
-      progress * (container.value.scrollHeight - container.value.clientHeight);
-  }
-});
 </script>

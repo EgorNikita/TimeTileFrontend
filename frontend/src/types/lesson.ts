@@ -1,4 +1,4 @@
-interface TimetableUnit {
+export interface TimetableUnit {
   id: string | number;
   title: string;
   startTime: string;
@@ -13,11 +13,10 @@ interface LessonStatus {
 
 export interface Lesson {
   id: string | number;
-  subject: string;
-  teacher: string;
-
-  room: string;
-  status: LessonStatus;
+  subjectId: number;
+  teacherId: number;
+  roomId: number;
+  statusId: number;
   timetableUnitIds: (string | number)[];
   date: string;
   description?: string;
