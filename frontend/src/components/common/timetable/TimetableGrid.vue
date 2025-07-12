@@ -99,7 +99,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref } from "vue";
 
 const props = defineProps({
@@ -217,14 +217,6 @@ const getEventsForPosition = (dayIndex, unitIndex) => {
   return processedEvents.value.filter(
     (event) => event.dayIndex === dayIndex && event.gridRowStart === unitIndex, // Only show event in its starting cell
   );
-};
-
-const getEventColumnClass = (event) => {
-  return event.dayIndex >= 0 ? `sm:col-start-${event.dayIndex + 2}` : "";
-};
-
-const getEventGridRowStyle = (event) => {
-  return `grid-row: ${event.gridRowStart + 1} / span ${event.rowSpan}`;
 };
 
 const formatEventTime = (datetime) => {
