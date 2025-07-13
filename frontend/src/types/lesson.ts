@@ -13,6 +13,7 @@ interface LessonStatus {
 
 export interface Lesson {
   id: string | number;
+  courseId: string | number;
   subjectId: number;
   teacherId: number;
   roomId: number;
@@ -20,7 +21,7 @@ export interface Lesson {
   timetableUnitIds: (string | number)[];
   date: string;
   description?: string;
-  homeworkId?: string;
+  assigmentId?: string;
 
   bgColor?: string;
   titleColor?: string;

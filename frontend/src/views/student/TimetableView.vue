@@ -5,7 +5,6 @@
     <div class="sticky top-0 z-31 bg-gray-100">
       <TimetableHeader
         :current-date="currentDate"
-        :display-date="displayDate"
         :current-view="currentView"
         :views="views"
         @previous="handlePrevious"
@@ -31,26 +30,26 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, computed, watch } from "vue";
+<script setup lang="ts">
+import { ref, onMounted, watch } from "vue";
 import TimetableHeader from "@/components/common/timetable/TimetableHeader.vue";
 import TimetableGrid from "@/components/common/timetable/TimetableGrid.vue";
+import { Lesson, TimetableUnit } from "@/types/lesson";
+import { timeToMinutes } from "@/components/common/timetable/timetableUtils";
+import {
+  VIEW_WEEK,
+  VIEWS,
+  ViewType,
+} from "@/components/common/timetable/timetableConstants";
 
 // Refs
-const container = ref(null);
-const timetableGridRef = ref(null);
+const container = ref<HTMLElement | null>(null);
+const timetableGridRef = ref<InstanceType<typeof TimetableGrid> | null>(null);
 
 // Reactive data
-const currentDate = ref(new Date());
-const currentView = ref("Week view");
-const views = ref(["Day view", "Week view"]);
-
-const displayDate = computed(() =>
-  currentDate.value.toLocaleDateString(undefined, {
-    month: "long",
-    year: "numeric",
-  }),
-);
+const currentDate = ref<Date>(new Date());
+const currentView = ref<ViewType>(VIEW_WEEK);
+const views = ref<ViewType[]>([...VIEWS]);
 
 // Sample events data
 const events = ref([
@@ -86,7 +85,7 @@ const events = ref([
   },
 ]);
 
-const timetableUnits = ref([
+const timetableUnits = ref<TimetableUnit[]>([
   {
     id: 1,
     title: "1.",
@@ -187,15 +186,9 @@ const timetableUnits = ref([
   },
 ]);
 
-// Utility
-const timeToMinutes = (timeStr) => {
-  const [h, m] = timeStr.split(":").map(Number);
-  return h * 60 + m;
-};
-
 // Scroll to current time
-function scrollToCurrentTime() {
-  if (!container.value || !timetableUnits.value.length) return;
+const scrollToCurrentTime = (): void => {
+  if (!container.value || timetableUnits.value.length === 0) return;
 
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -210,7 +203,7 @@ function scrollToCurrentTime() {
       container.value.scrollHeight - container.value.clientHeight;
     container.value.scrollTop = progress * maxScroll;
   }
-}
+};
 
 onMounted(() => {
   setTimeout(() => {
@@ -225,51 +218,40 @@ watch(currentDate, () => {
 });
 
 // Handlers
-const handlePrevious = () => {
-  try {
-    const change = currentView.value === "Week view" ? -7 : -1;
-    const newDate = new Date(currentDate.value);
-    newDate.setDate(newDate.getDate() + change);
-    currentDate.value = newDate;
-  } catch (error) {
-    console.error("Error in handlePrevious:", error);
-  }
+const handlePrevious = (): void => {
+  const change = currentView.value === "Week view" ? -7 : -1;
+  const newDate = new Date(currentDate.value);
+  newDate.setDate(newDate.getDate() + change);
+  currentDate.value = newDate;
 };
 
-const handleNext = () => {
-  try {
-    const change = currentView.value === "Week view" ? 7 : 1;
-    const newDate = new Date(currentDate.value);
-    newDate.setDate(newDate.getDate() + change);
-    currentDate.value = newDate;
-  } catch (error) {
-    console.error("Error in handleNext:", error);
-  }
+const handleNext = (): void => {
+  const change = currentView.value === "Week view" ? 7 : 1;
+  const newDate = new Date(currentDate.value);
+  newDate.setDate(newDate.getDate() + change);
+  currentDate.value = newDate;
 };
 
-const handleToday = () => {
-  try {
-    currentDate.value = new Date();
-  } catch (error) {
-    console.error("Error in handleToday:", error);
-  }
+const handleToday = (): void => {
+  currentDate.value = new Date();
 };
 
-const handleViewChange = (view) => {
-  if (views.value.includes(view)) {
+const handleViewChange = (view: ViewType): void => {
+  if (VIEWS.includes(view)) {
     currentView.value = view;
   }
 };
 
-const handleAddEvent = () => {
+const handleAddEvent = (): void => {
   console.log("Add event clicked");
 };
 
-const handleDayClick = (day) => {
-  console.log("Day clicked:", day);
+const handleDayClick = (payload: { date: Date }): void => {
+  console.log("Day clicked:", payload.date);
+  currentDate.value = payload.date;
 };
 
-const handleEventClick = (event) => {
+const handleEventClick = (event: Event): void => {
   console.log("Event clicked:", event);
 };
 </script>
