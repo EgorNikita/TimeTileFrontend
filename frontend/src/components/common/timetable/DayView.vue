@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/20/solid";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  MapPinIcon,
+  UserIcon,
+} from "@heroicons/vue/20/solid";
 import {
   Day,
   ProcessedLesson,
@@ -30,6 +35,11 @@ const emit = defineEmits<Emits>();
 // Computed properties
 const today = computed(() => new Date());
 const selectedDate = computed(() => props.currentDate);
+const filteredLessons = computed(() => {
+  return props.lessons.filter(
+    (lesson) => lesson.date.toDateString() === props.currentDate.toDateString(),
+  );
+});
 
 const startDate = computed(() => {
   const startOfMonth = new Date(
@@ -86,7 +96,7 @@ const handleMonthOffset = (offset: number): void => {
 
 <template>
   <div class="flex flex-row h-full">
-    <div class="flex-1 overflow-auto">
+    <div class="relative flex-1 overflow-auto">
       <div
         class="grid grid-cols-[50px_repeat(1,1fr)] sm:grid-cols-[100px_repeat(1,1fr)] divide-x divide-y divide-gray-200 min-h-full"
         :style="{
@@ -129,6 +139,7 @@ const handleMonthOffset = (offset: number): void => {
             </div>
           </div>
 
+          <!-- Grid Cells -->
           <div
             class="relative min-h-[60px] transition-colors duration-150"
             :class="[
@@ -136,13 +147,55 @@ const handleMonthOffset = (offset: number): void => {
                 ? 'bg-gray-100'
                 : 'bg-white hover:bg-gray-50 cursor-pointer',
             ]"
-            :style="{ gridRow: rowIndex + 1 }"
+            :style="{ gridColumn: 2, gridRow: rowIndex + 1 }"
+          ></div>
+        </template>
+
+        <!-- Lessons -->
+        <template
+          class="bg-gray-500"
+          v-for="lesson in filteredLessons"
+          :key="`lesson-${lesson.id}`"
+        >
+          <div
+            class="relative col-start-2 col-end-3 z-20 m-2 p-4 rounded-md text-sm font-medium shadow-sm overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.01] hover:-translate-y-0.5 group backdrop-blur-sm"
+            :class="[lesson.status.color || 'bg-blue-50']"
+            :style="{
+              gridRow: `${lesson.gridRowStart} / span ${lesson.rowSpan}`,
+            }"
           >
-            <!-- Optional break indicator -->
-            <div
-              v-if="unit.isBreak"
-              class="absolute inset-0 flex items-center justify-center"
-            ></div>
+            <!-- Content container -->
+            <div class="relative z-10 space-y-2">
+              <!-- Course title -->
+              <div
+                class="font-bold text-gray-700 text-base leading-tight truncate drop-shadow-sm"
+              >
+                {{ lesson.courseTitle }}
+              </div>
+
+              <!-- Subject title -->
+              <div class="text-gray-700/90 font-medium text-sm truncate">
+                {{ lesson.subjectTitle }}
+              </div>
+
+              <!-- Room info -->
+              <div class="flex items-center space-x-1 text-xs text-gray-700/80">
+                <MapPinIcon
+                  class="w-4 h-4 flex-shrink-0 text-gray-700"
+                  aria-hidden="true"
+                />
+                <span class="truncate">{{ lesson.roomTitle }}</span>
+              </div>
+
+              <!-- Teacher name -->
+              <div class="flex items-center space-x-1 text-xs text-gray-700/80">
+                <UserIcon
+                  class="w-4 h-4 flex-shrink-0 text-gray-700"
+                  aria-hidden="true"
+                />
+                <span class="truncate">{{ lesson.teacherName }}</span>
+              </div>
+            </div>
           </div>
         </template>
       </div>

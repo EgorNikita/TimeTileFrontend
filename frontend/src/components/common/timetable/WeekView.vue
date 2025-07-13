@@ -129,50 +129,10 @@ const handleHeaderClick = (day: WeekDay): void => {
             ]"
             :style="{ gridColumn: colIndex + 2, gridRow: rowIndex + 1 }"
             @click="!unit.isBreak && handleCellClick(day, unit)"
-          >
-            <!-- Optional break indicator -->
-            <div
-              v-if="unit.isBreak"
-              class="absolute inset-0 flex items-center justify-center"
-            ></div>
-          </div>
+          ></div>
         </template>
 
-        <!-- Lessons (Events) -->
-        <!--        <template v-for="lesson in props.lessons" :key="`lesson-${lesson.id}`">-->
-        <!--          <div-->
-        <!--            class="t z-20 m-1 p-3 rounded-lg text-sm font-medium shadow-sm overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 hover:opacity-90"-->
-        <!--            :class="[-->
-        <!--              lesson.status.color || 'bg-blue-50',-->
-        <!--              lesson.titleColor || 'text-white',-->
-        <!--            ]"-->
-        <!--            :style="{-->
-        <!--              gridColumn: lesson.dayIndex + 2,-->
-        <!--              gridRow: `${lesson.gridRowStart + 1} / span ${lesson.rowSpan}`,-->
-        <!--            }"-->
-        <!--            @click="handleEventClick(lesson, $event)"-->
-        <!--          >-->
-        <!--            <div class="font-semibold text-blue-700 truncate text-sm">-->
-        <!--              {{ lesson.courseTitle }}-->
-        <!--            </div>-->
-        <!--            <div class="text-blue-700 truncate text-xs">-->
-        <!--              {{ lesson.subjectTitle }}-->
-        <!--            </div>-->
-        <!--            <div class="text-xs text-blue-700 opacity-80 mt-1 truncate">-->
-        <!--              {{ lesson.roomTitle }}-->
-        <!--            </div>-->
-        <!--            <div class="text-xs text-blue-700 opacity-70 mt-1">-->
-        <!--              {{ lesson.teacherName }}-->
-        <!--            </div>-->
-        <!--            <div-->
-        <!--              v-if="lesson.description"-->
-        <!--              class="text-xs text-blue-700 opacity-70 mt-1"-->
-        <!--            >-->
-        <!--              {{ lesson.description }}-->
-        <!--            </div>-->
-        <!--          </div>-->
-        <!--        </template>-->
-
+        <!-- Lessons -->
         <template v-for="lesson in props.lessons" :key="`lesson-${lesson.id}`">
           <div
             class="relative z-20 m-1 p-4 rounded-md text-sm font-medium shadow-sm overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-1 group border border-white/20 backdrop-blur-sm"
