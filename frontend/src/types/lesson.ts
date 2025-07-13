@@ -5,9 +5,9 @@ export interface TimetableUnit {
   endTime: string;
 }
 
-interface LessonStatus {
+export interface LessonStatus {
   id: string | number;
-  name: string;
+  title: string;
   color: string;
 }
 
@@ -19,7 +19,7 @@ export interface Lesson {
   roomId: number;
   statusId: number;
   timetableUnitIds: (string | number)[];
-  date: string;
+  date: Date;
   description?: string;
   assigmentId?: string;
 

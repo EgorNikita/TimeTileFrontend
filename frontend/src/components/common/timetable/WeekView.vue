@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { formatTime } from "./timetableUtils";
 import { WeekDay, TimetableData, ProcessedLesson } from "./timetableInterfaces";
+import { MapPinIcon, UserIcon } from "@heroicons/vue/20/solid";
 
 // Props
 interface Props {
@@ -123,7 +124,7 @@ const handleHeaderClick = (day: WeekDay): void => {
               unit.isBreak
                 ? 'bg-gray-10'
                 : day.isToday
-                  ? 'bg-blue-50 hover:bg-blue-100 cursor-pointer'
+                  ? 'bg-indigo-50 hover:bg-blue-100 cursor-pointer'
                   : 'bg-white hover:bg-gray-50 cursor-pointer',
             ]"
             :style="{ gridColumn: colIndex + 2, gridRow: rowIndex + 1 }"
@@ -138,31 +139,89 @@ const handleHeaderClick = (day: WeekDay): void => {
         </template>
 
         <!-- Lessons (Events) -->
+        <!--        <template v-for="lesson in props.lessons" :key="`lesson-${lesson.id}`">-->
+        <!--          <div-->
+        <!--            class="t z-20 m-1 p-3 rounded-lg text-sm font-medium shadow-sm overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 hover:opacity-90"-->
+        <!--            :class="[-->
+        <!--              lesson.status.color || 'bg-blue-50',-->
+        <!--              lesson.titleColor || 'text-white',-->
+        <!--            ]"-->
+        <!--            :style="{-->
+        <!--              gridColumn: lesson.dayIndex + 2,-->
+        <!--              gridRow: `${lesson.gridRowStart + 1} / span ${lesson.rowSpan}`,-->
+        <!--            }"-->
+        <!--            @click="handleEventClick(lesson, $event)"-->
+        <!--          >-->
+        <!--            <div class="font-semibold text-blue-700 truncate text-sm">-->
+        <!--              {{ lesson.courseTitle }}-->
+        <!--            </div>-->
+        <!--            <div class="text-blue-700 truncate text-xs">-->
+        <!--              {{ lesson.subjectTitle }}-->
+        <!--            </div>-->
+        <!--            <div class="text-xs text-blue-700 opacity-80 mt-1 truncate">-->
+        <!--              {{ lesson.roomTitle }}-->
+        <!--            </div>-->
+        <!--            <div class="text-xs text-blue-700 opacity-70 mt-1">-->
+        <!--              {{ lesson.teacherName }}-->
+        <!--            </div>-->
+        <!--            <div-->
+        <!--              v-if="lesson.description"-->
+        <!--              class="text-xs text-blue-700 opacity-70 mt-1"-->
+        <!--            >-->
+        <!--              {{ lesson.description }}-->
+        <!--            </div>-->
+        <!--          </div>-->
+        <!--        </template>-->
+
         <template v-for="lesson in props.lessons" :key="`lesson-${lesson.id}`">
           <div
-            class="z-20 m-1 p-3 rounded-lg text-sm font-medium shadow-sm overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 hover:opacity-90"
-            :class="[
-              lesson.bgColor || 'bg-blue-500',
-              lesson.titleColor || 'text-white',
-            ]"
+            class="relative z-20 m-1 p-4 rounded-md text-sm font-medium shadow-sm overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-1 group border border-white/20 backdrop-blur-sm"
+            :class="[lesson.status.color || 'bg-blue-50']"
             :style="{
               gridColumn: lesson.dayIndex + 2,
-              gridRow: `${lesson.gridRowStart + 1} / span ${lesson.rowSpan}`,
+              gridRow: `${lesson.gridRowStart} / span ${lesson.rowSpan}`,
             }"
             @click="handleEventClick(lesson, $event)"
           >
-            <div class="font-semibold truncate text-sm">
-              {{ lesson.subject }}
-            </div>
-            <div class="text-xs opacity-90 mt-1 truncate">
-              {{ formatEventTime(lesson.startTime) }} -
-              {{ formatEventTime(lesson.endTime) }}
-            </div>
-            <div v-if="lesson.room" class="text-xs opacity-80 mt-1 truncate">
-              📍 {{ lesson.room }}
-            </div>
-            <div v-if="lesson.units.length > 1" class="text-xs opacity-70 mt-1">
-              {{ lesson.units.length }} units
+            <!-- Content container -->
+            <div class="relative z-10 space-y-2">
+              <!-- Course title -->
+              <div
+                class="font-bold text-gray-700 text-base leading-tight truncate drop-shadow-sm"
+              >
+                {{ lesson.courseTitle }}
+              </div>
+
+              <!-- Subject title -->
+              <div class="text-gray-700/90 font-medium text-sm truncate">
+                {{ lesson.subjectTitle }}
+              </div>
+
+              <!-- Room info -->
+              <div class="flex items-center space-x-1 text-xs text-gray-700/80">
+                <MapPinIcon
+                  class="w-4 h-4 flex-shrink-0 text-gray-700"
+                  aria-hidden="true"
+                />
+                <span class="truncate">{{ lesson.roomTitle }}</span>
+              </div>
+
+              <!-- Teacher name -->
+              <div class="flex items-center space-x-1 text-xs text-gray-700/80">
+                <UserIcon
+                  class="w-4 h-4 flex-shrink-0 text-gray-700"
+                  aria-hidden="true"
+                />
+                <span class="truncate">{{ lesson.teacherName }}</span>
+              </div>
+
+              <!--              &lt;!&ndash; Description &ndash;&gt;-->
+              <!--              <div-->
+              <!--                v-if="lesson.description"-->
+              <!--                class="text-xs text-gray-700/70 leading-relaxed line-clamp-2 mt-3 pt-2 border-t border-gray-400/20"-->
+              <!--              >-->
+              <!--                {{ lesson.description }}-->
+              <!--              </div>-->
             </div>
           </div>
         </template>

@@ -6,7 +6,10 @@ import {
   EllipsisHorizontalIcon,
 } from "@heroicons/vue/20/solid";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
-import { formatDate, getDayAsText } from "./timetableUtils.js";
+import {
+  formatDate,
+  getDayAsText,
+} from "@/components/common/timetable/timetableUtils";
 import {
   VIEW_DAY,
   VIEW_WEEK,

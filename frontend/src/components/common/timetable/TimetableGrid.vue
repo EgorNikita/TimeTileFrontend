@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { TimetableUnit, Lesson } from "@/types/lesson";
 import WeekView from "@/components/common/timetable/WeekView.vue";
 import {
+  EnrichedLesson,
   ProcessedLesson,
   TimetableData,
   WeekDay,
@@ -15,7 +16,7 @@ interface Props {
   currentDate: Date;
   currentView: string;
   timetableUnits: TimetableUnit[];
-  lessons?: Lesson[];
+  lessons?: EnrichedLesson[];
 }
 const props = withDefaults(defineProps<Props>(), {
   lessons: () => [],
@@ -110,82 +111,36 @@ const timetableData = computed((): TimetableData[] => {
   return result;
 });
 
-const processedEvents = computed((): ProcessedLesson[] => {
-  return props.lessons
-    .map((event): ProcessedLesson | null => {
-      // Parse the event date
-      const eventDate = new Date(event.date);
+const processedLessons = computed((): ProcessedLesson[] => {
+  return props.lessons.map((lesson): ProcessedLesson => {
+    // Find which day of the week this event falls on
+    const dayIndex = weekDays.value.findIndex(
+      (day) => day.fullDate.toDateString() === lesson.date.toDateString(),
+    );
 
-      // Validate date
-      if (isNaN(eventDate.getTime())) {
-        console.warn(
-          `Invalid date format for event: ${event.subject}, date: ${event.date}`,
-        );
-        return null;
-      }
+    // if (dayIndex === -1) {
+    //   // Event is not in the current week, skip it
+    //   return null;
+    // }
+    //-------------------------------------
+    const units = timetableData.value.filter((unit) =>
+      lesson.timetableUnitIds.includes(unit.id),
+    );
 
-      // Find which day of the week this event falls on
-      const dayIndex = weekDays.value.findIndex(
-        (day) => day.fullDate.toDateString() === eventDate.toDateString(),
-      );
+    // Sort units by startTime
+    units.sort((a, b) => a.startTime.localeCompare(b.startTime));
+    //----------------------------
+    const gridRowStart = units[0]?.id;
+    const rowSpan = units.length;
 
-      if (dayIndex === -1) {
-        // Event is not in the current week, skip it
-        return null;
-      }
-
-      // Find the timetable units for this event
-      const eventUnits = timetableData.value.filter((unit) =>
-        event.timetableUnitIds.includes(unit.id),
-      );
-
-      if (eventUnits.length === 0) {
-        console.warn(
-          `No matching timetable units found for event: ${event.subject}`,
-        );
-        return null;
-      }
-
-      // Sort units by their position in the timetable
-      eventUnits.sort((a, b) => a.startMinutes - b.startMinutes);
-
-      // Find the first and last unit indices in the full timetable
-      const firstUnitIndex = timetableData.value.findIndex(
-        (unit) => unit.id === eventUnits[0].id,
-      );
-      const lastUnitIndex = timetableData.value.findIndex(
-        (unit) => unit.id === eventUnits[eventUnits.length - 1].id,
-      );
-
-      if (firstUnitIndex === -1 || lastUnitIndex === -1) {
-        console.warn(
-          `Could not find unit positions for event: ${event.subject}`,
-        );
-        return null;
-      }
-
-      // Check if units are consecutive (allowing for breaks in between)
-      const expectedUnits = timetableData.value.slice(
-        firstUnitIndex,
-        lastUnitIndex + 1,
-      );
-      const hasGaps = expectedUnits.some(
-        (unit) => !unit.isBreak && !event.timetableUnitIds.includes(unit.id),
-      );
-
-      if (hasGaps) {
-        console.warn(`Event ${event.subject} has gaps between selected units`);
-      }
-
-      return {
-        ...event,
-        dayIndex,
-        gridRowStart: firstUnitIndex,
-        rowSpan: lastUnitIndex - firstUnitIndex + 1,
-        units: eventUnits,
-      };
-    })
-    .filter((event): event is ProcessedEvent => event !== null);
+    return {
+      ...lesson,
+      units,
+      dayIndex,
+      gridRowStart,
+      rowSpan,
+    };
+  });
 });
 
 const gridTemplateRows = computed((): string => {
@@ -197,10 +152,6 @@ const gridTemplateRows = computed((): string => {
     })
     .join(" ");
 });
-
-const totalDuration = computed((): number =>
-  timetableData.value.reduce((sum, unit) => sum + unit.duration, 0),
-);
 
 // // Event handlers
 // const handleCellClick = (day: WeekDay, unit: TimetableData): void => {
@@ -215,16 +166,6 @@ const totalDuration = computed((): number =>
 // const handleHeaderClick = (day: WeekDay): void => {
 //   emit("header-click", day);
 // };
-
-// Expose for template ref access
-defineExpose({
-  containerNav,
-  timetableData,
-  totalDuration,
-  gridTemplateRows,
-  weekDays,
-  processedEvents,
-});
 </script>
 
 <template>
@@ -234,7 +175,7 @@ defineExpose({
         :timetableUnits="timetableData"
         :gridTemplateRows="gridTemplateRows"
         :weekDays="weekDays"
-        :lessons="processedEvents"
+        :lessons="processedLessons"
       />
     </div>
   </div>
@@ -245,7 +186,7 @@ defineExpose({
         :currentDate="currentDate"
         :timetable-units="timetableData"
         :gridTemplateRows="gridTemplateRows"
-        :lessons="processedEvents"
+        :lessons="processedLessons"
         @day-click="(payload) => emit('day-click', payload)"
       />
     </div>
