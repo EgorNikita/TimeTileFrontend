@@ -6,9 +6,10 @@ export interface Grade {
   date: string;
   subjectId: number;
   courseId: number;
+  lessonId?: number;
 }
 
-enum GradeType {
+export enum GradeType {
   Exam = "Exam",
   Classwork = "Classwork",
   Homework = "Homework",
