@@ -1,15 +1,117 @@
 <script setup lang="ts">
+import {computed, ref} from "vue";
+import {useStudentLessonInfo} from "@/tanStackQueries/student/student/useStudentLessonInfo";
+import {useAuthStore} from "@/store/modules/auth";
+import {useStudentAttendanceCount} from "@/tanStackQueries/student/student/useStudentAttendanceCount";
+import {GradeType} from "@/types/grade";
+import {useIncrementalGrades} from "@/tanStackQueries/student/grades/useIncrementalGrades";
+
+const scrollContainer = ref<HTMLElement | null>(null);
+
 interface Lesson {
   id: number;
-  title: string;
-  classwork: string;
-  homework: string;
+  description: string;
   date: string;
+  classworkGrade?: number;
+  homeworkGrade?: number;
+}
+
+interface Grade {
+  id: number;
+  value: number;
+  type: GradeType;
 }
 
 const props = defineProps<{
-  lessons: Lesson[];
+  courseId: number;
 }>();
+
+const auth = useAuthStore();
+const userId = auth.userId!;
+
+const {
+  data,
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage,
+} = useStudentLessonInfo(userId, {
+  courseIds: [props.courseId]
+});
+
+const lessonsToStudents = computed(
+  () =>
+    data.value?.pages?.flatMap((page) => page.items) ??
+    []
+)
+
+const attendanceCount = useStudentAttendanceCount(userId, {
+  courseIds: [props.courseId]
+});
+
+const completedLessons = computed(
+    () => attendanceCount.data.value?.attendedLessons ?? 0
+);
+
+const totalLessons = computed(
+    () => attendanceCount.data.value?.totalLessons ?? 0
+);
+
+const lessonIds = computed(() =>
+    [...new Set(lessonsToStudents.value.map((lessonToStudent) => lessonToStudent.lessonId))]
+)
+
+const gradesQuery = useIncrementalGrades(() => lessonIds.value);
+
+const lessonGradesMap = computed(() => {
+  const map = new Map<number, Array<Grade>>();
+  if (gradesQuery) {
+    const grades = gradesQuery.data?.value ?? [];
+
+    grades.forEach((grade) => {
+      const current = map.get(grade.lessonId!) ?? [];
+      current.push(grade);
+      map.set(grade.lessonId!, current);
+    });
+  }
+  return map;
+});
+
+const lessons = computed<Lesson[]>(
+  () => lessonsToStudents.value.map(lessonToStudent => {
+    const grades = lessonGradesMap.value.get(lessonToStudent.lessonId);
+
+    let classworkGrade: number | undefined;
+    let homeworkGrade: number | undefined;
+
+    if (grades) {
+      classworkGrade = grades.find(g => g.type == GradeType.Classwork)?.value;
+      homeworkGrade = grades.find(g => g.type == GradeType.Homework)?.value;
+    }
+
+    return {
+      id: lessonToStudent.lessonId,
+      description: lessonToStudent.lesson.description,
+      date: lessonToStudent.lesson.date,
+      classworkGrade,
+      homeworkGrade
+    }
+  }
+));
+
+const handleScroll = () => {
+  const el = scrollContainer.value;
+  if (!el || !hasNextPage.value || isFetchingNextPage.value) return;
+
+  const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 20;
+
+  if (nearBottom) {
+    fetchNextPage();
+  }
+};
+
+const getProgressPercentage = (completed: number, total: number): number => {
+  return Math.round((completed / total) * 100);
+};
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -22,9 +124,31 @@ const formatDate = (dateString: string) => {
 </script>
 
 <template>
+  <div class="mb-6">
+    <div class="flex justify-between items-center mb-2">
+      <span class="text-sm font-medium text-gray-700">Progress</span>
+      <span class="text-sm text-gray-600">
+        {{ completedLessons }}/{{ totalLessons }} lessons
+      </span>
+    </div>
+    <div class="w-full bg-gray-200 rounded-full h-3">
+      <div
+        class="bg-stone-800 h-3 rounded-full transition-all duration-500"
+        :style="`width: ${getProgressPercentage(completedLessons, totalLessons)}%`"
+      ></div>
+    </div>
+    <div class="text-right text-sm text-gray-600 mt-1">
+      {{ getProgressPercentage(completedLessons, totalLessons) }}% Complete
+    </div>
+  </div>
+
   <div class="mt-4">
     <h3 class="text-sm font-semibold text-gray-700 mb-1">Lessons</h3>
-    <ul class="space-y-1 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+    <ul
+      ref="scrollContainer"
+      class="space-y-1 max-h-48 overflow-y-auto pr-2 custom-scrollbar"
+      @scroll="handleScroll"
+    >
       <li
         v-for="(lesson, index) in lessons"
         :key="lesson.id"
@@ -39,7 +163,11 @@ const formatDate = (dateString: string) => {
               {{ index + 1 }}
             </div>
             <div>
-              <h4 class="font-semibold text-gray-800">{{ lesson.title }}</h4>
+              <h4
+                class="font-semibold text-gray-800 truncate max-w-xs overflow-hidden whitespace-nowrap"
+              >
+                {{ lesson.description }}
+              </h4>
               <p class="text-sm text-gray-500">{{ formatDate(lesson.date) }}</p>
             </div>
           </div>
@@ -52,7 +180,7 @@ const formatDate = (dateString: string) => {
             <span
               class="px-2 py-0.5 rounded-sm text-md font-medium text-green-600 bg-green-100"
             >
-              {{ lesson.classwork }}
+              {{ lesson.classworkGrade ?? "-" }}
             </span>
           </div>
           <div class="flex items-center space-x-1">
@@ -60,7 +188,7 @@ const formatDate = (dateString: string) => {
             <span
               :class="`px-2 py-0.5  rounded-md text-md font-medium text-blue-600 bg-blue-100`"
             >
-              {{ lesson.homework }}
+              {{ lesson.homeworkGrade ?? "-" }}
             </span>
           </div>
         </div>
