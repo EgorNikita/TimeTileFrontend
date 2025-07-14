@@ -1,17 +1,17 @@
-import { useQuery } from "@tanstack/vue-query";
 import { ComputedRef, Ref } from "vue";
-import { fetchSubjectsByIds } from "@/services/subjectService";
+import { useQuery } from "@tanstack/vue-query";
+import { fetchGradesByIds } from "@/services/gradeService";
 
-export const useBulkSubjectsQuery = (
+export const useBulkGradesQuery = (
   ids: ComputedRef<number[]> | Ref<number[]> | number[],
   enabled: ComputedRef<boolean> | Ref<boolean> | boolean = true,
 ) => {
   return useQuery({
-    queryKey: ["bulk-subjects", ids],
+    queryKey: ["bulk-grades", ids],
 
     queryFn: async () => {
       const idsValue = Array.isArray(ids) ? ids : ids.value;
-      return await fetchSubjectsByIds(idsValue);
+      return await fetchGradesByIds(idsValue);
     },
 
     staleTime: 1000 * 60 * 5, // 5 minutes
