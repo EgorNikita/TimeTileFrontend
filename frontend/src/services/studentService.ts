@@ -7,6 +7,12 @@ import {
   StudentCourseInfo,
   StudentCourseFilters,
 } from "@/types/studentCourseInfo";
+import {
+  StudentAttendanceCountFilters,
+  StudentAttendanceCountInfo,
+  StudentLessonFilters,
+  StudentLessonInfo
+} from "@/types/studentLessonsInfo";
 
 const api = createApi();
 
@@ -46,4 +52,44 @@ export async function fetchStudentCoursesInfo(
     ...response.data,
     items: transformedCourses,
   };
+}
+
+export async function fetchStudentLessonsInfo(
+  studentId: number | string,
+  params: PagedListParams<StudentLessonFilters> = {},
+): Promise<PagedList<StudentLessonInfo>> {
+  console.log("Fetching student lessons info", studentId, params);
+
+  const queryString = buildQueryParams(params);
+  const url = queryString
+    ? `${API_ENDPOINTS.STUDENTS.LESSONS(studentId)}?${queryString}`
+    : API_ENDPOINTS.STUDENTS.LESSONS(studentId);
+
+  const response = await api.get(url);
+
+  if (!response || !response.isSuccess || !response.data) {
+    throw new Error(response?.error?.message || "Failed to fetch lessons");
+  }
+
+  return response.data;
+}
+
+export async function fetchStudentAttendanceCount(
+  studentId: number | string,
+  params: StudentAttendanceCountFilters = {}
+): Promise<StudentAttendanceCountInfo> {
+  console.log("Fetching student attendance count", studentId, params);
+
+  const queryString = buildQueryParams(params);
+  const url = queryString
+      ? `${API_ENDPOINTS.STUDENTS.ATTENDANCE_COUNT(studentId)}?${queryString}`
+      : API_ENDPOINTS.STUDENTS.ATTENDANCE_COUNT(studentId);
+
+  const response = await api.get(url);
+
+  if (!response || !response.isSuccess || !response.data) {
+    throw new Error(response?.error?.message || "Failed to fetch attendance count of the student");
+  }
+
+  return response.data;
 }

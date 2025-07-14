@@ -4,7 +4,7 @@ import { API_ENDPOINTS } from "@/constants";
 
 const api = createApi();
 
-export async function fetchSubjectsbyIds(ids: number[]): Promise<Subject[]> {
+export async function fetchSubjectsByIds(ids: number[]): Promise<Subject[]> {
   if (ids.length === 0) return { value: [] };
 
   const query = ids.map((id) => `ids=${id}`).join("&");

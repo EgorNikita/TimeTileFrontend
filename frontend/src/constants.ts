@@ -101,6 +101,8 @@ export const API_ENDPOINTS = {
   STUDENTS: {
     DEFAULT: "/students",
     COURSES: (id: number | string) => `/students/${id}/courses`,
+    LESSONS: (id: number | string) => `/students/${id}/lessons`,
+    ATTENDANCE_COUNT: (id: number | string) => `/students/${id}/attendance-count`,
   },
   TEACHERS: "/teachers",
 
@@ -112,7 +114,10 @@ export const API_ENDPOINTS = {
   TIMETABLE_UNITS: "/timetable-units",
 
   // Academic records
-  GRADES: "/grades",
+  GRADES: {
+    DEFAULT: "/grades",
+    BY_IDS: "/grades/bulk",
+  },
   LESSON_STATUSES: "/lesson-statuses",
 
   // File management
