@@ -127,8 +127,8 @@ const processedLessons = computed((): ProcessedLesson[] => {
       lesson.timetableUnitIds.includes(unit.id),
     );
 
-    // Sort units by startTime
-    units.sort((a, b) => a.startTime.localeCompare(b.startTime));
+    // // Sort units by startTime
+    // units.sort((a, b) => a.startTime.localeCompare(b.startTime));
     //----------------------------
     const gridRowStart = units[0]?.id;
     const rowSpan = units.length;

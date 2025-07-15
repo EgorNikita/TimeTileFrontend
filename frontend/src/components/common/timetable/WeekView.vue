@@ -2,6 +2,7 @@
 import { formatTime } from "./timetableUtils";
 import { WeekDay, TimetableData, ProcessedLesson } from "./timetableInterfaces";
 import { MapPinIcon, UserIcon } from "@heroicons/vue/20/solid";
+import { computed } from "vue";
 
 // Props
 interface Props {
@@ -22,6 +23,13 @@ interface Emits {
   "cell-click": [payload: { day: WeekDay; unit: TimetableData }];
 }
 const emit = defineEmits<Emits>();
+
+// // Computed properties
+// const filteredLessons = computed(() => {
+//   return props.lessons.filter(
+//     (lesson) => lesson.date.toDateString() === props.currentDate.toDateString(),
+//   );
+// });
 
 // Handlers
 const handleCellClick = (day: WeekDay, unit: TimetableData): void => {
@@ -174,14 +182,6 @@ const handleHeaderClick = (day: WeekDay): void => {
                 />
                 <span class="truncate">{{ lesson.teacherName }}</span>
               </div>
-
-              <!--              &lt;!&ndash; Description &ndash;&gt;-->
-              <!--              <div-->
-              <!--                v-if="lesson.description"-->
-              <!--                class="text-xs text-gray-700/70 leading-relaxed line-clamp-2 mt-3 pt-2 border-t border-gray-400/20"-->
-              <!--              >-->
-              <!--                {{ lesson.description }}-->
-              <!--              </div>-->
             </div>
           </div>
         </template>

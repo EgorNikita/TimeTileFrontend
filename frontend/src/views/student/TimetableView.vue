@@ -31,10 +31,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import TimetableHeader from "@/components/common/timetable/TimetableHeader.vue";
 import TimetableGrid from "@/components/common/timetable/TimetableGrid.vue";
-import { Lesson, TimetableUnit } from "@/types/lesson";
 import { timeToMinutes } from "@/components/common/timetable/timetableUtils";
 import {
   VIEW_WEEK,
@@ -42,6 +41,7 @@ import {
   ViewType,
 } from "@/components/common/timetable/timetableConstants";
 import { EnrichedLesson } from "@/components/common/timetable/timetableInterfaces";
+import { useTimetableUnits } from "@/tanStackQueries/student/timetableUnit/useTimetableUnits";
 
 // Refs
 const container = ref<HTMLElement | null>(null);
@@ -260,106 +260,12 @@ const lessons = ref<EnrichedLesson[]>([
   },
 ]);
 
-const timetableUnits = ref<TimetableUnit[]>([
-  {
-    id: 1,
-    title: "1.",
-    startTime: "07:50",
-    endTime: "08:35",
-  },
-  {
-    id: 2,
-    title: "2.",
-    startTime: "08:35",
-    endTime: "09:20",
-  },
-  {
-    id: 4,
-    title: "3.",
-    startTime: "09:40",
-    endTime: "10:25",
-  },
-  {
-    id: 5,
-    title: "4.",
-    startTime: "10:25",
-    endTime: "11:10",
-  },
-  {
-    id: 7,
-    title: "5.",
-    startTime: "11:30",
-    endTime: "12:15",
-  },
-  {
-    id: 8,
-    title: "6.",
-    startTime: "12:15",
-    endTime: "13:00",
-  },
-  {
-    id: 10,
-    title: "7.",
-    startTime: "13:15",
-    endTime: "14:00",
-  },
-  {
-    id: 11,
-    title: "8.",
-    startTime: "14:00",
-    endTime: "14:45",
-  },
-  {
-    id: 13,
-    title: "9.",
-    startTime: "15:05",
-    endTime: "15:50",
-  },
-  {
-    id: 14,
-    title: "10.",
-    startTime: "15:50",
-    endTime: "16:35",
-  },
-  {
-    id: 16,
-    title: "11.",
-    startTime: "16:50",
-    endTime: "17:35",
-  },
-  {
-    id: 17,
-    title: "12.",
-    startTime: "17:35",
-    endTime: "18:20",
-  },
+const timetableUnitsQuery = useTimetableUnits({});
+const
 
-  {
-    id: 19,
-    title: "13.",
-    startTime: "18:30",
-    endTime: "19:15",
-  },
-  {
-    id: 20,
-    title: "14.",
-    startTime: "19:15",
-    endTime: "20:00",
-  },
-
-  {
-    id: 22,
-    title: "15.",
-    startTime: "20:15",
-    endTime: "21:00",
-  },
-  {
-    id: 23,
-    title: "16.",
-    startTime: "21:00",
-    endTime: "21:45",
-  },
-]);
+const timetableUnits = computed(() => {
+  return timetableUnitsQuery.data?.value ?? [];
+});
 
 // Scroll to current time
 const scrollToCurrentTime = (): void => {

@@ -1,12 +1,3 @@
-import { Grade } from "@/types/grade";
-
-export interface TimetableUnit {
-  id: string | number;
-  title: string;
-  startTime: string;
-  endTime: string;
-}
-
 export interface LessonStatus {
   id: string | number;
   title: string;
@@ -38,4 +29,12 @@ export interface Lesson {
 
   bgColor?: string;
   titleColor?: string;
+}
+
+export interface EnrichedLesson extends Lesson {
+  courseTitle: string;
+  subjectTitle: string;
+  teacherName: string;
+  roomTitle: string;
+  status: LessonStatus;
 }

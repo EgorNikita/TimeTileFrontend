@@ -64,7 +64,6 @@ const endDate = computed(() => {
 const days = computed<Day[]>(() => {
   const result: Day[] = [];
   const current = new Date(startDate.value);
-  console.log(props.currentDate.toDateString());
   while (current <= endDate.value) {
     result.push({
       date: new Date(current),

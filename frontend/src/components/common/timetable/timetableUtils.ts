@@ -3,15 +3,11 @@ import {
   ViewType,
 } from "@/components/common/timetable/timetableConstants";
 
-export const timeToMinutes = (timeStr: string): number => {
-  const [hours, minutes] = timeStr.split(":").map(Number);
-  return hours * 60 + minutes;
+export const timeToMinutes = (date: Date): number => {
+  return date.getHours() * 60 + date.getMinutes();
 };
 
-export const formatTime = (timeStr: string): string => {
-  const [hours, minutes] = timeStr.split(":").map(Number);
-  const date = new Date();
-  date.setHours(hours, minutes);
+export const formatTime = (date: Date): string => {
   return date.toLocaleTimeString([], {
     hour: "numeric",
     minute: "2-digit",
