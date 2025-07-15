@@ -6,6 +6,9 @@ export function buildQueryParams(params: Record<string, any>): string {
         return value.map(
           (v) => `${encodeURIComponent(key)}=${encodeURIComponent(v)}`,
         );
+      } else if (typeof value === "object") {
+        // Recursive call for nested objects
+        return buildQueryParams(value).split("&");
       } else {
         return [`${encodeURIComponent(key)}=${encodeURIComponent(value)}`];
       }
