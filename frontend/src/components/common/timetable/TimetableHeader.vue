@@ -1,8 +1,58 @@
+<script setup lang="ts">
+import {
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  EllipsisHorizontalIcon,
+} from "@heroicons/vue/20/solid";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
+import {
+  formatDate,
+  getDayAsText,
+} from "@/components/common/timetable/timetableUtils";
+import {
+  VIEW_DAY,
+  VIEW_WEEK,
+  VIEWS,
+  ViewType,
+} from "@/components/common/timetable/timetableConstants";
+
+// Props
+const props = withDefaults(
+  defineProps<{
+    currentDate: Date;
+    currentView: ViewType;
+    views: ViewType[];
+  }>(),
+  {
+    currentView: VIEW_WEEK,
+    views: () => [...VIEWS],
+  },
+);
+
+// Emits
+defineEmits<{
+  (e: "previous"): void;
+  (e: "next"): void;
+  (e: "today"): void;
+  (e: "view-change", view: ViewType): void;
+  (e: "add-event"): void;
+}>();
+</script>
+
 <template>
   <header class="flex flex-none items-center justify-between px-6 pt-4 pb-3">
-    <h1 class="text-base font-semibold text-gray-900">
-      <time :datetime="currentDate">{{ displayDate }}</time>
-    </h1>
+    <div>
+      <h1 class="text-base font-semibold text-gray-900">
+        <time :datetime="currentDate.toISOString()">
+          {{ formatDate(currentDate, currentView) }}
+        </time>
+      </h1>
+      <p v-if="currentView === VIEW_DAY" class="mt-1 text-sm text-gray-500">
+        {{ getDayAsText(currentDate) }}
+      </p>
+    </div>
+
     <div class="flex items-center">
       <div
         class="relative flex items-center rounded-md bg-white shadow-xs md:items-stretch"
@@ -170,36 +220,3 @@
     </div>
   </header>
 </template>
-
-<script setup>
-import {
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  EllipsisHorizontalIcon,
-} from "@heroicons/vue/20/solid";
-import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/vue";
-
-// Props
-const props = defineProps({
-  currentDate: {
-    type: String,
-    default: "2022-01",
-  },
-  displayDate: {
-    type: String,
-    default: "January 2022",
-  },
-  currentView: {
-    type: String,
-    default: "Week view",
-  },
-  views: {
-    type: Array,
-    default: () => ["Day view", "Week view"],
-  },
-});
-
-// Emits
-defineEmits(["previous", "next", "today", "view-change", "add-event"]);
-</script>
