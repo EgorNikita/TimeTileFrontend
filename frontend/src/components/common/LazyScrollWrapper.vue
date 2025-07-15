@@ -33,7 +33,9 @@ const activeScrollContainer = computed(() => {
   return props.scrollContainer || localContainer.value;
 });
 
-const onScroll = () => {
+const onScroll = (event: Event) => {
+  event.stopPropagation();
+
   hideAllPoppers();
   const container = activeScrollContainer.value;
   if (!container || isLoading.value || !hasMore.value) return;
@@ -66,7 +68,6 @@ watch(activeScrollContainer, (newVal, oldVal) => {
     <div
       ref="localContainer"
       class="overflow-y-auto flex-1 min-h-0 custom-scrollbar"
-      @scroll="onScroll"
     >
       <slot />
 

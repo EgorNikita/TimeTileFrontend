@@ -103,7 +103,17 @@ const formatDate = (dateString: string) => {
           >
             <!-- Lesson Header -->
             <div class="flex items-start justify-between mb-2 min-w-0">
-              <div class="flex items-center min-w-0 space-x-3">
+              <div
+                class="flex items-center min-w-0 space-x-3"
+                v-tooltip="{
+                  content: lesson.lesson.description,
+                  theme: 'arrowed-tooltip',
+                  strategy: 'fixed',
+                  boundary: 'scrollParent',
+                  flip: true,
+                  preventOverflow: true,
+                }"
+              >
                 <div
                   class="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-sm font-bold text-gray-600 shadow-sm"
                 >

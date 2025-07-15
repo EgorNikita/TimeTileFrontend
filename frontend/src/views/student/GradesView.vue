@@ -25,6 +25,17 @@ const termIds = computed(() =>
   selectedTerm.value ? [selectedTerm.value.id] : [],
 );
 
+const isInitialLoading = computed(() => {
+  return (
+    studentCourseInfoQuery.isFetching.value &&
+    !studentCourseInfoQuery.data.value
+  );
+});
+
+const isEmpyState = computed(() => {
+  return courses.value.length === 0 && !isInitialLoading.value;
+});
+
 const filters = reactive({
   termIds: termIds.value,
 });
@@ -67,7 +78,7 @@ watch(
 </script>
 
 <template>
-  <div class="flex-1 overflow-y-auto">
+  <div class="flex-1">
     <div class="space-y-4">
       <!-- Term Selection Component -->
       <div class="m-4">
@@ -80,10 +91,7 @@ watch(
       </div>
 
       <!-- Empty State -->
-      <div
-        v-if="courses.length === 0 && !studentCourseInfoQuery.isLoading"
-        class="text-center py-12"
-      >
+      <div v-if="isEmpyState" class="text-center py-12">
         <div class="text-gray-500">
           <svg
             class="mx-auto h-12 w-12 text-gray-400 mb-4"
@@ -123,7 +131,7 @@ watch(
             v-for="courseCard in courses"
             :key="courseCard.courseId"
             :course-info="courseCard"
-            class="hover:scale-103 transition-transform duration-400 ease-in-out"
+            class="hover:scale-103 transition-transform duration-400 ease-in-out max-w-lg"
           />
         </div>
       </LazyScrollWrapper>

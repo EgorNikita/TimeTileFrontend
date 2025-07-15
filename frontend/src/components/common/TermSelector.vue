@@ -53,7 +53,7 @@ const formatDate = (dateString: string) => {
     class="w-sm"
   >
     <ListboxLabel class="block text-sm/6 font-medium text-gray-900"
-      >Select Term</ListboxLabel
+      >Selected Term</ListboxLabel
     >
     <div class="relative mt-2">
       <ListboxButton
@@ -78,7 +78,7 @@ const formatDate = (dateString: string) => {
         leave-to-class="opacity-0"
       >
         <ListboxOptions
-          class="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-hidden sm:text-sm"
+          class="absolute z-10 mt-1 w-full rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-hidden sm:text-sm"
           style="max-height: calc(4 * (2rem + 1rem + 0.5rem))"
         >
           <LazyScrollWrapper
@@ -86,6 +86,8 @@ const formatDate = (dateString: string) => {
             :scroll-threshold="100"
             :show-no-more-text="false"
             loading-text="Loading more terms..."
+            class="max-h-full overflow-y-auto"
+            style="max-height: calc(4 * (2rem + 1rem + 0.5rem) - 0.5rem)"
           >
             <ListboxOption
               as="template"

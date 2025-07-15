@@ -9,7 +9,6 @@ const props = defineProps({
 });
 
 onMounted(async () => {
-  // Ensure scrollContainer is set if provided\
   await nextTick();
 });
 </script>

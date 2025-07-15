@@ -24,6 +24,8 @@ export function useEnrichedStudentCourseInfo(
         pageSize,
       });
 
+      console.log("coursePage", coursePage);
+
       const subjectIds = coursePage.items.map((c) => c.course.subjectId);
       const gradeIds = coursePage.items
         .filter((studentToCourse) => studentToCourse.examGradeId != null)
