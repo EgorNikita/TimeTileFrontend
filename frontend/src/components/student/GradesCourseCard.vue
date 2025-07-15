@@ -1,18 +1,10 @@
 <script setup lang="ts">
 import LessonList from "./LessonList.vue";
-
-interface CourseCard {
-  id: number;
-  title: string;
-  subject: string;
-  termMark?: number;
-  averageMark: number;
-}
+import { EnrichedStudentCourseInfo } from "@/types/studentCourseInfo";
 
 const props = defineProps<{
-  courseCard: CourseCard;
+  courseInfo: EnrichedStudentCourseInfo;
 }>();
-
 </script>
 
 <template>
@@ -23,7 +15,7 @@ const props = defineProps<{
         <div
           class="min-w-0 flex-1 mr-10"
           v-tooltip="{
-            content: courseCard.title,
+            content: courseInfo.course.title,
             theme: 'arrowed-tooltip',
             strategy: 'fixed',
             boundary: 'scrollParent',
@@ -32,9 +24,11 @@ const props = defineProps<{
           }"
         >
           <h2 class="text-2xl font-bold truncate">
-            {{ courseCard.title }}
+            {{ courseInfo.course.title }}
           </h2>
-          <p class="text-white/80 text-sm mt-1 truncate max-w-xs">{{ courseCard.subject }}</p>
+          <p class="text-white/80 text-sm mt-1 truncate max-w-xs">
+            {{ courseInfo.subjectTitle }}
+          </p>
         </div>
         <img
           class="h-18 w-18 rounded-md"
@@ -50,19 +44,19 @@ const props = defineProps<{
       <div class="grid grid-cols-2 gap-4 mb-6">
         <div class="text-center p-4 bg-gray-50 rounded-md">
           <div class="text-2xl font-bold text-gray-800">
-            {{ courseCard.termMark?.toFixed(1) ?? '-' }}
+            {{ courseInfo.termMark?.toFixed(1) ?? "-" }}
           </div>
           <div class="text-sm text-gray-600">Term Mark</div>
         </div>
         <div class="text-center p-4 bg-gray-50 rounded-md">
           <div class="text-2xl font-bold text-gray-800">
-            {{ courseCard.averageMark.toFixed(1) }}
+            {{ courseInfo.averageGrade.toFixed(1) }}
           </div>
           <div class="text-sm text-gray-600">Average</div>
         </div>
       </div>
 
-      <LessonList :course-id="courseCard.id" />
+      <LessonList :course-id="courseInfo.courseId" />
     </div>
   </div>
 </template>

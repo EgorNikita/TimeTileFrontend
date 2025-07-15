@@ -12,6 +12,7 @@ import { Term } from "@/types/term";
 import { useInfiniteQuery } from "@tanstack/vue-query";
 import { PagedList } from "@/common/types/pagedList";
 import { computed } from "vue";
+import LazyScrollWrapper from "@/components/common/LazyScrollWrapper.vue";
 
 const props = defineProps<{
   useTermQuery: ReturnType<typeof useInfiniteQuery<PagedList<Term>>>;
@@ -83,6 +84,7 @@ const formatDate = (dateString: string) => {
           <LazyScrollWrapper
             :query="useTermQuery"
             :scroll-threshold="100"
+            :show-no-more-text="false"
             loading-text="Loading more terms..."
           >
             <ListboxOption

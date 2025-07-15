@@ -1,26 +1,9 @@
 <script setup lang="ts">
-import {computed, ref} from "vue";
-import {useStudentLessonInfo} from "@/tanStackQueries/student/student/useStudentLessonInfo";
-import {useAuthStore} from "@/store/modules/auth";
-import {useStudentAttendanceCount} from "@/tanStackQueries/student/student/useStudentAttendanceCount";
-import {GradeType} from "@/types/grade";
-import {useIncrementalGrades} from "@/tanStackQueries/student/grades/useIncrementalGrades";
-
-const scrollContainer = ref<HTMLElement | null>(null);
-
-interface Lesson {
-  id: number;
-  description: string;
-  date: string;
-  classworkGrade?: number;
-  homeworkGrade?: number;
-}
-
-interface Grade {
-  id: number;
-  value: number;
-  type: GradeType;
-}
+import { computed } from "vue";
+import { useStudentLessonInfoWithGrades } from "@/tanStackQueries/student/student/useStudentLessonInfoWithGrades";
+import { useAuthStore } from "@/store/modules/auth";
+import { useStudentAttendanceCount } from "@/tanStackQueries/student/student/useStudentAttendanceCount";
+import LazyScrollWrapper from "@/components/common/LazyScrollWrapper.vue";
 
 const props = defineProps<{
   courseId: number;
@@ -29,85 +12,32 @@ const props = defineProps<{
 const auth = useAuthStore();
 const userId = auth.userId!;
 
-const {
-  data,
-  fetchNextPage,
-  hasNextPage,
-  isFetchingNextPage,
-} = useStudentLessonInfo(userId, {
-  courseIds: [props.courseId]
+const studentLessonInfoQuery = useStudentLessonInfoWithGrades(userId, {
+  courseIds: [props.courseId],
 });
 
-const lessonsToStudents = computed(
+const lessons = computed(
   () =>
-    data.value?.pages?.flatMap((page) => page.items) ??
-    []
-)
+    studentLessonInfoQuery.data.value?.pages?.flatMap((page) => page.items) ??
+    [],
+);
 
 const attendanceCount = useStudentAttendanceCount(userId, {
-  courseIds: [props.courseId]
+  courseIds: [props.courseId],
 });
 
 const completedLessons = computed(
-    () => attendanceCount.data.value?.attendedLessons ?? 0
+  () => attendanceCount.data.value?.attendedLessons ?? 0,
 );
 
 const totalLessons = computed(
-    () => attendanceCount.data.value?.totalLessons ?? 0
+  () => attendanceCount.data.value?.totalLessons ?? 0,
 );
 
-const lessonIds = computed(() =>
-    [...new Set(lessonsToStudents.value.map((lessonToStudent) => lessonToStudent.lessonId))]
-)
-
-const gradesQuery = useIncrementalGrades(() => lessonIds.value);
-
-const lessonGradesMap = computed(() => {
-  const map = new Map<number, Array<Grade>>();
-  if (gradesQuery) {
-    const grades = gradesQuery.data?.value ?? [];
-
-    grades.forEach((grade) => {
-      const current = map.get(grade.lessonId!) ?? [];
-      current.push(grade);
-      map.set(grade.lessonId!, current);
-    });
-  }
-  return map;
-});
-
-const lessons = computed<Lesson[]>(
-  () => lessonsToStudents.value.map(lessonToStudent => {
-    const grades = lessonGradesMap.value.get(lessonToStudent.lessonId);
-
-    let classworkGrade: number | undefined;
-    let homeworkGrade: number | undefined;
-
-    if (grades) {
-      classworkGrade = grades.find(g => g.type == GradeType.Classwork)?.value;
-      homeworkGrade = grades.find(g => g.type == GradeType.Homework)?.value;
-    }
-
-    return {
-      id: lessonToStudent.lessonId,
-      description: lessonToStudent.lesson.description,
-      date: lessonToStudent.lesson.date,
-      classworkGrade,
-      homeworkGrade
-    }
-  }
-));
-
-const handleScroll = () => {
-  const el = scrollContainer.value;
-  if (!el || !hasNextPage.value || isFetchingNextPage.value) return;
-
-  const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 20;
-
-  if (nearBottom) {
-    fetchNextPage();
-  }
-};
+const isInitialLoading = computed(
+  () =>
+    studentLessonInfoQuery.isLoading.value || attendanceCount.isLoading.value,
+);
 
 const getProgressPercentage = (completed: number, total: number): number => {
   return Math.round((completed / total) * 100);
@@ -144,55 +74,74 @@ const formatDate = (dateString: string) => {
 
   <div class="mt-4">
     <h3 class="text-sm font-semibold text-gray-700 mb-1">Lessons</h3>
-    <ul
-      ref="scrollContainer"
-      class="space-y-1 max-h-48 overflow-y-auto pr-2 custom-scrollbar"
-      @scroll="handleScroll"
-    >
-      <li
-        v-for="(lesson, index) in lessons"
-        :key="lesson.id"
-        class="text-sm text-gray-400 border-b py-2"
-      >
-        <!-- Lesson Header -->
-        <div class="flex items-start justify-between mb-2">
-          <div class="flex items-center space-x-3">
-            <div
-              class="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-sm font-bold text-gray-600 shadow-sm"
-            >
-              {{ index + 1 }}
-            </div>
-            <div>
-              <h4
-                class="font-semibold text-gray-800 truncate max-w-xs overflow-hidden whitespace-nowrap"
-              >
-                {{ lesson.description }}
-              </h4>
-              <p class="text-sm text-gray-500">{{ formatDate(lesson.date) }}</p>
-            </div>
-          </div>
-        </div>
 
-        <!-- Grades -->
-        <div class="flex space-x-2 mt-3">
-          <div class="flex items-center space-x-1">
-            <span class="text-md text-gray-600">Classwork:</span>
-            <span
-              class="px-2 py-0.5 rounded-sm text-md font-medium text-green-600 bg-green-100"
-            >
-              {{ lesson.classworkGrade ?? "-" }}
-            </span>
-          </div>
-          <div class="flex items-center space-x-1">
-            <span class="text-md text-gray-600">Homework:</span>
-            <span
-              :class="`px-2 py-0.5  rounded-md text-md font-medium text-blue-600 bg-blue-100`"
-            >
-              {{ lesson.homeworkGrade ?? "-" }}
-            </span>
-          </div>
-        </div>
-      </li>
-    </ul>
+    <!-- Initial Loading State -->
+    <div v-if="isInitialLoading" class="flex justify-center items-center py-8">
+      <div
+        class="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600"
+      ></div>
+      <span class="ml-2 text-gray-600 text-sm">Loading lessons...</span>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="lessons.length === 0" class="text-center py-8">
+      <div class="text-gray-500 text-sm">No lessons found for this course.</div>
+    </div>
+
+    <!-- Lessons List with Lazy Loading -->
+    <div v-else class="h-72">
+      <LazyScrollWrapper
+        :query="studentLessonInfoQuery"
+        :scroll-threshold="100"
+        loading-text="Loading more lessons..."
+      >
+        <ul class="space-y-1 pr-2 overflow-hidden">
+          <li
+            v-for="(lesson, index) in lessons"
+            :key="lesson.lessonId"
+            class="text-sm text-gray-400 border-b py-2"
+          >
+            <!-- Lesson Header -->
+            <div class="flex items-start justify-between mb-2 min-w-0">
+              <div class="flex items-center min-w-0 space-x-3">
+                <div
+                  class="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-sm font-bold text-gray-600 shadow-sm"
+                >
+                  {{ index + 1 }}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <h4 class="font-semibold text-gray-800 truncate">
+                    {{ lesson.lesson.description }}
+                  </h4>
+                  <p class="text-sm text-gray-500">
+                    {{ formatDate(lesson.lesson.date) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Grades -->
+            <div class="flex space-x-2 mt-3">
+              <div class="flex items-center space-x-1">
+                <span class="text-md text-gray-600">Classwork:</span>
+                <span
+                  class="px-2 py-0.5 rounded-sm text-md font-medium text-green-600 bg-green-100"
+                >
+                  {{ lesson.classworkGrade?.value ?? "-" }}
+                </span>
+              </div>
+              <div class="flex items-center space-x-1">
+                <span class="text-md text-gray-600">Homework:</span>
+                <span
+                  :class="`px-2 py-0.5  rounded-md text-md font-medium text-blue-600 bg-blue-100`"
+                >
+                  {{ lesson.homeworkGrade?.value ?? "-" }}
+                </span>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </LazyScrollWrapper>
+    </div>
   </div>
 </template>

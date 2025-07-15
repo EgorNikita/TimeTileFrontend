@@ -8,11 +8,13 @@ interface Props {
   scrollThreshold?: number;
   scrollContainer?: HTMLElement | null;
   loadingText?: string;
+  showNoMoreText?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   scrollThreshold: 200,
   loadingText: "Loading more...",
+  showNoMoreText: true,
 });
 
 const localContainer = ref<HTMLElement | null>(null);
@@ -21,6 +23,7 @@ const isLoading = computed(() => props.query.isFetching.value || false);
 const hasMore = computed(() => props.query.hasNextPage.value || false);
 
 const loadMore = async () => {
+  console.log("Loading more items...");
   if (isLoading.value || !hasMore.value) return;
 
   await props.query.fetchNextPage?.();
@@ -32,7 +35,6 @@ const activeScrollContainer = computed(() => {
 
 const onScroll = () => {
   hideAllPoppers();
-
   const container = activeScrollContainer.value;
   if (!container || isLoading.value || !hasMore.value) return;
 
@@ -91,7 +93,10 @@ watch(activeScrollContainer, (newVal, oldVal) => {
       </div>
 
       <!-- End of content indicator -->
-      <div v-else-if="!hasMore" class="flex items-center justify-center py-4">
+      <div
+        v-else-if="showNoMoreText && !hasMore"
+        class="flex items-center justify-center py-4"
+      >
         <div class="text-gray-500 text-sm">
           <div class="flex items-center gap-2">
             <div class="h-px bg-gray-300 flex-1"></div>

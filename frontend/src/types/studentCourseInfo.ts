@@ -8,6 +8,11 @@ export interface StudentCourseInfo {
   averageGrade: number;
 }
 
+export interface EnrichedStudentCourseInfo extends StudentCourseInfo {
+  subjectTitle: string;
+  termMark: number | null;
+}
+
 interface CourseInfo {
   id: number;
   title: string;
@@ -26,3 +31,10 @@ export interface StudentCourseFilters {
   PositionX?: number;
   PositionY?: number;
 }
+
+// export interface CourseCard extends StudentCourseInfo {
+//   id: number;
+//   courseTitle: string;
+//   subjectTitle: string;
+//   termMark?: number;
+// }

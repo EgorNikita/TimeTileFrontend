@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import GradesPreviewCard from "./GradesPreviewCard.vue";
 import { GradeFilters } from "@/types/grade";
-import { useGrades } from "@/tanStackQueries/student/grades/useGrades";
+import { useGradesLazy } from "@/tanStackQueries/student/grades/useGradesLazy";
 import { useBulkSubjectsQuery } from "@/tanStackQueries/student/subject/useBulkSubjects";
 import LazyScrollWrapper from "@/components/common/LazyScrollWrapper.vue";
 
@@ -14,7 +14,7 @@ const props = withDefaults(defineProps<Props>(), {
   filters: () => ({}),
 });
 
-const gradesQuery = useGrades(props.filters);
+const gradesQuery = useGradesLazy(props.filters);
 
 // Computed properties for reactive gradeStore data
 const grades = computed(() => {

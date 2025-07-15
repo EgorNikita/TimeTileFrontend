@@ -3,6 +3,7 @@ import CoursesOverview from "@/components/common/CoursesOverview.vue";
 import GradesPreview from "@/components/student/GradesPreview.vue";
 import TimetablePreview from "@/components/student/TimetablePreview.vue";
 import { nextTick, onMounted } from "vue";
+
 const props = defineProps({
   scrollContainer: Object,
 });
@@ -10,7 +11,6 @@ const props = defineProps({
 onMounted(async () => {
   // Ensure scrollContainer is set if provided\
   await nextTick();
-  console.log("Scroll container:", props.scrollContainer);
 });
 </script>
 

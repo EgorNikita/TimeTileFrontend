@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import TermSelector from "@/components/common/TermSelector.vue";
 import { useTerms } from "@/tanStackQueries/student/term/useTerm.js";
 import { Term } from "@/types/term";
 import { useAuthStore } from "@/store/modules/auth.ts";
-import { useStudentCourseInfo } from "@/tanStackQueries/student/student/useStudentCourseInfo";
+import { useEnrichedStudentCourseInfo } from "@/tanStackQueries/student/student/useEnrichedStudentCourseInfo";
 import GradesCourseCard from "@/components/student/GradesCourseCard.vue";
-import { useBulkSubjectsQuery } from "@/tanStackQueries/student/subject/useBulkSubjects";
-import { useBulkGradesQuery } from "@/tanStackQueries/student/grades/useBulkGrades";
+import LazyScrollWrapper from "@/components/common/LazyScrollWrapper.vue";
+
+const props = defineProps({
+  scrollContainer: Object,
+});
 
 const auth = useAuthStore();
 const termsQuery = useTerms({ startDateUntil: new Date().toISOString() });
@@ -18,74 +21,26 @@ const handleTermChange = (term: Term) => {
   selectedTerm.value = term;
 };
 
-const termIds = computed(() => (selectedTerm.value ? [selectedTerm.value.id] : []));
+const termIds = computed(() =>
+  selectedTerm.value ? [selectedTerm.value.id] : [],
+);
 
-const studentCourseInfoQuery = useStudentCourseInfo(auth.userId!, {
-  get termIds() {
-    return termIds.value;
-  }
+const filters = reactive({
+  termIds: termIds.value,
 });
 
-const studentsToCourses = computed(
+const studentCourseInfoQuery = useEnrichedStudentCourseInfo(
+  auth.userId!,
+  filters,
+);
+
+const courses = computed(
   () =>
     studentCourseInfoQuery.data.value?.pages?.flatMap((page) => page.items) ??
     [],
 );
 
-const subjectIds = computed(() =>
-  [...new Set(studentsToCourses.value.map((studentToCourse) => studentToCourse.course.subjectId))]
-);
-
-const subjectsQuery = useBulkSubjectsQuery(subjectIds);
-
-const subjectTitleMap = computed(() => {
-  const map = new Map<number, string>();
-  if (subjectsQuery.data?.value) {
-    subjectsQuery.data.value.forEach((subject) => {
-      map.set(subject.id, subject.title);
-    });
-  }
-  return map;
-});
-
-const gradeIds = computed(() =>
-  [...new Set(studentsToCourses.value
-    .filter((studentToCourse) => studentToCourse.examGradeId != null)
-    .map((studentToCourse) => studentToCourse.examGradeId!))]
-);
-
-const gradesQuery = useBulkGradesQuery(gradeIds);
-
-const gradeValueMap = computed(() => {
-  const map = new Map<number, number>();
-
-  if (gradesQuery.data?.value) {
-    gradesQuery.data.value.forEach((grade) => {
-      map.set(grade.id, grade.value);
-    });
-  }
-  return map;
-})
-
-const courseCards = computed(() =>
-  studentsToCourses.value.map((studentToCourse) => {
-    let examGradeValue = undefined;
-    if (studentToCourse.examGradeId) {
-      examGradeValue = gradeValueMap.value.get(studentToCourse.examGradeId);
-    }
-
-    const subjectTitle = subjectTitleMap.value.get(studentToCourse.course.subjectId);
-
-    return {
-      id: studentToCourse.course.id,
-      title: studentToCourse.course.title,
-      subject: subjectTitle ?? "",
-      termMark: examGradeValue,
-      averageMark: studentToCourse.averageGrade
-    };
-  })
-);
-
+// Auto-select the first term when data loads
 watch(
   () => termsQuery.data.value,
   (newData) => {
@@ -96,33 +51,82 @@ watch(
       !selectedTerm.value
     ) {
       selectedTerm.value = newData.pages[0].items[0];
+      console.log("Auto-selected term:", selectedTerm.value);
     }
+  },
+  { immediate: true },
+);
+
+watch(
+  termIds,
+  (newTermIds) => {
+    filters.termIds = newTermIds;
   },
   { immediate: true },
 );
 </script>
 
 <template>
-  <div class="p-4 space-y-4">
-    <!-- Term Selection Component -->
-    <TermSelector
-      v-if="selectedTerm"
-      :useTermQuery="termsQuery"
-      :selected-term="selectedTerm"
-      @update:selectedTerm="handleTermChange"
-    />
+  <div class="flex-1 overflow-y-auto">
+    <div class="space-y-4">
+      <!-- Term Selection Component -->
+      <div class="m-4">
+        <TermSelector
+          v-if="selectedTerm"
+          :useTermQuery="termsQuery"
+          :selected-term="selectedTerm"
+          @update:selectedTerm="handleTermChange"
+        />
+      </div>
 
-    <!-- Course Cards Grid -->
-    <div
-      class="grid flex-wrap gap-5 mt-2"
-      style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr))"
-    >
-      <GradesCourseCard
-        v-for="courseCard in courseCards"
-        :key="courseCard.id"
-        :course-card="courseCard"
-        class="hover:scale-103 transition-transform duration-400 ease-in-out"
-      />
+      <!-- Empty State -->
+      <div
+        v-if="courses.length === 0 && !studentCourseInfoQuery.isLoading"
+        class="text-center py-12"
+      >
+        <div class="text-gray-500">
+          <svg
+            class="mx-auto h-12 w-12 text-gray-400 mb-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">
+            No courses found
+          </h3>
+          <p class="text-gray-500">
+            No courses available for the selected term.
+          </p>
+        </div>
+      </div>
+
+      <!-- Course Cards with Lazy Loading -->
+      <LazyScrollWrapper
+        v-else
+        :query="studentCourseInfoQuery"
+        loading-text="Loading courses..."
+        :scroll-threshold="300"
+        :scroll-container="scrollContainer"
+      >
+        <div
+          class="grid flex-wrap gap-5 mt-2 m-4"
+          style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr))"
+        >
+          <GradesCourseCard
+            v-for="courseCard in courses"
+            :key="courseCard.courseId"
+            :course-info="courseCard"
+            class="hover:scale-103 transition-transform duration-400 ease-in-out"
+          />
+        </div>
+      </LazyScrollWrapper>
     </div>
   </div>
 </template>

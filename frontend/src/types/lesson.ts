@@ -1,3 +1,5 @@
+import { Grade } from "@/types/grade";
+
 export interface TimetableUnit {
   id: string | number;
   title: string;

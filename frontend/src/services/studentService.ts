@@ -11,7 +11,7 @@ import {
   StudentAttendanceCountFilters,
   StudentAttendanceCountInfo,
   StudentLessonFilters,
-  StudentLessonInfo
+  StudentLessonInfo,
 } from "@/types/studentLessonsInfo";
 
 const api = createApi();
@@ -24,8 +24,6 @@ export async function fetchStudentCoursesInfo(
   studentId: number | string,
   params: PagedListParams<StudentCourseFilters> = {},
 ): Promise<PagedList<StudentCourseInfo>> {
-  console.log("Fetching student courses info", studentId, params);
-
   const queryString = buildQueryParams(params);
   const url = queryString
     ? `${API_ENDPOINTS.STUDENTS.COURSES(studentId)}?${queryString}`
@@ -58,8 +56,6 @@ export async function fetchStudentLessonsInfo(
   studentId: number | string,
   params: PagedListParams<StudentLessonFilters> = {},
 ): Promise<PagedList<StudentLessonInfo>> {
-  console.log("Fetching student lessons info", studentId, params);
-
   const queryString = buildQueryParams(params);
   const url = queryString
     ? `${API_ENDPOINTS.STUDENTS.LESSONS(studentId)}?${queryString}`
@@ -76,19 +72,20 @@ export async function fetchStudentLessonsInfo(
 
 export async function fetchStudentAttendanceCount(
   studentId: number | string,
-  params: StudentAttendanceCountFilters = {}
+  params: StudentAttendanceCountFilters = {},
 ): Promise<StudentAttendanceCountInfo> {
-  console.log("Fetching student attendance count", studentId, params);
-
   const queryString = buildQueryParams(params);
   const url = queryString
-      ? `${API_ENDPOINTS.STUDENTS.ATTENDANCE_COUNT(studentId)}?${queryString}`
-      : API_ENDPOINTS.STUDENTS.ATTENDANCE_COUNT(studentId);
+    ? `${API_ENDPOINTS.STUDENTS.ATTENDANCE_COUNT(studentId)}?${queryString}`
+    : API_ENDPOINTS.STUDENTS.ATTENDANCE_COUNT(studentId);
 
   const response = await api.get(url);
 
   if (!response || !response.isSuccess || !response.data) {
-    throw new Error(response?.error?.message || "Failed to fetch attendance count of the student");
+    throw new Error(
+      response?.error?.message ||
+        "Failed to fetch attendance count of the student",
+    );
   }
 
   return response.data;

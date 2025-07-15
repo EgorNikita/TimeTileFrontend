@@ -1,22 +1,17 @@
+import { Lesson } from "@/types/lesson";
+import { Grade } from "@/types/grade";
+
 export interface StudentLessonInfo {
   lessonId: number;
-  lesson: LessonInfo;
+  lesson: Lesson;
   cameAt?: string;
   leftAt?: string;
   gradeId?: number;
 }
 
-interface LessonInfo {
-  id: string | number;
-  courseId: number;
-  subjectId: number;
-  teacherId: number;
-  roomId: number;
-  statusId: number;
-  timetableUnitIds: (string | number)[];
-  date: string;
-  description: string;
-  homeworkId?: number;
+export interface StudentLessonInfoWithGrades extends StudentLessonInfo {
+  homeworkGrade?: Grade;
+  classworkGrade?: Grade;
 }
 
 export interface StudentLessonFilters {
