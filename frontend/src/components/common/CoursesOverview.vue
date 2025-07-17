@@ -33,6 +33,7 @@ const coursesQuery = useCourses(props.filters);
 // Computed properties
 const allCourses = computed(() => {
   if (!coursesQuery.data?.value) return [];
+  console.log("Courses loaded:", coursesQuery.data.value.pages.length);
   return coursesQuery.data.value.pages.flatMap((page) => page.items);
 });
 

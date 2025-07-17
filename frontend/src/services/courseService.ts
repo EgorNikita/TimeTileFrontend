@@ -24,7 +24,7 @@ export async function fetchCourses(
 
   return {
     ...response.data,
-    items: transformIconUrls(response.data),
+    items: transformIconUrls(response.data.items),
   };
 }
 

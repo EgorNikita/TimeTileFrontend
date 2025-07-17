@@ -8,7 +8,16 @@ export function useCourses(filters: CourseFilters = {}, pageSize = 20) {
     queryKey: ["courses", filters] as const,
 
     queryFn: async ({ pageParam = 1 }) => {
-      return fetchCourses({ ...filters, page: pageParam, pageSize });
+      try {
+        return await fetchCourses({
+          ...filters,
+          page: pageParam,
+          pageSize,
+        });
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+        throw error;
+      }
     },
 
     getNextPageParam: (

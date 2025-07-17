@@ -19,7 +19,7 @@ onMounted(async () => {
     <!-- Left sidebar & main wrapper -->
     <div class="flex-1 xl:flex">
       <div
-        class="h-[calc(100vh-65px)] w-96 flex flex-col gap-5 border-gray-200 py-6 w-64 shrink-0 border-r pl-4 sticky top-0"
+        class="h-[calc(100vh-65px)] w-96 flex flex-col gap-5 py-6 w-64 shrink-0 pl-4 sticky top-0"
       >
         <div
           class="h-1/2 relative overflow-hidden rounded-lg bg-white shadow-md sm:pt-6 w-full"
