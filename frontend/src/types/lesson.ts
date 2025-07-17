@@ -1,5 +1,10 @@
+import { Room } from "@/types/room";
+import { Teacher } from "@/types/teacher";
+import { Subject } from "@/types/subject";
+import { Course } from "@/types/course";
+
 export interface LessonStatus {
-  id: string | number;
+  id: number;
   title: string;
   color: string;
 }
@@ -17,11 +22,11 @@ export interface LessonFilters {
 
 export interface Lesson {
   id: string | number;
-  courseId: string | number;
+  courseId: number;
   subjectId: number;
   teacherId: number;
-  roomId: number;
-  statusId: number;
+  classroomId: number;
+  lessonStatusId: number;
   timetableUnitIds: (string | number)[];
   date: Date;
   description?: string;
@@ -32,9 +37,10 @@ export interface Lesson {
 }
 
 export interface EnrichedLesson extends Lesson {
-  courseTitle: string;
-  subjectTitle: string;
-  teacherName: string;
-  roomTitle: string;
-  status: LessonStatus;
+  course: Course;
+  subject: Subject;
+  teacher: Teacher;
+  room: Room;
 }
+
+export interface LessonStatusFilters {}

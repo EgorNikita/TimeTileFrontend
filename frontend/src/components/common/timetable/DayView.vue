@@ -11,18 +11,18 @@ import {
   TimetableData,
 } from "@/components/common/timetable/timetableInterfaces";
 import { formatTime, getDateNumber, getYearAsText } from "./timetableUtils";
-import { computed } from "vue";
+import { computed, watch } from "vue";
 
 // Props
 interface Props {
   currentDate: Date;
   timetableUnits: TimetableData[];
-  lessons?: ProcessedLesson[];
+  lessonInfos: ProcessedLesson[];
   gridTemplateRows: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  lessons: () => [],
+  lessonInfos: () => [],
 });
 
 // Emits
@@ -35,11 +35,6 @@ const emit = defineEmits<Emits>();
 // Computed properties
 const today = computed(() => new Date());
 const selectedDate = computed(() => props.currentDate);
-const filteredLessons = computed(() => {
-  return props.lessons.filter(
-    (lesson) => lesson.date.toDateString() === props.currentDate.toDateString(),
-  );
-});
 
 const startDate = computed(() => {
   const startOfMonth = new Date(
@@ -77,6 +72,14 @@ const days = computed<Day[]>(() => {
 
   return result;
 });
+
+watch(
+  () => props.lessonInfos,
+  (newVal) => {
+    console.log("lessonInfos changed:", newVal);
+  },
+  { deep: true, immediate: true },
+);
 
 // Event handlers
 const handleDayClick = (day: Day): void => {
@@ -153,14 +156,14 @@ const handleMonthOffset = (offset: number): void => {
         <!-- Lessons -->
         <template
           class="bg-gray-500"
-          v-for="lesson in filteredLessons"
-          :key="`lesson-${lesson.id}`"
+          v-for="lessonInfo in lessonInfos"
+          :key="`lesson-${lessonInfo.lessonId}`"
         >
           <div
             class="relative col-start-2 col-end-3 z-20 m-2 p-4 rounded-md text-sm font-medium shadow-sm overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.01] hover:-translate-y-0.5 group backdrop-blur-sm"
-            :class="[lesson.status.color || 'bg-blue-50']"
+            :class="[lessonInfo.status.color || 'bg-blue-50']"
             :style="{
-              gridRow: `${lesson.gridRowStart} / span ${lesson.rowSpan}`,
+              gridRow: `${lessonInfo.gridRowStart} / span ${lessonInfo.rowSpan}`,
             }"
           >
             <!-- Content container -->
@@ -169,12 +172,12 @@ const handleMonthOffset = (offset: number): void => {
               <div
                 class="font-bold text-gray-700 text-base leading-tight truncate drop-shadow-sm"
               >
-                {{ lesson.courseTitle }}
+                {{ lessonInfo.lesson.course.title }}
               </div>
 
               <!-- Subject title -->
               <div class="text-gray-700/90 font-medium text-sm truncate">
-                {{ lesson.subjectTitle }}
+                {{ lessonInfo.lesson.subject.title }}
               </div>
 
               <!-- Room info -->
@@ -183,7 +186,7 @@ const handleMonthOffset = (offset: number): void => {
                   class="w-4 h-4 flex-shrink-0 text-gray-700"
                   aria-hidden="true"
                 />
-                <span class="truncate">{{ lesson.roomTitle }}</span>
+                <span class="truncate">{{ lessonInfo.lesson.room.title }}</span>
               </div>
 
               <!-- Teacher name -->
@@ -192,7 +195,11 @@ const handleMonthOffset = (offset: number): void => {
                   class="w-4 h-4 flex-shrink-0 text-gray-700"
                   aria-hidden="true"
                 />
-                <span class="truncate">{{ lesson.teacherName }}</span>
+                <span class="truncate">{{
+                  lessonInfo.lesson.teacher.lastname +
+                  " " +
+                  lessonInfo.lesson.teacher.firstname
+                }}</span>
               </div>
             </div>
           </div>

@@ -5,4 +5,6 @@ export interface TimetableUnit {
   endTime: Date;
 }
 
-export interface TimetableUnitFilters {}
+export interface TimetableUnitFilters {
+  fetchAll?: boolean;
+}

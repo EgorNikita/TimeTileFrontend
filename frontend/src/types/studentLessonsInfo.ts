@@ -1,12 +1,19 @@
-import { Lesson } from "@/types/lesson";
+import { EnrichedLesson, Lesson } from "@/types/lesson";
 import { Grade } from "@/types/grade";
 
-export interface StudentLessonInfo {
+interface BaseStudentLessonInfo {
   lessonId: number;
-  lesson: Lesson;
   cameAt?: string;
   leftAt?: string;
   gradeId?: number;
+}
+
+export interface StudentLessonInfo extends BaseStudentLessonInfo {
+  lesson: Lesson;
+}
+
+export interface StudentEnrichedLessonInfo extends BaseStudentLessonInfo {
+  lesson: EnrichedLesson;
 }
 
 export interface StudentLessonInfoWithGrades extends StudentLessonInfo {
@@ -16,6 +23,8 @@ export interface StudentLessonInfoWithGrades extends StudentLessonInfo {
 
 export interface StudentLessonFilters {
   courseIds?: number[];
+  from?: string;
+  until?: string;
 }
 
 export interface StudentAttendanceCountInfo {

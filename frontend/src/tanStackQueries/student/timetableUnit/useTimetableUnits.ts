@@ -10,7 +10,6 @@ export function useTimetableUnits(filters: TimetableUnitFilters = {}) {
       const pagedTimetableUnits = await fetchTimetableUnits({
         ...filters,
         sortBy: "startTime",
-        pageSize: 100,
       });
       return pagedTimetableUnits.items;
     },

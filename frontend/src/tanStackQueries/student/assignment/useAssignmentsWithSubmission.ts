@@ -1,50 +1,35 @@
-import { useInfiniteQuery } from "@tanstack/vue-query";
-import { PagedList } from "@/common/types/pagedList";
-import { fetchStudentCoursesInfo } from "@/services/studentService";
 import {
   EnrichedStudentCourseInfo,
   StudentCourseFilters,
   StudentCourseInfo,
 } from "@/types/studentCourseInfo";
+import { useInfiniteQuery } from "@tanstack/vue-query";
 import { fetchSubjectsByIds } from "@/services/subjectService";
 import { fetchGradesByIds } from "@/services/gradeService";
+import { PagedList } from "@/common/types/pagedList";
+import { AssignmentFilters, SubmissionFilters } from "@/types/assignment";
+import {
+  fetchAssignments,
+  fetchSubmissions,
+} from "@/services/assignmentService";
 
-export function useEnrichedStudentCourseInfo(
-  studentId: number | string,
-  filters: StudentCourseFilters = {},
-  pageSize = 9,
+export function useAssignmentsWithSubmission(
+  filters: SubmissionFilters = {},
+  pageSize = 15,
 ) {
   return useInfiniteQuery({
-    queryKey: ["useEnrichedStudentCourseInfo", filters] as const,
+    queryKey: ["useAssignmentsWithSubmission", filters] as const,
 
     queryFn: async ({ pageParam = 1 }) => {
-      const coursePage = await fetchStudentCoursesInfo(studentId, {
+      const submisssionPage = await fetchSubmissions({
         ...filters,
         page: pageParam,
         pageSize,
       });
 
-      console.log("coursePage", coursePage);
+      const assignmentIds = submisssionPage.items.map((s) => s.assignmentId);
 
-      const subjectIds = coursePage.items.map((c) => c.course.subjectId);
-      const gradeIds = coursePage.items
-        .filter((studentToCourse) => studentToCourse.examGradeId != null)
-        .map((studentToCourse) => studentToCourse.examGradeId!);
-
-      console.log("gradeIds", gradeIds);
-
-      const subjects =
-        subjectIds.length > 0 ? await fetchSubjectsByIds(subjectIds) : [];
-      const grades =
-        gradeIds.length > 0 ? await fetchGradesByIds(gradeIds) : [];
-
-      console.log("subjects", subjects);
-      console.log("grades", grades);
-
-      const subjectMap = new Map<number, string>();
-      for (const subject of subjects) {
-        subjectMap.set(subject.id, subject.title);
-      }
+      const assignments = console.log("coursePage", coursePage);
 
       const gradeMap = new Map<number, number>();
       for (const grade of grades) {

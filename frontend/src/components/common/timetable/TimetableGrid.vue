@@ -1,22 +1,23 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { TimetableUnit, Lesson } from "@/types/lesson";
+import { computed, ref, watch } from "vue";
 import WeekView from "@/components/common/timetable/WeekView.vue";
 import {
-  EnrichedLesson,
   ProcessedLesson,
   TimetableData,
+  TimetableLesson,
   WeekDay,
 } from "@/components/common/timetable/timetableInterfaces";
 import { timeToMinutes } from "@/components/common/timetable/timetableUtils";
 import DayView from "@/components/common/timetable/DayView.vue";
+import { TimetableUnit } from "@/types/timetable";
 
 // Props
 interface Props {
   currentDate: Date;
+  startOfWeek: Date;
   currentView: string;
   timetableUnits: TimetableUnit[];
-  lessons?: EnrichedLesson[];
+  lessons: TimetableLesson[];
 }
 const props = withDefaults(defineProps<Props>(), {
   lessons: () => [],
@@ -37,11 +38,6 @@ const containerNav = ref<HTMLElement | null>(null);
 // Computed properties
 const weekDays = computed((): WeekDay[] => {
   const today = new Date();
-  const currentDate = props.currentDate || new Date();
-  const dayOffset = currentDate.getDay() === 0 ? 6 : currentDate.getDay() - 1;
-
-  const startOfWeek = new Date(currentDate);
-  startOfWeek.setDate(currentDate.getDate() - dayOffset);
 
   const dayNames = [
     { short: "M", full: "Mon" },
@@ -54,11 +50,8 @@ const weekDays = computed((): WeekDay[] => {
   ];
 
   return dayNames.map((name, i) => {
-    const date = new Date(startOfWeek);
-    date.setDate(startOfWeek.getDate() + i);
-    console.log(
-      `Setting date for ${name.full}: ${date.toDateString()} = ${today.toDateString()}`,
-    );
+    const date = new Date(props.startOfWeek);
+    date.setDate(props.startOfWeek.getDate() + i);
     return {
       ...name,
       date: date.getDate(),
@@ -112,36 +105,53 @@ const timetableData = computed((): TimetableData[] => {
 });
 
 const processedLessons = computed((): ProcessedLesson[] => {
-  return props.lessons.map((lesson): ProcessedLesson => {
-    // Find which day of the week this event falls on
-    const dayIndex = weekDays.value.findIndex(
-      (day) => day.fullDate.toDateString() === lesson.date.toDateString(),
-    );
+  return props.lessons
+    .map((studentLessonInfo) => {
+      const dayIndex = weekDays.value.findIndex(
+        (day) =>
+          day.fullDate.toDateString() ===
+          new Date(studentLessonInfo.lesson.date).toDateString(),
+      );
 
-    // if (dayIndex === -1) {
-    //   // Event is not in the current week, skip it
-    //   return null;
-    // }
-    //-------------------------------------
-    const units = timetableData.value.filter((unit) =>
-      lesson.timetableUnitIds.includes(unit.id),
-    );
+      if (dayIndex === -1) {
+        return null;
+      }
 
-    // // Sort units by startTime
-    // units.sort((a, b) => a.startTime.localeCompare(b.startTime));
-    //----------------------------
-    const gridRowStart = units[0]?.id;
-    const rowSpan = units.length;
+      const units = timetableData.value.filter((unit) =>
+        studentLessonInfo.lesson.timetableUnitIds?.includes(unit.id),
+      );
 
-    return {
-      ...lesson,
-      units,
-      dayIndex,
-      gridRowStart,
-      rowSpan,
-    };
-  });
+      const gridRowStart = units[0]?.id;
+      const rowSpan = units.length;
+
+      console.log("Unit", units[0]?.title);
+
+      return {
+        ...studentLessonInfo,
+        units,
+        dayIndex,
+        gridRowStart,
+        rowSpan,
+      };
+    })
+    .filter((lesson): lesson is ProcessedLesson => lesson !== null);
 });
+
+const currentDayLessons = computed(() => {
+  return processedLessons.value.filter(
+    (lesson) =>
+      new Date(lesson.lesson.date).toDateString() ===
+      props.currentDate.toDateString(),
+  );
+});
+
+watch(
+  () => currentDayLessons,
+  (newVal) => {
+    console.log("currentDayLessons changed:", newVal);
+  },
+  { deep: true, immediate: true },
+);
 
 const gridTemplateRows = computed((): string => {
   const minRowHeight = 10; // Minimum row height in pixels
@@ -175,7 +185,7 @@ const gridTemplateRows = computed((): string => {
         :timetableUnits="timetableData"
         :gridTemplateRows="gridTemplateRows"
         :weekDays="weekDays"
-        :lessons="processedLessons"
+        :lessonInfos="processedLessons"
       />
     </div>
   </div>
@@ -186,7 +196,7 @@ const gridTemplateRows = computed((): string => {
         :currentDate="currentDate"
         :timetable-units="timetableData"
         :gridTemplateRows="gridTemplateRows"
-        :lessons="processedLessons"
+        :lessonInfos="currentDayLessons"
         @day-click="(payload) => emit('day-click', payload)"
       />
     </div>

@@ -3,7 +3,12 @@ import { PagedListParams } from "@/types/common/PagedList";
 import { PagedList } from "@/common/types/pagedList";
 import { buildQueryParams } from "@/helpers/queryParamsBuilder";
 import { API_ENDPOINTS } from "@/constants";
-import { Lesson, LessonFilters } from "@/types/lesson";
+import {
+  Lesson,
+  LessonFilters,
+  LessonStatus,
+  LessonStatusFilters,
+} from "@/types/lesson";
 
 const api = createApi();
 
@@ -18,7 +23,24 @@ export async function fetchLessons(
   const response = await api.get(url);
 
   if (!response || !response.isSuccess || !response.data) {
-    throw new Error(response?.error?.message || "Failed to fetch lessons");
+    throw new Error(response?.error ?? "Failed to fetch lessons");
+  }
+
+  return response.data;
+}
+
+export async function fetchLessonStatuses(
+  params: PagedListParams<LessonStatusFilters> = {},
+): Promise<PagedList<LessonStatus>> {
+  const queryString = buildQueryParams(params);
+  const url = queryString
+    ? `${API_ENDPOINTS.LESSON_STATUSES}?${queryString}`
+    : API_ENDPOINTS.LESSON_STATUSES;
+
+  const response = await api.get(url);
+
+  if (!response || !response.isSuccess || !response.data) {
+    throw new Error(response?.error ?? "Failed to fetch lessonStatuses");
   }
 
   return response.data;

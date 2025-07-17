@@ -31,15 +31,10 @@ export function useEnrichedStudentCourseInfo(
         .filter((studentToCourse) => studentToCourse.examGradeId != null)
         .map((studentToCourse) => studentToCourse.examGradeId!);
 
-      console.log("gradeIds", gradeIds);
-
       const subjects =
         subjectIds.length > 0 ? await fetchSubjectsByIds(subjectIds) : [];
       const grades =
         gradeIds.length > 0 ? await fetchGradesByIds(gradeIds) : [];
-
-      console.log("subjects", subjects);
-      console.log("grades", grades);
 
       const subjectMap = new Map<number, string>();
       for (const subject of subjects) {

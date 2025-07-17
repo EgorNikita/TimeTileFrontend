@@ -2,17 +2,16 @@
 import { formatTime } from "./timetableUtils";
 import { WeekDay, TimetableData, ProcessedLesson } from "./timetableInterfaces";
 import { MapPinIcon, UserIcon } from "@heroicons/vue/20/solid";
-import { computed } from "vue";
 
 // Props
 interface Props {
   weekDays: WeekDay[];
   timetableUnits: TimetableData[];
-  lessons?: ProcessedLesson[];
+  lessonInfos: ProcessedLesson[];
   gridTemplateRows: string;
 }
 const props = withDefaults(defineProps<Props>(), {
-  lessons: () => [],
+  lessonInfos: () => [],
 });
 
 // Emits
@@ -23,13 +22,6 @@ interface Emits {
   "cell-click": [payload: { day: WeekDay; unit: TimetableData }];
 }
 const emit = defineEmits<Emits>();
-
-// // Computed properties
-// const filteredLessons = computed(() => {
-//   return props.lessons.filter(
-//     (lesson) => lesson.date.toDateString() === props.currentDate.toDateString(),
-//   );
-// });
 
 // Handlers
 const handleCellClick = (day: WeekDay, unit: TimetableData): void => {
@@ -141,15 +133,18 @@ const handleHeaderClick = (day: WeekDay): void => {
         </template>
 
         <!-- Lessons -->
-        <template v-for="lesson in props.lessons" :key="`lesson-${lesson.id}`">
+        <template
+          v-for="lessonInfo in props.lessonInfos"
+          :key="`lesson-${lessonInfo.lessonId}`"
+        >
           <div
             class="relative z-20 m-1 p-4 rounded-md text-sm font-medium shadow-sm overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-1 group border border-white/20 backdrop-blur-sm"
-            :class="[lesson.status.color || 'bg-blue-50']"
+            :class="[lessonInfo.status.color || 'bg-blue-50']"
             :style="{
-              gridColumn: lesson.dayIndex + 2,
-              gridRow: `${lesson.gridRowStart} / span ${lesson.rowSpan}`,
+              gridColumn: lessonInfo.dayIndex + 2,
+              gridRow: `${lessonInfo.gridRowStart} / span ${lessonInfo.rowSpan}`,
             }"
-            @click="handleEventClick(lesson, $event)"
+            @click="handleEventClick(lessonInfo, $event)"
           >
             <!-- Content container -->
             <div class="relative z-10 space-y-2">
@@ -157,12 +152,12 @@ const handleHeaderClick = (day: WeekDay): void => {
               <div
                 class="font-bold text-gray-700 text-base leading-tight truncate drop-shadow-sm"
               >
-                {{ lesson.courseTitle }}
+                {{ lessonInfo.lesson.course.title }}
               </div>
 
               <!-- Subject title -->
               <div class="text-gray-700/90 font-medium text-sm truncate">
-                {{ lesson.subjectTitle }}
+                {{ lessonInfo.lesson.subject.title }}
               </div>
 
               <!-- Room info -->
@@ -171,7 +166,7 @@ const handleHeaderClick = (day: WeekDay): void => {
                   class="w-4 h-4 flex-shrink-0 text-gray-700"
                   aria-hidden="true"
                 />
-                <span class="truncate">{{ lesson.roomTitle }}</span>
+                <span class="truncate">{{ lessonInfo.lesson.room.title }}</span>
               </div>
 
               <!-- Teacher name -->
@@ -180,7 +175,11 @@ const handleHeaderClick = (day: WeekDay): void => {
                   class="w-4 h-4 flex-shrink-0 text-gray-700"
                   aria-hidden="true"
                 />
-                <span class="truncate">{{ lesson.teacherName }}</span>
+                <span class="truncate">{{
+                  lessonInfo.lesson.teacher.lastname +
+                  " " +
+                  lessonInfo.lesson.teacher.firstname
+                }}</span>
               </div>
             </div>
           </div>

@@ -1,5 +1,6 @@
-import { EnrichedLesson } from "@/types/lesson";
+import { LessonStatus } from "@/types/lesson";
 import { TimetableUnit } from "@/types/timetable";
+import { StudentEnrichedLessonInfo } from "@/types/studentLessonsInfo";
 
 export interface Day {
   date: Date;
@@ -16,7 +17,11 @@ export interface WeekDay {
   isToday: boolean;
 }
 
-export interface ProcessedLesson extends EnrichedLesson {
+export interface TimetableLesson extends StudentEnrichedLessonInfo {
+  status: LessonStatus;
+}
+
+export interface ProcessedLesson extends TimetableLesson {
   dayIndex: number;
   gridRowStart: string | number;
   rowSpan: number;

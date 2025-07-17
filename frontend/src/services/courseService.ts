@@ -1,9 +1,10 @@
 import { createApi } from "@/utils/apiClient"; // your axios or fetch wrapper
 import type { Course, CourseFilters } from "@/types/course";
 import { buildQueryParams } from "@/helpers/queryParamsBuilder";
-import { API_BASE_URL, API_ENDPOINTS } from "@/constants";
+import { API_ENDPOINTS } from "@/constants";
 import { PagedList } from "@/common/types/pagedList";
 import { PagedListParams } from "@/types/common/PagedList";
+import { transformIconUrls } from "@/services/common/serviceUtils";
 
 const api = createApi();
 
@@ -12,23 +13,32 @@ export async function fetchCourses(
 ): Promise<PagedList<Course>> {
   const queryString = buildQueryParams(params);
   const url = queryString
-    ? `${API_ENDPOINTS.COURSES}?${queryString}`
-    : API_ENDPOINTS.COURSES;
+    ? `${API_ENDPOINTS.COURSES.DEFAULT}?${queryString}`
+    : API_ENDPOINTS.COURSES.DEFAULT;
 
   const response = await api.get(url);
 
   if (!response || !response.isSuccess || !response.data) {
-    throw new Error(response?.error?.message || "Failed to fetch courses");
+    throw new Error(response?.error ?? "Failed to fetch courses");
   }
-
-  // Transform icon URLs:
-  const transformedCourses = response.data.items.map((course: Course) => ({
-    ...course,
-    iconUrl: `${API_BASE_URL}${API_ENDPOINTS.FILES}/${course.iconUrl}`,
-  }));
 
   return {
     ...response.data,
-    items: transformedCourses,
+    items: transformIconUrls(response.data),
   };
+}
+
+export async function fetchCoursesByIds(ids: number[]): Promise<Course[]> {
+  if (ids.length === 0) return [];
+
+  const query = ids.map((id) => `ids=${id}`).join("&");
+  const url = `${API_ENDPOINTS.COURSES.BY_IDS}?${query}`;
+
+  const response = await api.get(url);
+
+  if (!response || !response.isSuccess || !response.data) {
+    throw new Error(response?.error ?? "Failed to fetch courses");
+  }
+
+  return transformIconUrls(response.data);
 }

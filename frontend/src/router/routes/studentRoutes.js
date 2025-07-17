@@ -19,7 +19,7 @@ export const studentRoutes = [
       {
         path: "assignments",
         name: "StudentAssignments",
-        component: () => import("@/views/student/StudentCourses.vue"),
+        component: () => import("@/views/student/StudentAssignments.vue"),
       },
       {
         path: "courses",

@@ -1,11 +1,12 @@
-export interface Course {
+import { EntityWithIcon } from "@/services/common/serviceUtils";
+
+export interface Course extends EntityWithIcon {
   id: number;
   title: string;
   subjectId: number;
   teacherId: number;
   isAdvanced: boolean;
   termId: number;
-  iconUrl: string;
 }
 
 export interface CourseFilters {

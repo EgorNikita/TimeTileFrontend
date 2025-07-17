@@ -89,7 +89,10 @@ export const API_ENDPOINTS = {
   ROLES: "/roles",
 
   // Academic structure
-  COURSES: "/courses",
+  COURSES: {
+    DEFAULT: "/courses",
+    BY_IDS: "/courses/bulk",
+  },
   SUBJECTS: {
     DEFAULT: "/subjects",
     BY_IDS: "/subjects/bulk",
@@ -97,19 +100,30 @@ export const API_ENDPOINTS = {
   GROUPS: "/groups",
   TERMS: "/terms",
 
+  // Assignments and submissions
+  ASSIGNMENTS: "/assignments",
+  SUBMISSIONS: "/submissions",
+
   // People
   STUDENTS: {
     DEFAULT: "/students",
     COURSES: (id: number | string) => `/students/${id}/courses`,
     LESSONS: (id: number | string) => `/students/${id}/lessons`,
-    ATTENDANCE_COUNT: (id: number | string) => `/students/${id}/attendance-count`,
+    ATTENDANCE_COUNT: (id: number | string) =>
+      `/students/${id}/attendance-count`,
   },
-  TEACHERS: "/teachers",
+  TEACHERS: {
+    DEFAULT: "/institution-members",
+    BY_IDS: "/institution-members/bulk",
+  },
 
   // Scheduling and classroom management
   SCHEDULES: "/schedules",
   LESSONS: "/lessons",
-  CLASSROOMS: "/classrooms",
+  CLASSROOMS: {
+    DEFAULT: "/classrooms",
+    BY_IDS: "/classrooms/bulk",
+  },
   CLASSROOM_TYPES: "/classroom-types",
   TIMETABLE_UNITS: "/timetable-units",
 

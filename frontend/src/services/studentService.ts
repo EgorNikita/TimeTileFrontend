@@ -32,7 +32,7 @@ export async function fetchStudentCoursesInfo(
   const response = await api.get(url);
 
   if (!response || !response.isSuccess || !response.data) {
-    throw new Error(response?.error?.message || "Failed to fetch courses");
+    throw new Error(response?.error ?? "Failed to fetch courses");
   }
 
   // Transform icon URLs:
@@ -64,7 +64,7 @@ export async function fetchStudentLessonsInfo(
   const response = await api.get(url);
 
   if (!response || !response.isSuccess || !response.data) {
-    throw new Error(response?.error?.message || "Failed to fetch lessons");
+    throw new Error(response?.error || "Failed to fetch lessons");
   }
 
   return response.data;
@@ -83,8 +83,7 @@ export async function fetchStudentAttendanceCount(
 
   if (!response || !response.isSuccess || !response.data) {
     throw new Error(
-      response?.error?.message ||
-        "Failed to fetch attendance count of the student",
+      response?.error || "Failed to fetch attendance count of the student",
     );
   }
 
