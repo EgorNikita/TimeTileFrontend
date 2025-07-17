@@ -22,9 +22,9 @@
       </button>
     </div>
 
-    <div class="flex-1 bg-white rounded-lg shadow-lg p-5">
+    <div class="flex-1 bg-white rounded-lg shadow-lg p-2 overflow-auto">
       <!-- Tabs -->
-      <div class="flex items-baseline space-x-4 mb-4">
+      <div class="flex items-baseline space-x-4 mb-4 m-3">
         <button
           v-for="tab in tabs"
           :key="tab.id"
@@ -41,84 +41,83 @@
       </div>
 
       <!-- Homework List -->
-      <div class="space-y-6">
-        <div
-          v-for="dateGroup in filteredHomework"
-          :key="dateGroup.date"
-          class="space-y-4"
-        >
-          <!-- Date Header -->
-          <div class="flex items-center space-x-3">
-            <h2 class="text-lg font-semibold">{{ dateGroup.date }}</h2>
-            <span class="text-sm text-gray-400">{{ dateGroup.day }}</span>
-          </div>
-
-          <!-- Homework Items -->
-          <div class="space-y-3">
-            <div
-              v-for="homework in dateGroup.items"
-              :key="homework.id"
-              class="flex items-center justify-between shadow-lg border border-blue-200 rounded-lg bg-blue-50 rounded-lg p-4 hover:bg-gray-750 cursor-pointer hover:scale-101 transition-transform duration-200 ease-in-out"
-            >
-              <div class="flex items-center space-x-4">
-                <!-- Subject Icon -->
-                <div
-                  :class="[
-                    'w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm',
-                    getSubjectColor(homework.subject),
-                  ]"
-                >
-                  {{ homework.subject.charAt(0).toUpperCase() }}
-                </div>
-
-                <!-- Homework Details -->
-                <div class="flex-1">
-                  <h3 class="font-medium text-gray-900 mb-1">
-                    {{ homework.title }}
-                  </h3>
-                  <div
-                    class="flex items-center space-x-4 text-sm text-gray-400"
-                  >
-                    <span>Submitted at {{ homework.submittedAt }}</span>
-                    <span>{{ homework.courseCode }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Status -->
-              <div class="flex items-center space-x-2">
-                <div
-                  :class="[
-                    'px-3 py-1 rounded-md text-xs font-medium flex items-center space-x-1',
-                    getStatusColor(homework.status),
-                  ]"
-                >
-                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fill-rule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clip-rule="evenodd"
-                    ></path>
-                  </svg>
-                  <span>{{ homework.status }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <AssignmentsList
+        :assignments="enrichedAssignments"
+        :scroll-container="scrollContainer"
+        :assignments-query="assignmentsQuery"
+      />
     </div>
   </div>
 </template>
 
-<script lang="ts">
-import { ref } from "vue";
+<script setup lang="ts">
+import { computed, ComputedRef, ref, watch } from "vue";
+import { useAssignmentsWithSubmission } from "@/tanStackQueries/student/assignment/useAssignmentsWithSubmission";
+import {
+  EnrichedAssignmentWithSubmission,
+  Status,
+  SubmissionFilters,
+} from "@/types/assignment";
+import AssignmentsList from "@/components/common/assigments/AssignmentsList.vue";
+import { useBulkCourses } from "@/tanStackQueries/student/course/useBulkCourses";
+
+const props = defineProps<{
+  scrollContainer: HTMLElement | null;
+}>();
 
 const tabs = [
   { id: "upcoming", name: "Upcoming" },
   { id: "past_due", name: "Past due" },
   { id: "completed", name: "Completed" },
+  { id: "rejected", name: "Rejected" },
 ];
 
+const tabsToFilters: Record<string, SubmissionFilters> = {
+  upcoming: { statuses: [Status.NOT_SUBMITTED] },
+  past_due: { statuses: [Status.EXPIRED] },
+  completed: {
+    statuses: [Status.SUBMITTED, Status.SUBMITTED_LATE, Status.ACCEPTED],
+  },
+  rejected: { statuses: [Status.REJECTED] },
+};
+
 const activeTab = ref(tabs[0].id);
+
+const currentFilters = computed(() => tabsToFilters[activeTab.value]);
+
+const assignmentsQuery = useAssignmentsWithSubmission(currentFilters);
+const assignments = computed(
+  () => assignmentsQuery.data.value?.pages?.flatMap((page) => page.items) ?? [],
+);
+
+const coursesIds = computed(() => {
+  return assignments.value.map((assignment) => assignment.assignment.courseId);
+});
+
+const coursesQuery = useBulkCourses(coursesIds);
+const courses = computed(() => {
+  return coursesQuery.data.value ?? [];
+});
+
+const enrichedAssignments: ComputedRef<EnrichedAssignmentWithSubmission[]> =
+  computed(() => {
+    return assignments.value
+      .map((entry) => {
+        const course = courses.value.find(
+          (c) => c.id === entry.assignment.courseId,
+        );
+        return {
+          assignment: {
+            ...entry.assignment,
+            course: course!, // assuming course always exists, otherwise handle null
+          },
+          submission: entry.submission,
+        };
+      })
+      .filter((entry) => entry.assignment.course != null);
+  });
+
+watch(assignments, (val) => {
+  console.log("assignments changed:", val.length);
+});
 </script>

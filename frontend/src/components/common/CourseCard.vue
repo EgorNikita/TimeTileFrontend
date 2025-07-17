@@ -41,11 +41,6 @@ const props = defineProps({
           :src="course.iconUrl || 'https://via.placeholder.com/72'"
           alt=""
         />
-        <span
-          class="absolute right-0 bottom-0 block translate-x-1/2 translate-y-1/2 transform rounded-full border-2 border-white"
-        >
-          <span class="block h-4 w-4 rounded-full bg-gray-300" />
-        </span>
       </span>
 
       <div class="flex-1 truncate px-2 py-2 text-sm min-w-0">

@@ -4,6 +4,7 @@ import { useStudentLessonInfoWithGrades } from "@/tanStackQueries/student/studen
 import { useAuthStore } from "@/store/modules/auth";
 import { useStudentAttendanceCount } from "@/tanStackQueries/student/student/useStudentAttendanceCount";
 import LazyScrollWrapper from "@/components/common/LazyScrollWrapper.vue";
+import { formatDateTo21May2025 } from "@/utils/dateUtils";
 
 const props = defineProps<{
   courseId: number;
@@ -41,15 +42,6 @@ const isInitialLoading = computed(
 
 const getProgressPercentage = (completed: number, total: number): number => {
   return Math.round((completed / total) * 100);
-};
-
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 };
 </script>
 
@@ -124,7 +116,7 @@ const formatDate = (dateString: string) => {
                     {{ lesson.lesson.description }}
                   </h4>
                   <p class="text-sm text-gray-500">
-                    {{ formatDate(lesson.lesson.date) }}
+                    {{ formatDateTo21May2025(lesson.lesson.date) }}
                   </p>
                 </div>
               </div>

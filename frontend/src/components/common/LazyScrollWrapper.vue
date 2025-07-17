@@ -25,7 +25,7 @@ const hasMore = computed(() => props.query.hasNextPage.value || false);
 const loadMore = async () => {
   console.log("Loading more items...");
   if (isLoading.value || !hasMore.value) return;
-
+  console.log("AAAAAAAAfd", props.query.data.value);
   await props.query.fetchNextPage?.();
 };
 
@@ -67,7 +67,7 @@ watch(activeScrollContainer, (newVal, oldVal) => {
     <!-- Scrollable container -->
     <div
       ref="localContainer"
-      class="overflow-y-auto flex-1 min-h-0 custom-scrollbar"
+      class="overflow-y-auto overflow-x-hidden flex-1 min-h-0 custom-scrollbar"
     >
       <slot />
 

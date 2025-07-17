@@ -101,7 +101,10 @@ export const API_ENDPOINTS = {
   TERMS: "/terms",
 
   // Assignments and submissions
-  ASSIGNMENTS: "/assignments",
+  ASSIGNMENTS: {
+    DEFAULT: "/assignments",
+    BY_IDS: "/assignments/bulk",
+  },
   SUBMISSIONS: "/submissions",
 
   // People

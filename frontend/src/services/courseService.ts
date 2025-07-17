@@ -34,6 +34,8 @@ export async function fetchCoursesByIds(ids: number[]): Promise<Course[]> {
   const query = ids.map((id) => `ids=${id}`).join("&");
   const url = `${API_ENDPOINTS.COURSES.BY_IDS}?${query}`;
 
+  console.log("Fetching courses by IDs with URL:", url);
+
   const response = await api.get(url);
 
   if (!response || !response.isSuccess || !response.data) {

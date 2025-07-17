@@ -17,13 +17,30 @@ export async function fetchAssignments(
 ): Promise<PagedList<Assignment>> {
   const queryString = buildQueryParams(params);
   const url = queryString
-    ? `${API_ENDPOINTS.ASSIGNMENTS}?${queryString}`
-    : API_ENDPOINTS.ASSIGNMENTS;
+    ? `${API_ENDPOINTS.ASSIGNMENTS.DEFAULT}?${queryString}`
+    : API_ENDPOINTS.ASSIGNMENTS.DEFAULT;
 
   const response = await api.get(url);
 
   if (!response || !response.isSuccess || !response.data) {
-    throw new Error(response?.error || "Failed to fetch courses");
+    throw new Error(response?.error ?? "Failed to fetch assignments");
+  }
+
+  return response.data;
+}
+
+export async function fetchAssignmentByIds(
+  ids: number[],
+): Promise<Assignment[]> {
+  if (ids.length === 0) return [];
+
+  const query = ids.map((id) => `ids=${id}`).join("&");
+  const url = `${API_ENDPOINTS.ASSIGNMENTS.BY_IDS}?${query}`;
+
+  const response = await api.get(url);
+
+  if (!response || !response.isSuccess || !response.data) {
+    throw new Error(response?.error ?? "Failed to fetch assignments");
   }
 
   return response.data;
@@ -40,7 +57,7 @@ export async function fetchSubmissions(
   const response = await api.get(url);
 
   if (!response || !response.isSuccess || !response.data) {
-    throw new Error(response?.error || "Failed to fetch courses");
+    throw new Error(response?.error ?? "Failed to fetch submissions");
   }
 
   return response.data;

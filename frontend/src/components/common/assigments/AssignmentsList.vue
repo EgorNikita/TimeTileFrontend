@@ -1,87 +1,141 @@
 <template>
-  <div class="space-y-6">
-    <div
-      v-for="dateGroup in groupedAssignments"
-      :key="dateGroup.date"
-      class="space-y-4"
-    >
-      <!-- Date Header -->
-      <div class="flex items-center space-x-3">
-        <h2 class="text-lg font-semibold">{{ dateGroup.date }}</h2>
-        <span class="text-sm text-gray-400">{{ dateGroup.day }}</span>
-      </div>
+  <!-- Empty State -->
+  <div v-if="isEmptyState" class="text-center py-12">
+    <div class="text-gray-500">
+      <svg
+        class="mx-auto h-12 w-12 text-gray-400 mb-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        />
+      </svg>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">
+        No assignments found
+      </h3>
+      <p class="text-gray-500">
+        No assignments available for the selected filters.
+      </p>
+    </div>
+  </div>
 
-      <!-- Homework Items -->
-      <div class="space-y-3">
-        <div
-          v-for="homework in dateGroup.items"
-          :key="homework.id"
-          class="flex items-center justify-between shadow-lg border border-blue-200 rounded-lg bg-blue-50 rounded-lg p-4 hover:bg-gray-750 cursor-pointer hover:scale-101 transition-transform duration-200 ease-in-out"
-        >
-          <div class="flex items-center space-x-4">
-            <!-- Subject Icon -->
-            <div
-              :class="[
-                'w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm bg-orange-500',
-              ]"
-            >
-              {{ homework.subject.charAt(0).toUpperCase() }}
-            </div>
+  <LazyScrollWrapper
+    v-else
+    :query="assignmentsQuery"
+    :scroll-container="props.scrollContainer"
+    loading-text="Loading assignments..."
+    :scroll-threshold="300"
+  >
+    <div class="space-y-6 p-3">
+      <div
+        v-for="dateGroup in groupedAssignments"
+        :key="dateGroup.date"
+        class="space-y-4"
+      >
+        <!-- Date Header -->
+        <div class="flex items-center space-x-3">
+          <h2 class="text-lg font-semibold">{{ dateGroup.date }}</h2>
+          <span class="text-sm text-gray-400">{{ dateGroup.day }}</span>
+        </div>
 
-            <!-- Homework Details -->
-            <div class="flex-1">
-              <h3 class="font-medium text-gray-900 mb-1">
-                {{ homework.title }}
-              </h3>
-              <div class="flex items-center space-x-4 text-sm text-gray-400">
-                <span>Submitted at {{ homework.submittedAt }}</span>
-                <span>{{ homework.courseCode }}</span>
+        <!-- Homework Items -->
+        <div class="space-y-3 px-2">
+          <div
+            v-for="assignment in dateGroup.items"
+            :key="assignment.submission.id"
+            class="flex items-center justify-between min-h-24 shadow-lg border border-zinc-200 rounded-lg bg-zinc-50 rounded-lg p-4 hover:bg-gray-750 cursor-pointer hover:scale-101 transition-transform duration-200 ease-in-out"
+          >
+            <div class="flex items-center space-x-4">
+              <span class="relative inline-block flex-shrink-0">
+                <img
+                  class="h-12 w-12 rounded-md"
+                  :src="
+                    assignment.assignment.course.iconUrl ||
+                    'https://via.placeholder.com/72'
+                  "
+                  alt=""
+                />
+              </span>
+
+              <!-- Homework Details -->
+              <div class="flex-1">
+                <h3 class="font-medium text-gray-900 mb-1">
+                  {{ assignment.assignment.title }}
+                </h3>
+                <div class="flex flex-col space-x-4 text-sm text-gray-400">
+                  <span v-if="assignment.submission.submittedAt"
+                    >Submitted at:
+                    {{
+                      formatDateTo21May2025at(assignment.submission.submittedAt)
+                    }}</span
+                  >
+                  <span>{{ assignment.assignment.course.title }}</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Status -->
-          <div class="flex items-center space-x-2">
-            <div
-              :class="[
-                'px-3 py-1 rounded-md text-xs font-medium flex items-center space-x-1',
-                getStatusColor(homework.status),
-              ]"
-            >
-              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fill-rule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clip-rule="evenodd"
-                ></path>
-              </svg>
-              <span>{{ homework.status }}</span>
+            <!-- Status -->
+            <div class="flex items-center space-x-2">
+              <div
+                :class="[
+                  'px-3 py-1 rounded-md text-xs font-medium flex items-center space-x-1',
+                  statusMetaMap[assignment.submission.status].bgColorClass,
+                  statusMetaMap[assignment.submission.status].textColorClass,
+                ]"
+              >
+                <component
+                  :is="statusMetaMap[assignment.submission.status].icon"
+                  class="w-4 h-4"
+                />
+                <span>{{
+                  statusMetaMap[assignment.submission.status].text
+                }}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </LazyScrollWrapper>
 </template>
 
 <script setup lang="ts">
 import {
-  AssignmentsWithSubmission,
+  BasicAssignmentWithSubmission,
+  EnrichedAssignmentWithSubmission,
   GroupedAssignmentByDate,
+  statusMetaMap,
 } from "@/types/assignment";
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { getDayAsText } from "@/components/common/timetable/timetableUtils";
+import LazyScrollWrapper from "@/components/common/LazyScrollWrapper.vue";
+import { useInfiniteQuery } from "@tanstack/vue-query";
+import { PagedList } from "@/common/types/pagedList";
+import {
+  formatDateTo21May2025,
+  formatDateTo21May2025at,
+} from "@/utils/dateUtils";
 
 const props = defineProps<{
   scrollContainer: HTMLElement | null;
-  assignmentsList: AssignmentsWithSubmission[];
+  assignments: EnrichedAssignmentWithSubmission[];
+  assignmentsQuery: ReturnType<
+    typeof useInfiniteQuery<PagedList<BasicAssignmentWithSubmission>>
+  >;
 }>();
 
-const groupedAssignments = computed<GroupedAssignmentByDate[]>(() => {
-  const grouped: Record<string, AssignmentsWithSubmission[]> = {};
+const localAssignments = ref<EnrichedAssignmentWithSubmission[]>([]);
 
-  props.assignmentsList.forEach((assignment) => {
-    const date = new Date(assignment.assignment.deadline).toLocaleDateString();
+const groupedAssignments = computed<GroupedAssignmentByDate[]>(() => {
+  const grouped: Record<string, EnrichedAssignmentWithSubmission[]> = {};
+
+  localAssignments.value.forEach((assignment) => {
+    const date = formatDateTo21May2025(assignment.assignment.deadline);
     if (!grouped[date]) {
       grouped[date] = [];
     }
@@ -99,12 +153,28 @@ const groupedAssignments = computed<GroupedAssignmentByDate[]>(() => {
   });
 });
 
-const getStatusColor = (status: string) => {
-  const colors = {
-    "Turned in": "bg-lime-500/60 text-green-700",
-    "Past due": "bg-red-500/20 text-red-400",
-    Upcoming: "bg-blue-500/20 text-blue-400",
-  };
-  return colors[status] || "bg-gray-500/20 text-gray-400";
-};
+const isEmptyState = computed(() => {
+  return (
+    localAssignments.value.length === 0 &&
+    !props.assignmentsQuery.isFetching.value
+  );
+});
+
+watch(
+  () => localAssignments.value,
+  (length) => {
+    console.log("assignments22222 length changed:", length);
+  },
+);
+
+watch(
+  () => props.assignments,
+  (val) => {
+    // Only update if it's not an intermediate empty array
+    if (val.length > 0 || !props.assignmentsQuery.isLoading) {
+      localAssignments.value = val;
+    }
+  },
+  { immediate: true },
+);
 </script>

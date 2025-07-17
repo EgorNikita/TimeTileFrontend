@@ -32,7 +32,7 @@ const isInitialLoading = computed(() => {
   );
 });
 
-const isEmpyState = computed(() => {
+const isEmptyState = computed(() => {
   return courses.value.length === 0 && !isInitialLoading.value;
 });
 
@@ -91,7 +91,7 @@ watch(
       </div>
 
       <!-- Empty State -->
-      <div v-if="isEmpyState" class="text-center py-12">
+      <div v-if="isEmptyState" class="text-center py-12">
         <div class="text-gray-500">
           <svg
             class="mx-auto h-12 w-12 text-gray-400 mb-4"
