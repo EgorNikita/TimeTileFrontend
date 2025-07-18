@@ -4,6 +4,7 @@ import { buildQueryParams } from "@/helpers/queryParamsBuilder";
 import { API_ENDPOINTS } from "@/constants";
 import { PagedListParams } from "@/types/common/PagedList";
 import { TimetableUnit, TimetableUnitFilters } from "@/types/timetable";
+import { normalizeHistoricalTime } from "@/helpers/dateHelpers";
 
 const api = createApi();
 
@@ -32,7 +33,7 @@ export async function fetchTimetableUnits(
 function parseTimetableUnit(unit: TimetableUnit): TimetableUnit {
   return {
     ...unit,
-    startTime: new Date(unit.startTime),
-    endTime: new Date(unit.endTime),
+    startTime: normalizeHistoricalTime(unit.startTime),
+    endTime: normalizeHistoricalTime(unit.endTime),
   };
 }
