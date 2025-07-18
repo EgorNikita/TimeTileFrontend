@@ -48,11 +48,21 @@
             v-for="assignment in dateGroup.items"
             :key="assignment.assignment.id"
             :assignment="assignment"
+            @click="openModal"
           />
         </div>
       </div>
     </div>
   </LazyScrollWrapper>
+
+  <!-- Assignment Details Modal -->
+  <AssignmentDetailsModal
+    v-if="selectedAssignment"
+    :assignment="selectedAssignment"
+    :isOpen="isModalOpen"
+    @close="closeModal"
+    @submit="handleSubmit"
+  />
 </template>
 
 <script setup lang="ts">
@@ -61,13 +71,14 @@ import {
   EnrichedAssignmentWithSubmission,
   GroupedAssignmentByDate,
 } from "@/types/assignment";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { getDayAsText } from "@/components/common/timetable/timetableUtils";
 import LazyScrollWrapper from "@/components/common/LazyScrollWrapper.vue";
 import { useInfiniteQuery } from "@tanstack/vue-query";
 import { PagedList } from "@/common/types/pagedList";
 import { formatDateTo21May2025 } from "@/utils/dateUtils";
 import AssignmentPreviewCard from "@/components/student/AssignmentPreviewCard.vue";
+import AssignmentDetailsModal from "@/components/modals/AssignmentDetailsModal.vue";
 
 const props = defineProps<{
   assignments: EnrichedAssignmentWithSubmission[];
@@ -103,4 +114,26 @@ const isEmptyState = computed(() => {
     props.assignments.length === 0 && !props.assignmentsQuery.isFetching.value
   );
 });
+
+// Modal state
+const isModalOpen = ref(false);
+const selectedAssignment = ref<EnrichedAssignmentWithSubmission | null>(null);
+
+// Methods
+const openModal = (assignment: EnrichedAssignmentWithSubmission) => {
+  selectedAssignment.value = assignment;
+  isModalOpen.value = true;
+};
+
+const closeModal = () => {
+  isModalOpen.value = false;
+  selectedAssignment.value = null;
+};
+
+const handleSubmit = (assignment: EnrichedAssignmentWithSubmission) => {
+  // Handle assignment submission logic here
+  console.log("Submitting assignment:", assignment);
+  // You might want to emit an event to parent component or call an API
+  closeModal();
+};
 </script>

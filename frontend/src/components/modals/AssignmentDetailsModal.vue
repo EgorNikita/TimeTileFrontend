@@ -1,0 +1,187 @@
+<template>
+  <TransitionRoot as="template" :show="isOpen">
+    <Dialog class="relative z-50" @close="closeModal">
+      <TransitionChild
+        as="template"
+        enter="ease-out duration-300"
+        enter-from="opacity-0"
+        enter-to="opacity-100"
+        leave="ease-in duration-200"
+        leave-from="opacity-100"
+        leave-to="opacity-0"
+      >
+        <div class="fixed inset-0 bg-gray-800/75 transition-opacity" />
+      </TransitionChild>
+
+      <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div
+          class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
+        >
+          <TransitionChild
+            as="template"
+            enter="ease-out duration-300"
+            enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            enter-to="opacity-100 translate-y-0 sm:scale-100"
+            leave="ease-in duration-200"
+            leave-from="opacity-100 translate-y-0 sm:scale-100"
+            leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          >
+            <DialogPanel
+              class="relative transform overflow-hidden rounded-xl bg-white transition-all sm:my-8 sm:w-full sm:max-w-4xl"
+            >
+              <!-- Header -->
+              <AssignmentModalHeader
+                :assignment="assignment"
+                @close="closeModal"
+              />
+
+              <!-- Content -->
+              <div class="px-6 py-6 max-h-[70vh] overflow-y-auto">
+                <!-- Status and Key Info -->
+                <AssignmentStatusGrid :assignment="assignment" />
+
+                <!-- Expired Warning -->
+                <AssignmentExpiredWarning
+                  v-if="assignment.submission.status === Status.EXPIRED"
+                  :upload-after-deadline="
+                    assignment.assignment.uploadAfterDeadline
+                  "
+                />
+
+                <!-- Submission Form -->
+                <AssignmentSubmissionForm
+                  v-if="canSubmit"
+                  @submit="handleSubmitAssignment"
+                />
+
+                <!-- Submission Info -->
+                <AssignmentSubmissionInfo
+                  v-if="assignment.submission.submittedAt"
+                  :submission="assignment.submission"
+                />
+
+                <!-- Assignment Description -->
+                <AssignmentDescription
+                  :description="assignment.assignment.description"
+                />
+
+                <!-- Assignment Files -->
+                <!--                <AssignmentFiles-->
+                <!--                  :assignment="assignment.assignment"-->
+                <!--                  :files="assigmentFiles"-->
+                <!--                  :is-loading="assignmentFilesQuery.isLoading"-->
+                <!--                />-->
+
+                <!-- Teacher Feedback -->
+                <AssignmentTeacherFeedback
+                  v-if="assignment.submission.teacherFeedback"
+                  :feedback="assignment.submission.teacherFeedback"
+                />
+              </div>
+
+              <!-- Footer -->
+              <div
+                class="bg-gray-50 border-t px-6 py-4 flex justify-end space-x-3"
+              >
+                <button
+                  @click="closeModal"
+                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </DialogPanel>
+          </TransitionChild>
+        </div>
+      </div>
+    </Dialog>
+  </TransitionRoot>
+</template>
+
+<script setup lang="ts">
+import { computed } from "vue";
+import {
+  Dialog,
+  DialogPanel,
+  TransitionChild,
+  TransitionRoot,
+} from "@headlessui/vue";
+import {
+  EnrichedAssignmentWithFiles,
+  EnrichedAssignmentWithSubmission,
+  Status,
+} from "@/types/assignment";
+import { useAssignmentFiles } from "@/tanStackQueries/student/assignment/useAssignmentFiles";
+import AssignmentModalHeader from "@/components/modals/assignmentDetailsModal/AssignmentModalHeader.vue";
+import AssignmentStatusGrid from "@/components/modals/assignmentDetailsModal/AssignmentStatusGrid.vue";
+import AssignmentExpiredWarning from "@/components/modals/assignmentDetailsModal/AssignmentExpiredWarning.vue";
+import AssignmentSubmissionForm from "@/components/modals/assignmentDetailsModal/AssignmentSubmissionForm.vue";
+import AssignmentDescription from "@/components/modals/assignmentDetailsModal/AssignmentDescription.vue";
+import AssignmentTeacherFeedback from "@/components/modals/assignmentDetailsModal/AssignmentTeacherFeedback.vue";
+import AssignmentSubmissionInfo from "@/components/modals/assignmentDetailsModal/AssignmentSubmissionInfo.vue";
+import { useSubmitSubmission } from "@/tanStackQueries/student/assignment/useSubmitSubmission";
+
+const props = defineProps<{
+  assignment: EnrichedAssignmentWithSubmission;
+  isOpen: boolean;
+}>();
+
+const emit = defineEmits<{
+  close: [];
+  submit: [
+    assignment: EnrichedAssignmentWithSubmission,
+    files: File[],
+    note: string,
+  ];
+}>();
+
+// Existing code
+const assignmentFilesQuery = useAssignmentFiles(props.assignment.assignment.id);
+const assigmentFiles = computed(() => assignmentFilesQuery.data?.value || []);
+
+const enrichedAssignment = computed(() => {
+  if (props.assignment.assignment.hasAttachment) {
+    const enrichedAssignmentData: EnrichedAssignmentWithFiles = {
+      ...props.assignment.assignment,
+      fileUrls: props.assignment.assignment.hasAttachment
+        ? assigmentFiles.value
+        : [],
+    };
+
+    return {
+      assignment: enrichedAssignmentData,
+      submission: props.assignment.submission,
+    };
+  }
+
+  return {
+    ...props.assignment,
+    assignment: {
+      ...props.assignment.assignment,
+      files: [],
+    },
+  };
+});
+
+const closeModal = () => {
+  emit("close");
+};
+
+const { mutate: submit, isPending } = useSubmitSubmission();
+
+const handleSubmitAssignment = (files: File[], note: string) => {
+  submit({
+    id: props.assignment.assignment.id,
+    studentNote: note,
+    filesToAdd: files,
+  });
+};
+
+const canSubmit = computed(() => {
+  return (
+    props.assignment.submission.status === Status.NOT_SUBMITTED ||
+    (props.assignment.submission.status === Status.EXPIRED &&
+      props.assignment.assignment.uploadAfterDeadline)
+  );
+});
+</script>

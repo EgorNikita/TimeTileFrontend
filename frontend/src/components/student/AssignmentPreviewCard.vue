@@ -6,6 +6,7 @@
         ? 'flex-col min-h-20 p-3'
         : 'flex-row items-center justify-between min-h-24 p-4',
     ]"
+    @click="handleClick"
   >
     <!-- Main content: Icon + Assignment details -->
     <div
@@ -121,7 +122,15 @@ const props = defineProps<{
   width?: number;
 }>();
 
+const emit = defineEmits<{
+  click: [assignment: EnrichedAssignmentWithSubmission];
+}>();
+
 const isCompact = computed(() => {
   return props.width ? props.width < 600 : false;
 });
+
+const handleClick = () => {
+  emit("click", props.assignment);
+};
 </script>

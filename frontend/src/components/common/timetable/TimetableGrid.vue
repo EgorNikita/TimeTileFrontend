@@ -146,9 +146,17 @@ const currentDayLessons = computed(() => {
 });
 
 watch(
-  () => currentDayLessons,
+  () => props.lessons,
   (newVal) => {
-    console.log("currentDayLessons changed:", newVal);
+    console.log("timetableLessons:", newVal);
+  },
+  { deep: true, immediate: true },
+);
+
+watch(
+  () => processedLessons.value,
+  (newVal) => {
+    console.log("processedLessons:", newVal);
   },
   { deep: true, immediate: true },
 );

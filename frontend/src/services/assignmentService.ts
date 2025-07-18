@@ -6,8 +6,10 @@ import { PagedListParams } from "@/types/common/PagedList";
 import {
   Assignment,
   AssignmentFilters,
+  FileInfo,
   Submission,
   SubmissionFilters,
+  SubmitSubmissionPayload,
 } from "@/types/assignment";
 
 const api = createApi();
@@ -61,4 +63,53 @@ export async function fetchSubmissions(
   }
 
   return response.data;
+}
+
+export async function fetchAssignmentFiles(
+  assignmentId: number,
+): Promise<FileInfo[]> {
+  const url = API_ENDPOINTS.ASSIGNMENTS.FILES(assignmentId);
+  const response = await api.get(url);
+
+  if (!response || !response.isSuccess || !response.data) {
+    throw new Error(response?.error ?? "Failed to fetch assignment files");
+  }
+
+  return response.data;
+}
+
+export async function submitSubmission(
+  payload: SubmitSubmissionPayload,
+): Promise<void> {
+  const formData = new FormData();
+
+  if (payload.studentNote !== undefined) {
+    formData.append("StudentNote", payload.studentNote);
+  }
+
+  if (payload.filesToAdd && payload.filesToAdd.length > 0) {
+    for (const file of payload.filesToAdd) {
+      formData.append("FilesToAdd", file);
+    }
+  }
+
+  if (payload.filesToRemove && payload.filesToRemove.length > 0) {
+    for (const fileId of payload.filesToRemove) {
+      formData.append("FilesToRemove", fileId.toString());
+    }
+  }
+
+  const response = await api.patch(
+    `/submissions/${payload.id}/submit`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+
+  if (!response || !response.isSuccess) {
+    throw new Error(response?.error ?? "Submission failed");
+  }
 }

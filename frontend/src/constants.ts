@@ -104,6 +104,7 @@ export const API_ENDPOINTS = {
   ASSIGNMENTS: {
     DEFAULT: "/assignments",
     BY_IDS: "/assignments/bulk",
+    FILES: (id: number) => `/assignments/${id}/files`,
   },
   SUBMISSIONS: "/submissions",
 

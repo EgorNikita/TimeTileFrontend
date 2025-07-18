@@ -9,7 +9,7 @@ import { Component } from "vue";
 import { Course } from "@/types/course";
 
 export interface Assignment {
-  id: string | number;
+  id: number;
   title: string;
   description: string;
   publishedAt: Date;
@@ -21,6 +21,10 @@ export interface Assignment {
 
 export interface EnrichedAssignment extends Assignment {
   course: Course;
+}
+
+export interface EnrichedAssignmentWithFiles extends EnrichedAssignment {
+  fileUrls: FileInfo[];
 }
 
 export interface AssignmentFilters {
@@ -41,22 +45,44 @@ export interface Submission {
   submittedAt?: string;
 }
 
+export interface EnrichedSubmissionWithFiles extends Submission {
+  fileUrls: FileInfo[];
+}
+
 export interface SubmissionFilters {
   studentIds?: number[];
   assignmentIds?: number;
   statuses?: string[];
 }
 
-export interface AssignmentsWithSubmission<T extends Assignment = Assignment> {
+export interface AssignmentsWithSubmission<
+  T extends Assignment = Assignment,
+  Y extends Submission = Submission,
+> {
   assignment: T;
-  submission: Submission;
+  submission: Y;
 }
 
 // Usage:
-export type BasicAssignmentWithSubmission =
-  AssignmentsWithSubmission<Assignment>;
-export type EnrichedAssignmentWithSubmission =
-  AssignmentsWithSubmission<EnrichedAssignment>;
+export type BasicAssignmentWithSubmission = AssignmentsWithSubmission<
+  Assignment,
+  Submission
+>;
+export type EnrichedAssignmentWithSubmission = AssignmentsWithSubmission<
+  EnrichedAssignment,
+  Submission
+>;
+
+export interface FileInfo {
+  fileUrl: string;
+}
+
+export interface SubmitSubmissionPayload {
+  id: number;
+  studentNote?: string;
+  filesToAdd?: File[]; // raw File objects from input or drag/drop
+  filesToRemove?: number[]; // file IDs to delete
+}
 
 export enum Status {
   NOT_SUBMITTED = "NotSubmitted",
