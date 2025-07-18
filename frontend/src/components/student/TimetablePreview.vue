@@ -2,23 +2,61 @@
 import { ref, computed, watch } from "vue";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/20/solid";
 import { Calendar } from "lucide-vue-next";
+import { useTimetableUnits } from "@/tanStackQueries/student/timetableUnit/useTimetableUnits.js";
+import {
+  useStudentLessonInfoPeriodConstraint
+} from "@/tanStackQueries/student/student/useStudentLessonInfoPeriodConstraint.js";
+import { useAuthStore } from "@/store/modules/auth.js";
+import { formatTime } from "@/components/common/timetable/timetableUtils.js";
 
 // Helper Functions
 const formatDate = (date) => date.toISOString().split("T")[0];
 const toMinutes = (time) => {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
+}
+
+const getCombinedDateTime = () => {
+  const date = new Date(selectedDate.value);
+  const time = currentTime.value;
+
+  const combined = new Date(date); // Clone to avoid mutation
+  combined.setHours(
+    time.getHours(),
+    time.getMinutes(),
+    time.getSeconds(),
+    time.getMilliseconds()
+  );
+  return combined;
 };
 
-const getLessonStatus = (lesson) => {
-  const nowMinutes = toMinutes(currentTime.value.toTimeString().slice(0, 5));
-  const start = toMinutes(lesson.startTime);
-  const end = toMinutes(lesson.endTime);
+const getStartTime = (lessonInfo) => {
+  const firstUnitId = lessonInfo.lesson.timetableUnitIds[0];
+  const firstUnit = timetableUnits.value.find(unit => unit.id === firstUnitId);
+  return formatTime(firstUnit.startTime);
+}
 
-  if (nowMinutes < start) return { status: "upcoming", progress: 0 };
-  if (nowMinutes >= end) return { status: "completed", progress: 100 };
+const getEndTime = (lessonInfo) => {
+  const lastUnitId = lessonInfo.lesson.timetableUnitIds[lessonInfo.lesson.timetableUnitIds.length - 1];
+  const lastUnit = timetableUnits.value.find(unit => unit.id === lastUnitId);
+  return formatTime(lastUnit.endTime);
+}
 
-  const progress = ((nowMinutes - start) / (end - start)) * 100;
+const getLessonStatus = (lessonInfo) => {
+  if (selectedDate.value < formatDate(new Date()))      // For past dates
+    return { status: "completed", progress: 100 };
+  else if (selectedDate.value > formatDate(new Date())) // For future dates
+    return { status: "upcoming", progress: 0 };
+
+  const now = getCombinedDateTime();
+
+  const start = getStartTime(lessonInfo);
+  const end = getEndTime(lessonInfo);
+
+  if (now < start) return { status: "upcoming", progress: 0 };
+  if (now >= end) return { status: "completed", progress: 100 };
+
+  const progress = ((now - start) / (end - start)) * 100;
   return { status: "current", progress };
 };
 
@@ -26,35 +64,54 @@ const getLessonStatus = (lesson) => {
 const today = new Date();
 const day = today.getDay();
 const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Adjust when Sunday
+const weekStart = new Date(today.setDate(diff));
 
-const currentWeekStart = ref(new Date(today.setDate(diff)));
+const currentWeekStart = ref(weekStart);
 const selectedDate = ref(formatDate(new Date()));
 const currentTime = ref(new Date());
 const currentMonth = ref("");
 
-const lessons = ref([
-  {
-    title: "Алгебра",
-    startTime: "10:00",
-    endTime: "10:45",
-    teacher: "Іван Петренко",
-    date: formatDate(new Date()),
-  },
-  {
-    title: "Геометрія",
-    startTime: "22:00",
-    endTime: "23:45",
-    teacher: "Олена Ковальчук",
-    date: formatDate(new Date()),
-  },
-  {
-    title: "Фізика",
-    startTime: "23:00",
-    endTime: "23:45",
-    teacher: "Ірина Шевченко",
-    date: formatDate(new Date()),
-  },
-]);
+// Timetable Units
+const timetableUnitsQuery = useTimetableUnits({ fetchAll: true });
+const timetableUnits = computed(() => {
+  return timetableUnitsQuery.data?.value ?? [];
+});
+
+const fetchLessonsFilters = computed(() => {
+  const fromDate = new Date(selectedDate.value);
+  fromDate.setHours(0, 0, 0, 0);
+
+  const untilDate = new Date(selectedDate.value);
+  untilDate.setDate(untilDate.getDate() + 1);
+  untilDate.setHours(0, 0, 0, 0);
+
+  return {
+    from: fromDate.toISOString(),
+    until: untilDate.toISOString(),
+    fetchAll: true
+  };
+});
+
+const auth = useAuthStore();
+const lessonsQuery = useStudentLessonInfoPeriodConstraint(
+  auth.userId,
+  fetchLessonsFilters
+);
+
+const lessonInfos = computed(() =>
+  lessonsQuery.data.value?.pages?.flatMap((page) => page.items) ?? []
+);
+
+const sortedLessonInfosWithStatus = computed(() => {
+  return lessonInfos.value.map(lessonInfo => ({
+      ...lessonInfo,
+      status: getLessonStatus(lessonInfo),
+      startTime: getStartTime(lessonInfo),
+      endTime: getEndTime(lessonInfo)
+    })).toSorted((a, b) => {
+      return toMinutes(a.startTime) - toMinutes(b.startTime);
+  });
+});
 
 // Computed
 const days = computed(() => {
@@ -79,10 +136,6 @@ const days = computed(() => {
 
   return daysArray;
 });
-
-const filteredLessons = computed(() =>
-  lessons.value.filter((lesson) => lesson.date === selectedDate.value),
-);
 
 // Methods
 const updateMonthDisplay = () => {
@@ -191,63 +244,37 @@ setInterval(() => {
     <!-- Lessons List -->
     <div class="space-y-3">
       <div
-        v-for="lesson in filteredLessons"
-        :key="lesson.title + lesson.startTime"
+        v-for="lessonInfo in sortedLessonInfosWithStatus"
+        :key="lessonInfo.lesson.course.title + lessonInfo.startTime"
         class="p-4 rounded-lg border shadow-sm"
         :class="{
-          'bg-gray-100': getLessonStatus(lesson).status === 'completed',
-          'bg-blue-50': getLessonStatus(lesson).status === 'current',
-          'bg-white': getLessonStatus(lesson).status === 'upcoming',
+          'bg-gray-100': getLessonStatus(lessonInfo).status === 'completed',
+          'bg-blue-50': getLessonStatus(lessonInfo).status === 'current',
+          'bg-white': getLessonStatus(lessonInfo).status === 'upcoming',
         }"
       >
         <div class="flex items-center justify-between mb-1">
-          <h3 class="text-lg font-semibold">{{ lesson.title }}</h3>
+          <h3 class="text-lg font-semibold">{{ lessonInfo.lesson.course.title }}</h3>
           <span class="text-sm text-gray-500">
-            {{ lesson.startTime }} – {{ lesson.endTime }}
+            {{ lessonInfo.startTime }} – {{ lessonInfo.endTime }}
           </span>
         </div>
-        <p class="text-sm text-gray-700 mb-2">Вчитель: {{ lesson.teacher }}</p>
+        <p class="text-sm text-gray-700 mb-2">Teacher: {{ lessonInfo.lesson.teacher.firstname + " " + lessonInfo.lesson.teacher.lastname }}</p>
         <div class="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
           <div
             class="h-full bg-blue-500 transition-all"
-            :style="{ width: getLessonStatus(lesson).progress + '%' }"
+            :style="{ width: lessonInfo.status.progress + '%' }"
           ></div>
         </div>
       </div>
 
       <!-- No lessons -->
       <div
-        v-if="filteredLessons.length === 0"
+        v-if="lessonInfos.length === 0"
         class="text-center text-gray-400 mt-10"
       >
-        У цей день занять немає
+        No lessons for this day.
       </div>
-
-      <!--      &lt;!&ndash; Time indicator &ndash;&gt;-->
-      <!--        <div :class="getIndicatorStyle(lesson)">-->
-      <!--          &lt;!&ndash; Progress bar for current lesson &ndash;&gt;-->
-      <!--          <div-->
-      <!--            v-if="getLessonStatus(lesson).status === 'current'"-->
-      <!--            class="absolute bottom-0 left-0 w-full bg-blue-400 rounded-full transition-all duration-300"-->
-      <!--            :style="{ height: `${getCurrentLessonProgress(lesson)}%` }"-->
-      <!--          ></div>-->
-      <!--        </div>-->
-
-      <!--        &lt;!&ndash; Content &ndash;&gt;-->
-      <!--        <div class="flex-1">-->
-      <!--          <div class="flex items-center justify-between">-->
-      <!--            <div class="flex items-center gap-4">-->
-      <!--              <span class="text-sm font-medium text-gray-900">{{-->
-      <!--                lesson.startTime-->
-      <!--              }}</span>-->
-      <!--              <span class="text-sm text-gray-900">{{ lesson.title }}</span>-->
-      <!--            </div>-->
-      <!--            <div class="flex items-center gap-2 text-sm text-gray-600">-->
-      <!--              &lt;!&ndash;              <span>{{ lesson.room }}</span>&ndash;&gt;-->
-      <!--              &lt;!&ndash;              <span class="font-medium">{{ lesson.number }}</span>&ndash;&gt;-->
-      <!--            </div>-->
-      <!--          </div>-->
-      <!--        </div>-->
     </div>
   </div>
 </template>
