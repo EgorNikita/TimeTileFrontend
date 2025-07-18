@@ -84,18 +84,19 @@ const startOfWeek = computed(() => {
   return start;
 });
 
-const filters = computed(() => ({
+const fetchLessonFilters = computed(() => ({
   from: startOfWeek.value.toDateString(),
   until: new Date(
     startOfWeek.value.getTime() + 6 * 24 * 60 * 60 * 1000,
   ).toDateString(),
+  fetchAll: true
 }));
 
 // Lessons
 const auth = useAuthStore();
 const lessonsQuery = useStudentLessonInfoPeriodConstraint(
   auth.userId!,
-  filters,
+  fetchLessonFilters,
 );
 const lessons = computed(() => lessonsQuery.data?.value ?? []);
 

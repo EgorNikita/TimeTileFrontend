@@ -160,8 +160,7 @@ const handleMonthOffset = (offset: number): void => {
           :key="`lesson-${lessonInfo.lessonId}`"
         >
           <div
-            class="relative col-start-2 col-end-3 z-20 m-2 p-4 rounded-md text-sm font-medium shadow-sm overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.01] hover:-translate-y-0.5 group backdrop-blur-sm"
-            :class="[lessonInfo.status.color || 'bg-blue-50']"
+            class="relative bg-blue-50 col-start-2 col-end-3 z-20 m-2 p-4 rounded-md text-sm font-medium shadow-sm overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.01] hover:-translate-y-0.5 group backdrop-blur-sm"
             :style="{
               gridRow: `${lessonInfo.gridRowStart} / span ${lessonInfo.rowSpan}`,
             }"

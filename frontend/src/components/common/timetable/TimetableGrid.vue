@@ -62,20 +62,15 @@ const weekDays = computed((): WeekDay[] => {
 });
 
 const timetableData = computed((): TimetableData[] => {
-  // Sort units by start time to ensure proper ordering
-  const sortedUnits = [...props.timetableUnits].sort(
-    (a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime),
-  );
-
   const result: TimetableData[] = [];
 
-  for (let i = 0; i < sortedUnits.length; i++) {
-    const unit = sortedUnits[i];
+  for (let i = 0; i < props.timetableUnits.length; i++) {
+    const unit = props.timetableUnits[i];
     const startMinutes = timeToMinutes(unit.startTime);
     const endMinutes = timeToMinutes(unit.endTime);
 
     if (i > 0) {
-      const prevUnit = sortedUnits[i - 1];
+      const prevUnit = props.timetableUnits[i - 1];
       const prevEndMinutes = timeToMinutes(prevUnit.endTime);
 
       if (startMinutes > prevEndMinutes) {
@@ -121,7 +116,9 @@ const processedLessons = computed((): ProcessedLesson[] => {
         studentLessonInfo.lesson.timetableUnitIds?.includes(unit.id),
       );
 
-      const gridRowStart = units[0]?.id;
+      const timetableUnitId = units[0]?.id;
+      // otherwise lesson will be displayed on break's row
+      const gridRowStart = timetableData.value.findIndex(unit => unit.id === timetableUnitId) + 1;
       const rowSpan = units.length;
 
       console.log("Unit", units[0]?.title);

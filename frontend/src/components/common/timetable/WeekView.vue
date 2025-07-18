@@ -138,8 +138,7 @@ const handleHeaderClick = (day: WeekDay): void => {
           :key="`lesson-${lessonInfo.lessonId}`"
         >
           <div
-            class="relative z-20 m-1 p-4 rounded-md text-sm font-medium shadow-sm overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-1 group border border-white/20 backdrop-blur-sm"
-            :class="[lessonInfo.status.color || 'bg-blue-50']"
+            class="relative bg-blue-50 z-20 m-1 p-4 rounded-md text-sm font-medium shadow-sm overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-1 group border border-white/20 backdrop-blur-sm"
             :style="{
               gridColumn: lessonInfo.dayIndex + 2,
               gridRow: `${lessonInfo.gridRowStart} / span ${lessonInfo.rowSpan}`,
