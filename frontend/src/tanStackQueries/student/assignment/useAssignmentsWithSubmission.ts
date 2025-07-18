@@ -19,9 +19,10 @@ export function useAssignmentsWithSubmission(
 
     queryFn: async ({ pageParam = 1 }) => {
       const filtersValue = unref(filters);
+
       const submissionPage = await fetchSubmissions({
         ...filtersValue,
-        sortBy: "",
+        descending: true,
         page: pageParam,
         pageSize,
       });

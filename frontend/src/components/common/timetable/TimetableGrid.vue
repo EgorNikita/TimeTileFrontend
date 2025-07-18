@@ -162,20 +162,6 @@ const gridTemplateRows = computed((): string => {
     })
     .join(" ");
 });
-
-// // Event handlers
-// const handleCellClick = (day: WeekDay, unit: TimetableData): void => {
-//   emit("cell-click", { day, unit });
-// };
-//
-// const handleEventClick = (event: ProcessedEvent, nativeEvent: Event): void => {
-//   nativeEvent.stopPropagation();
-//   emit("event-click", event);
-// };
-//
-// const handleHeaderClick = (day: WeekDay): void => {
-//   emit("header-click", day);
-// };
 </script>
 
 <template>

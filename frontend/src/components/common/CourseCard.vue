@@ -22,7 +22,7 @@ const props = defineProps({
 
 <template>
   <div
-    class="relative flex h-full justify-between items-center border border-gray-200 rounded-lg bg-white shadow-sm px-3 pt-3 pb-4 [&:hover:not(:has(.menu-area:hover))]:bg-gray-50"
+    class="relative flex h-full cursor-pointer justify-between items-center border border-gray-200 rounded-lg bg-white shadow-sm px-3 pt-3 pb-4 [&:hover:not(:has(.menu-area:hover))]:bg-gray-50 focus-within:z-[60] hover:z-[60] group isolate"
   >
     <a
       v-tooltip="{
@@ -53,7 +53,7 @@ const props = defineProps({
       </div>
     </a>
 
-    <Menu as="div" class="relative ml-2 flex-shrink-0 menu-area">
+    <Menu as="div" class="relative ml-2 flex-shrink-0 menu-area z-[9999]">
       <MenuButton
         class="relative block text-gray-400 hover:text-gray-500 p-1 rounded-md hover:bg-gray-100"
         v-tooltip.right="{
@@ -77,7 +77,7 @@ const props = defineProps({
         leave-to-class="transform opacity-0 scale-95"
       >
         <MenuItems
-          class="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"
+          class="absolute right-0 z-[9999] mt-2 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none"
         >
           <MenuItem v-slot="{ active }">
             <a

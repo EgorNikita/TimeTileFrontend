@@ -57,8 +57,12 @@ const gradesWithSubjects = computed(() => {
   >
     <!-- Header -->
     <h2 class="text-2xl font-bold text-gray-800 mb-6 flex-shrink-0">
-      Нові оцінки
+      New grades
     </h2>
+
+    <div class="relative mb-3">
+      <div class="w-full border-t border-gray-300 shadow-lg" />
+    </div>
 
     <!-- Grades List -->
     <LazyScrollWrapper
