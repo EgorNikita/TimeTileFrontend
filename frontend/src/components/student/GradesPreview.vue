@@ -14,7 +14,10 @@ const props = withDefaults(defineProps<Props>(), {
   filters: () => ({}),
 });
 
-const gradesQuery = useGradesLazy(props.filters);
+const gradesQuery = useGradesLazy({
+  ...props.filters,
+  descending: true
+});
 
 // Computed properties for reactive gradeStore data
 const grades = computed(() => {
