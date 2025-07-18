@@ -15,7 +15,7 @@ export interface Assignment {
   publishedAt: Date;
   deadline: Date;
   uploadAfterDeadline: boolean;
-  hasAttachment: boolean;
+  hasAttachments: boolean;
   courseId: number;
 }
 
@@ -33,14 +33,14 @@ export interface AssignmentFilters {
 }
 
 export interface Submission {
-  id: string | number;
+  id: number;
   assignmentId: number;
   studentId: number;
   gradeId?: number;
   status: Status;
   studentNote?: string;
   teacherFeedback?: string;
-  hasAttachment: boolean;
+  hasAttachments: boolean;
 
   submittedAt?: string;
 }

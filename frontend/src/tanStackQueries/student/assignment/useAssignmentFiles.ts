@@ -6,7 +6,7 @@ export const useAssignmentFiles = (
   id: ComputedRef<number> | Ref<number> | number,
 ) => {
   return useQuery({
-    queryKey: ["bulk-courses", id],
+    queryKey: ["assigment-files", id],
 
     queryFn: () => {
       const idValue = unref(id);

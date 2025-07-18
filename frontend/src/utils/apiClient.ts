@@ -232,11 +232,40 @@ async function handleErrorResponse(
   return failure(createFriendlyErrorFromAxiosError(error, messages));
 }
 
-// ===== MAIN FACTORY FUNCTION =====
+// Create a default instance for convenience
+export const defaultApi = createApi();
+
+// ===== UTILITY FUNCTIONS =====
+export function createApiWithTimeout(
+  timeout: number,
+  customMessages: Partial<ErrorMessages> = {},
+): TypedAxiosInstance {
+  return createApi(customMessages, { timeout });
+}
+
+export function isTypedAxiosInstance(
+  instance: any,
+): instance is TypedAxiosInstance {
+  return (
+    instance &&
+    typeof instance.get === "function" &&
+    typeof instance.post === "function"
+  );
+}
+
+// Add this interface to your existing interfaces
+export interface TypedAxiosInstanceWithFiles extends TypedAxiosInstance {
+  downloadFile(
+    url: string,
+    config?: AxiosRequestConfig,
+  ): Promise<AxiosResponse<Blob>>;
+}
+
+// Modify your createAxiosInstance function to include the downloadFile method
 function createAxiosInstance(
   messages: ErrorMessages,
   config: Partial<typeof DEFAULT_CONFIG> = {},
-): TypedAxiosInstance {
+): TypedAxiosInstanceWithFiles {
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
 
   const api = axios.create({
@@ -258,35 +287,67 @@ function createAxiosInstance(
     handleErrorResponse(error, api, messages),
   );
 
-  return api as TypedAxiosInstance;
+  // Add downloadFile method that bypasses the response interceptor
+  const enhancedApi = api as TypedAxiosInstanceWithFiles;
+
+  enhancedApi.downloadFile = async (
+    url: string,
+    config: AxiosRequestConfig = {},
+  ): Promise<AxiosResponse<Blob>> => {
+    // Create a new axios instance without the response interceptor for file downloads
+    const fileApi = axios.create({
+      baseURL: API_BASE_URL,
+      ...finalConfig,
+      responseType: "blob",
+      ...config,
+    });
+
+    // Add request interceptor for auth
+    fileApi.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+      const token = getAuthToken();
+      if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    });
+
+    // Add error handling for 401 but preserve the raw response for success
+    fileApi.interceptors.response.use(
+      (response) => response, // Return raw response for success
+      async (error: AxiosError) => {
+        const { response, config: originalRequest } = error;
+        const extendedConfig = originalRequest as ExtendedAxiosRequestConfig;
+
+        // Handle 401 errors with token refresh
+        if (
+          response?.status === 401 &&
+          extendedConfig &&
+          !extendedConfig._retry
+        ) {
+          const refreshResult = await attemptTokenRefresh(
+            extendedConfig,
+            fileApi,
+          );
+          if (refreshResult) {
+            return refreshResult;
+          }
+        }
+
+        throw error; // Re-throw for file download errors
+      },
+    );
+
+    return fileApi.get(url, config);
+  };
+
+  return enhancedApi;
 }
 
-// ===== PUBLIC API =====
+// Update your public API functions
 export function createApi(
   customMessages: Partial<ErrorMessages> = {},
   config?: Partial<typeof DEFAULT_CONFIG>,
-): TypedAxiosInstance {
+): TypedAxiosInstanceWithFiles {
   const messages: ErrorMessages = { ...DEFAULT_MESSAGES, ...customMessages };
   return createAxiosInstance(messages, config);
-}
-
-// Create a default instance for convenience
-export const defaultApi = createApi();
-
-// ===== UTILITY FUNCTIONS =====
-export function createApiWithTimeout(
-  timeout: number,
-  customMessages: Partial<ErrorMessages> = {},
-): TypedAxiosInstance {
-  return createApi(customMessages, { timeout });
-}
-
-export function isTypedAxiosInstance(
-  instance: any,
-): instance is TypedAxiosInstance {
-  return (
-    instance &&
-    typeof instance.get === "function" &&
-    typeof instance.post === "function"
-  );
 }

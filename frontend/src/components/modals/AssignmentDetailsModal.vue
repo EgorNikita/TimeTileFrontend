@@ -57,7 +57,7 @@
                 <!-- Submission Info -->
                 <AssignmentSubmissionInfo
                   v-if="assignment.submission.submittedAt"
-                  :submission="assignment.submission"
+                  :submission="enrichedAssignment.submission"
                 />
 
                 <!-- Assignment Description -->
@@ -99,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import {
   Dialog,
   DialogPanel,
@@ -109,6 +109,7 @@ import {
 import {
   EnrichedAssignmentWithFiles,
   EnrichedAssignmentWithSubmission,
+  EnrichedSubmissionWithFiles,
   Status,
 } from "@/types/assignment";
 import { useAssignmentFiles } from "@/tanStackQueries/student/assignment/useAssignmentFiles";
@@ -120,6 +121,7 @@ import AssignmentDescription from "@/components/modals/assignmentDetailsModal/As
 import AssignmentTeacherFeedback from "@/components/modals/assignmentDetailsModal/AssignmentTeacherFeedback.vue";
 import AssignmentSubmissionInfo from "@/components/modals/assignmentDetailsModal/AssignmentSubmissionInfo.vue";
 import { useSubmitSubmission } from "@/tanStackQueries/student/assignment/useSubmitSubmission";
+import { useSubmissionFiles } from "@/tanStackQueries/student/assignment/useSubmissionFiles";
 
 const props = defineProps<{
   assignment: EnrichedAssignmentWithSubmission;
@@ -128,37 +130,35 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: [];
-  submit: [
-    assignment: EnrichedAssignmentWithSubmission,
-    files: File[],
-    note: string,
-  ];
+  submit: [submissionId: number];
 }>();
 
-// Existing code
 const assignmentFilesQuery = useAssignmentFiles(props.assignment.assignment.id);
-const assigmentFiles = computed(() => assignmentFilesQuery.data?.value || []);
+const submissionFilesQuery = useSubmissionFiles(props.assignment.submission.id);
 
 const enrichedAssignment = computed(() => {
-  if (props.assignment.assignment.hasAttachment) {
-    const enrichedAssignmentData: EnrichedAssignmentWithFiles = {
-      ...props.assignment.assignment,
-      fileUrls: props.assignment.assignment.hasAttachment
-        ? assigmentFiles.value
-        : [],
-    };
+  const assignment = props.assignment.assignment;
+  const submission = props.assignment.submission;
 
-    return {
-      assignment: enrichedAssignmentData,
-      submission: props.assignment.submission,
-    };
-  }
+  // 👇 These lines must actively read from reactive sources
+  const assignmentFileUrls =
+    assignment.hasAttachments && assignmentFilesQuery.isSuccess.value
+      ? (assignmentFilesQuery.data.value ?? [])
+      : [];
+
+  const submissionFileUrls =
+    submission.hasAttachments && submissionFilesQuery.isSuccess.value
+      ? (submissionFilesQuery.data.value ?? [])
+      : [];
 
   return {
-    ...props.assignment,
     assignment: {
-      ...props.assignment.assignment,
-      files: [],
+      ...assignment,
+      fileUrls: assignmentFileUrls,
+    },
+    submission: {
+      ...submission,
+      fileUrls: submissionFileUrls,
     },
   };
 });
@@ -170,11 +170,23 @@ const closeModal = () => {
 const { mutate: submit, isPending } = useSubmitSubmission();
 
 const handleSubmitAssignment = (files: File[], note: string) => {
-  submit({
-    id: props.assignment.assignment.id,
-    studentNote: note,
-    filesToAdd: files,
-  });
+  submit(
+    {
+      id: props.assignment.submission.id,
+      studentNote: note,
+      filesToAdd: files,
+    },
+    {
+      onSuccess: () => {
+        console.log("Assignment submitted successfully!");
+        emit("submit", props.assignment.submission.id);
+      },
+      onError: (err: unknown) => {
+        console.error("Assignment submission failed:", err);
+        // Handle error (e.g., show an error toast, update UI, etc.)
+      },
+    },
+  );
 };
 
 const canSubmit = computed(() => {

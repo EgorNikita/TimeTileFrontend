@@ -130,10 +130,8 @@ const closeModal = () => {
   selectedAssignment.value = null;
 };
 
-const handleSubmit = (assignment: EnrichedAssignmentWithSubmission) => {
-  // Handle assignment submission logic here
-  console.log("Submitting assignment:", assignment);
-  // You might want to emit an event to parent component or call an API
+const handleSubmit = (submissionId: number) => {
+  props.assignmentsQuery.refetch();
   closeModal();
 };
 </script>

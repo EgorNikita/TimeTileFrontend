@@ -34,7 +34,9 @@ export const ROUTE_NAMES = {
   STUDENT_HOME: "StudentHome",
   STUDENT_COURSES: "StudentCourses",
   STUDENT_SCHEDULE: "StudentSchedule",
+  STUDENT_ASSIGNMENTS: "StudentAssignments",
   STUDENT_GRADES: "StudentGrades",
+  STUDENT_TIMETABLE: "StudentTimetable",
 
   // Institution Member routes (Teachers, Staff, etc.)
   INSTITUTION_MEMBER_HOME: "InstitutionMemberHome",
@@ -106,7 +108,11 @@ export const API_ENDPOINTS = {
     BY_IDS: "/assignments/bulk",
     FILES: (id: number) => `/assignments/${id}/files`,
   },
-  SUBMISSIONS: "/submissions",
+  SUBMISSIONS: {
+    DEFAULT: "/submissions",
+    BY_IDS: "/submissions/bulk",
+    FILES: (id: number) => `/submissions/${id}/files`,
+  },
 
   // People
   STUDENTS: {

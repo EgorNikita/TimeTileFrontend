@@ -4,7 +4,7 @@
       <DocumentTextIcon class="w-5 h-5 mr-2 text-gray-600" />
       Assignment Description
     </h3>
-    <div class="prose max-w-none">
+    <div class="prose max-w-none text-left">
       <p class="text-gray-700 leading-relaxed whitespace-pre-wrap">
         {{ description }}
       </p>

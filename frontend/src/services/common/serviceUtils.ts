@@ -7,8 +7,6 @@ export interface EntityWithIcon {
 export function transformIconUrls<T extends EntityWithIcon>(
   entities: T[],
 ): T[] {
-  console.log("Transforming icon URLs for entities:", entities);
-
   return entities.map((item) => ({
     ...item,
     iconUrl: `${API_BASE_URL}${API_ENDPOINTS.FILES}/${item.iconUrl}`,

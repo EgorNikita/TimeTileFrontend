@@ -1,6 +1,6 @@
 import { createApi } from "@/utils/apiClient"; // your axios or fetch wrapper
 import { buildQueryParams } from "@/helpers/queryParamsBuilder";
-import { API_ENDPOINTS } from "@/constants";
+import { API_BASE_URL, API_ENDPOINTS } from "@/constants";
 import { PagedList } from "@/common/types/pagedList";
 import { PagedListParams } from "@/types/common/PagedList";
 import {
@@ -53,8 +53,8 @@ export async function fetchSubmissions(
 ): Promise<PagedList<Submission>> {
   const queryString = buildQueryParams(params);
   const url = queryString
-    ? `${API_ENDPOINTS.SUBMISSIONS}?${queryString}`
-    : API_ENDPOINTS.SUBMISSIONS;
+    ? `${API_ENDPOINTS.SUBMISSIONS.DEFAULT}?${queryString}`
+    : API_ENDPOINTS.SUBMISSIONS.DEFAULT;
 
   const response = await api.get(url);
 
@@ -74,6 +74,25 @@ export async function fetchAssignmentFiles(
   if (!response || !response.isSuccess || !response.data) {
     throw new Error(response?.error ?? "Failed to fetch assignment files");
   }
+
+  return response.data;
+}
+
+export async function fetchSubmissionFiles(
+  submissionId: number,
+): Promise<FileInfo[]> {
+  const url = API_ENDPOINTS.SUBMISSIONS.FILES(submissionId);
+
+  console.log("Fetching submission files from:", url);
+  const response = await api.get(url);
+
+  console.log("Response from fetching submission files:", response);
+
+  if (!response || !response.isSuccess || !response.data) {
+    throw new Error(response?.error ?? "Failed to fetch submission files");
+  }
+
+  console.log("Fetched submission files:", response.data);
 
   return response.data;
 }

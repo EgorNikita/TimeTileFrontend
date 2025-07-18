@@ -1,4 +1,4 @@
-import { ROLES } from "@/constants.ts";
+import { ROLES, ROUTE_NAMES } from "@/constants.ts";
 
 export const studentRoutes = [
   {
@@ -8,17 +8,17 @@ export const studentRoutes = [
     children: [
       {
         path: "",
-        name: "StudentHome",
+        name: ROUTE_NAMES.STUDENT_HOME,
         component: () => import("@/views/student/StudentHome.vue"),
       },
       {
         path: "timetable",
-        name: "StudentTimetable",
+        name: ROUTE_NAMES.STUDENT_TIMETABLE,
         component: () => import("@/views/student/TimetableView.vue"),
       },
       {
         path: "assignments",
-        name: "StudentAssignments",
+        name: ROUTE_NAMES.STUDENT_ASSIGNMENTS,
         component: () => import("@/views/student/StudentAssignments.vue"),
       },
       // {
@@ -28,7 +28,7 @@ export const studentRoutes = [
       // },
       {
         path: "grades",
-        name: "StudentGrades",
+        name: ROUTE_NAMES.STUDENT_GRADES,
         component: () => import("@/views/student/GradesView.vue"),
       },
     ],

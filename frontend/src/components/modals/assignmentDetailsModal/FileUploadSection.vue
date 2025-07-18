@@ -53,7 +53,7 @@
         class="text-xs transition-colors duration-200"
         :class="isDragOver ? 'text-blue-600' : 'text-blue-500'"
       >
-        PDF, DOC, DOCX, TXT, ZIP up to 10MB each
+        PDF, DOC, DOCX, TXT, ZIP, JPG, JPEG, PNG up to 10MB each
       </p>
 
       <!-- Loading state -->
@@ -112,7 +112,7 @@ const isProcessing = ref(false);
 const dropZone = ref<HTMLDivElement | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 
-const acceptedTypes = ".pdf,.doc,.docx,.txt,.zip";
+const acceptedTypes = ".pdf,.doc,.docx,.txt,.zip,.jpg,.jpeg,.png";
 
 const validMimeTypes = [
   "application/pdf",
@@ -121,6 +121,8 @@ const validMimeTypes = [
   "text/plain",
   "application/zip",
   "application/x-zip-compressed",
+  "image/jpeg",
+  "image/png",
 ];
 const maxSize = 10 * 1024 * 1024; // 10MB
 
