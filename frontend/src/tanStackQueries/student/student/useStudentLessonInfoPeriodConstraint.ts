@@ -1,8 +1,8 @@
-import { useQuery } from "@tanstack/vue-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/vue-query";
 import { fetchStudentLessonsInfo } from "@/services/studentService";
 import {
   StudentEnrichedLessonInfo,
-  StudentLessonFilters,
+  StudentLessonFilters, StudentLessonInfoWithGrades
 } from "@/types/studentLessonsInfo";
 import { fetchSubjectsByIds } from "@/services/subjectService";
 import { fetchCoursesByIds } from "@/services/courseService";
@@ -10,19 +10,21 @@ import { fetchTeachersByIds } from "@/services/teacherService";
 import { fetchRoomsByIds } from "@/services/roomService";
 import { EnrichedLesson } from "@/types/lesson";
 import { ComputedRef, unref } from "vue";
+import { PagedList } from "@/common/types/pagedList";
 
 export function useStudentLessonInfoPeriodConstraint(
   studentId: string | number,
   filters: StudentLessonFilters | ComputedRef<StudentLessonFilters> = {},
+  pageSize = 6,
 ) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: [
       "useStudentLessonInfoPeriodConstraint",
       studentId,
       filters,
     ] as const,
 
-    queryFn: async () => {
+    queryFn: async ({ pageParam = 1 }) => {
       try {
         const filtersValue = unref(filters);
 
@@ -35,6 +37,8 @@ export function useStudentLessonInfoPeriodConstraint(
 
         const lessonPage = await fetchStudentLessonsInfo(studentId, {
           entity: filtersValue,
+          page: pageParam,
+          pageSize,
         });
         const lessonsInfo = lessonPage.items;
 
@@ -102,13 +106,29 @@ export function useStudentLessonInfoPeriodConstraint(
 
         console.log("Enriched Lessons Info:", enrichedLessonsInfo);
 
-        return enrichedLessonsInfo;
+        return {
+          items: enrichedLessonsInfo,
+          page: lessonPage.page,
+          pageSize: lessonPage.pageSize,
+          totalCount: lessonPage.totalCount,
+          totalPages: lessonPage.totalPages,
+        };
       } catch (error) {
         console.error("Failed to fetch or process lesson info:", error);
         throw error;
       }
     },
 
+    getNextPageParam: (
+      lastPage: PagedList<StudentEnrichedLessonInfo>,
+      allPages: PagedList<StudentEnrichedLessonInfo>[],
+    ) => {
+      const total = lastPage.totalCount;
+      const nextPage = allPages.length + 1;
+      return (nextPage - 1) * pageSize < total ? nextPage : undefined;
+    },
+
     staleTime: 1000 * 60 * 15,
+    initialPageParam: 1,
   });
 }

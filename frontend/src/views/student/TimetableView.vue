@@ -98,7 +98,9 @@ const lessonsQuery = useStudentLessonInfoPeriodConstraint(
   auth.userId!,
   fetchLessonFilters,
 );
-const lessons = computed(() => lessonsQuery.data?.value ?? []);
+const lessons = computed(() =>
+  lessonsQuery.data.value?.pages?.flatMap((page) => page.items) ?? []
+);
 
 const timetableLessons = computed((): TimetableLesson[] => {
   return lessons.value
