@@ -30,8 +30,8 @@ export async function fetchLessons(
 }
 
 export async function fetchLessonStatuses(
-  params: PagedListParams<LessonStatusFilters> = {},
-): Promise<PagedList<LessonStatus>> {
+  params: LessonStatusFilters = {},
+): Promise<Array<LessonStatus>> {
   const queryString = buildQueryParams(params);
   const url = queryString
     ? `${API_ENDPOINTS.LESSON_STATUSES}?${queryString}`

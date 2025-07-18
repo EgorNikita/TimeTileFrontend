@@ -5,8 +5,7 @@ import { Course } from "@/types/course";
 
 export interface LessonStatus {
   id: number;
-  title: string;
-  color: string;
+  description: string;
 }
 
 export interface LessonFilters {
