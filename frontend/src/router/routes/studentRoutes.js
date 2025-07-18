@@ -21,11 +21,11 @@ export const studentRoutes = [
         name: "StudentAssignments",
         component: () => import("@/views/student/StudentAssignments.vue"),
       },
-      {
-        path: "courses",
-        name: "StudentCourses",
-        component: () => import("@/views/student/StudentCourses.vue"),
-      },
+      // {
+      //   path: "courses",
+      //   name: "StudentCourses",
+      //   component: () => import("@/views/student/StudentCourses.vue"),
+      // },
       {
         path: "grades",
         name: "StudentGrades",

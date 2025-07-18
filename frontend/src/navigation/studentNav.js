@@ -22,11 +22,11 @@ export default [
     name: "StudentAssignments",
     icon: ClipboardDocumentListIcon,
   },
-  {
-    label: "Courses",
-    name: "StudentCourses",
-    icon: UserGroupIcon,
-  },
+  // {
+  //   label: "Courses",
+  //   name: "StudentCourses",
+  //   icon: UserGroupIcon,
+  // },
   {
     label: "Grades",
     name: "StudentGrades",
