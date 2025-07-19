@@ -29,7 +29,9 @@ const getCombinedDateTime = () => {
 };
 
 const getStartTime = (lessonInfo) => {
-  const firstUnitId = lessonInfo.lesson.timetableUnitIds[0];
+  const firstUnitId = Math.min(
+    ...lessonInfo.lesson.timetableUnitIds.map((id) => Number(id)),
+  );
   const firstUnit = timetableUnits.value.find(
     (unit) => unit.id === firstUnitId,
   );
@@ -37,10 +39,9 @@ const getStartTime = (lessonInfo) => {
 };
 
 const getEndTime = (lessonInfo) => {
-  const lastUnitId =
-    lessonInfo.lesson.timetableUnitIds[
-      lessonInfo.lesson.timetableUnitIds.length - 1
-    ];
+  const lastUnitId = Math.max(
+    ...lessonInfo.lesson.timetableUnitIds.map((id) => Number(id)),
+  );
   const lastUnit = timetableUnits.value.find((unit) => unit.id === lastUnitId);
   return formatTime(lastUnit.endTime);
 };
