@@ -39,7 +39,7 @@ export interface Submission {
   gradeId?: number;
   status: Status;
   studentNote?: string;
-  teacherFeedback?: string;
+  feedback?: string;
   hasAttachments: boolean;
 
   submittedAt?: string;

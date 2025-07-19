@@ -38,3 +38,15 @@ export async function fetchGradesByIds(ids: number[]): Promise<Grade[]> {
 
   return response.data;
 }
+
+export async function fetchGradeById(id: number): Promise<Grade> {
+  const url = `${API_ENDPOINTS.GRADES.DEFAULT}/${id}`;
+
+  const response = await api.get(url);
+
+  if (!response || !response.isSuccess || !response.data) {
+    throw new Error(response?.error ?? "Failed to fetch grade with ID: " + id);
+  }
+
+  return response.data;
+}

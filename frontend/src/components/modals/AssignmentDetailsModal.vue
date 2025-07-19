@@ -40,6 +40,12 @@
                 <!-- Status and Key Info -->
                 <AssignmentStatusGrid :assignment="assignment" />
 
+                <!-- Grade Display -->
+                <AssignmentGrade
+                  v-if="assignment.submission.gradeId"
+                  :grade-id="assignment.submission.gradeId"
+                />
+
                 <!-- Expired Warning -->
                 <AssignmentExpiredWarning
                   v-if="assignment.submission.status === Status.EXPIRED"
@@ -60,6 +66,12 @@
                   :submission="enrichedAssignment.submission"
                 />
 
+                <!-- Teacher Feedback -->
+                <AssignmentTeacherFeedback
+                  v-if="assignment.submission.feedback"
+                  :feedback="assignment.submission.feedback"
+                />
+
                 <!-- Assignment Description -->
                 <AssignmentDescription
                   :description="assignment.assignment.description"
@@ -71,12 +83,6 @@
                 <!--                  :files="assigmentFiles"-->
                 <!--                  :is-loading="assignmentFilesQuery.isLoading"-->
                 <!--                />-->
-
-                <!-- Teacher Feedback -->
-                <AssignmentTeacherFeedback
-                  v-if="assignment.submission.teacherFeedback"
-                  :feedback="assignment.submission.teacherFeedback"
-                />
               </div>
 
               <!-- Footer -->
@@ -85,7 +91,7 @@
               >
                 <button
                   @click="closeModal"
-                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  class="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Close
                 </button>
@@ -117,6 +123,7 @@ import AssignmentTeacherFeedback from "@/components/modals/assignmentDetailsModa
 import AssignmentSubmissionInfo from "@/components/modals/assignmentDetailsModal/AssignmentSubmissionInfo.vue";
 import { useSubmitSubmission } from "@/tanStackQueries/student/assignment/useSubmitSubmission";
 import { useSubmissionFiles } from "@/tanStackQueries/student/assignment/useSubmissionFiles";
+import AssignmentGrade from "@/components/modals/assignmentDetailsModal/AssignmentGrade.vue";
 
 const props = defineProps<{
   assignment: EnrichedAssignmentWithSubmission;
@@ -164,6 +171,10 @@ watch(
   },
   { immediate: true },
 );
+
+const closeModal = () => {
+  emit("close");
+};
 
 const { mutate: submit, isPending } = useSubmitSubmission();
 
