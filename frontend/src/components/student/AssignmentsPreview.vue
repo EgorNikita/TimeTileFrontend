@@ -68,7 +68,7 @@ const enrichedAssignments: ComputedRef<EnrichedAssignmentWithSubmission[]> =
   >
     <!-- Header -->
     <h2 class="text-2xl font-bold text-gray-800 mb-3 flex-shrink-0">
-      New grades
+      Last Assignments
     </h2>
 
     <div class="relative mb-3">

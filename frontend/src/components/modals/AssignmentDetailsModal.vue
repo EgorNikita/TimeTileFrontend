@@ -167,7 +167,8 @@ const enrichedAssignment = computed(() => {
 watch(
   () => props.assignment,
   (newVal) => {
-    console.log("Changed to or initially:", newVal);
+    assignmentFilesQuery.refetch();
+    submissionFilesQuery.refetch();
   },
   { immediate: true },
 );
