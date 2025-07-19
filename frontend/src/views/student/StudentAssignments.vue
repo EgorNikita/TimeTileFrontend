@@ -1,7 +1,7 @@
 <template>
   <div class="grid grid-rows-[auto_auto_1fr] h-full">
     <!-- Header -->
-    <div class="sticky top-0 z-40 bg-gray-100 pt-10 px-6">
+    <div class="bg-gray-100 pt-10 px-6">
       <div class="flex items-center justify-between mb-4">
         <h1 class="flex-1 text-2xl font-semibold text-gray-900">
           Assignments Dashboard
@@ -13,9 +13,7 @@
     </div>
 
     <!-- Sticky Tabs -->
-    <div
-      class="sticky top-0 z-30 flex items-center rounded-lg mb-4 space-x-4 mx-6 bg-white p-2"
-    >
+    <div class="flex items-center rounded-lg mb-4 space-x-4 mx-6 bg-white p-2">
       <button
         v-for="tab in tabs"
         :key="tab.id"

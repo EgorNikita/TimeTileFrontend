@@ -183,7 +183,7 @@ onUnmounted(() => {
             <div class="relative">
               <button
                 type="button"
-                class="-m-1.5 flex items-center p-1.5"
+                class="cursor-pointer -m-1.5 flex items-center p-1.5"
                 @click="showUserMenu = !showUserMenu"
               >
                 <span class="sr-only">Open user menu</span>
@@ -228,7 +228,7 @@ onUnmounted(() => {
                 >
                 <button
                   @click="logout"
-                  class="block w-full text-left px-3 py-1 text-sm/6 text-gray-900 hover:bg-gray-50"
+                  class="cursor-pointer block w-full text-left px-3 py-1 text-sm/6 text-gray-900 hover:bg-gray-50"
                 >
                   Sign out
                 </button>
