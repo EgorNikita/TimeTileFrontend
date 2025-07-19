@@ -120,7 +120,7 @@ defineEmits<{
             leave-to-class="transform opacity-0 scale-95"
           >
             <MenuItems
-              class="absolute right-0 z-10 mt-3 w-36 origin-top-right overflow-hidden rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-hidden"
+              class="absolute right-0 z-[999] mt-3 w-36 origin-top-right overflow-hidden rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-hidden"
             >
               <div class="py-1">
                 <MenuItem v-slot="{ active }" v-for="view in views" :key="view">
@@ -140,14 +140,6 @@ defineEmits<{
             </MenuItems>
           </transition>
         </Menu>
-        <div class="ml-6 h-6 w-px bg-gray-300" />
-        <button
-          type="button"
-          class="ml-6 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-          @click="$emit('add-event')"
-        >
-          Add event
-        </button>
       </div>
       <Menu as="div" class="relative ml-6 md:hidden">
         <MenuButton
@@ -167,7 +159,7 @@ defineEmits<{
           leave-to-class="transform opacity-0 scale-95"
         >
           <MenuItems
-            class="absolute right-0 z-10 mt-3 w-36 origin-top-right divide-y divide-gray-100 overflow-hidden rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-hidden"
+            class="absolute right-0 [z-60] mt-3 w-36 origin-top-right divide-y divide-gray-100 overflow-hidden rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-hidden"
           >
             <div class="py-1">
               <MenuItem v-slot="{ active }">

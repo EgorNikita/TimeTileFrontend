@@ -106,12 +106,7 @@ import {
   TransitionChild,
   TransitionRoot,
 } from "@headlessui/vue";
-import {
-  EnrichedAssignmentWithFiles,
-  EnrichedAssignmentWithSubmission,
-  EnrichedSubmissionWithFiles,
-  Status,
-} from "@/types/assignment";
+import { EnrichedAssignmentWithSubmission, Status } from "@/types/assignment";
 import { useAssignmentFiles } from "@/tanStackQueries/student/assignment/useAssignmentFiles";
 import AssignmentModalHeader from "@/components/modals/assignmentDetailsModal/AssignmentModalHeader.vue";
 import AssignmentStatusGrid from "@/components/modals/assignmentDetailsModal/AssignmentStatusGrid.vue";
@@ -140,7 +135,6 @@ const enrichedAssignment = computed(() => {
   const assignment = props.assignment.assignment;
   const submission = props.assignment.submission;
 
-  // 👇 These lines must actively read from reactive sources
   const assignmentFileUrls =
     assignment.hasAttachments && assignmentFilesQuery.isSuccess.value
       ? (assignmentFilesQuery.data.value ?? [])
@@ -163,9 +157,13 @@ const enrichedAssignment = computed(() => {
   };
 });
 
-const closeModal = () => {
-  emit("close");
-};
+watch(
+  () => props.assignment,
+  (newVal) => {
+    console.log("Changed to or initially:", newVal);
+  },
+  { immediate: true },
+);
 
 const { mutate: submit, isPending } = useSubmitSubmission();
 

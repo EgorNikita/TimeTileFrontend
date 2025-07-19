@@ -22,9 +22,6 @@ onMounted(async () => {
       <div
         class="h-[calc(100vh-65px)] w-96 flex flex-col gap-5 py-6 w-64 shrink-0 pl-4 sticky top-0"
       >
-        <!--        <div-->
-        <!--          class="h-1/2 relative overflow-hidden rounded-lg bg-white shadow-md sm:pt-6 w-full"-->
-        <!--        ></div>-->
         <AssignmentsPreview class="h-1/2 w-full" />
         <GradesPreview class="h-1/2 w-full" />
       </div>

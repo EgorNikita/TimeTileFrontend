@@ -3,9 +3,7 @@ import { ref, computed, watch } from "vue";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/20/solid";
 import { Calendar } from "lucide-vue-next";
 import { useTimetableUnits } from "@/tanStackQueries/student/timetableUnit/useTimetableUnits.js";
-import {
-  useStudentLessonInfoPeriodConstraint
-} from "@/tanStackQueries/student/student/useStudentLessonInfoPeriodConstraint.js";
+import { useStudentLessonInfoPeriodConstraint } from "@/tanStackQueries/student/student/useStudentLessonInfoPeriodConstraint.js";
 import { useAuthStore } from "@/store/modules/auth.js";
 import { formatTime } from "@/components/common/timetable/timetableUtils.js";
 
@@ -14,7 +12,7 @@ const formatDate = (date) => date.toISOString().split("T")[0];
 const toMinutes = (time) => {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
-}
+};
 
 const getCombinedDateTime = () => {
   const date = new Date(selectedDate.value);
@@ -25,27 +23,34 @@ const getCombinedDateTime = () => {
     time.getHours(),
     time.getMinutes(),
     time.getSeconds(),
-    time.getMilliseconds()
+    time.getMilliseconds(),
   );
   return combined;
 };
 
 const getStartTime = (lessonInfo) => {
   const firstUnitId = lessonInfo.lesson.timetableUnitIds[0];
-  const firstUnit = timetableUnits.value.find(unit => unit.id === firstUnitId);
+  const firstUnit = timetableUnits.value.find(
+    (unit) => unit.id === firstUnitId,
+  );
   return formatTime(firstUnit.startTime);
-}
+};
 
 const getEndTime = (lessonInfo) => {
-  const lastUnitId = lessonInfo.lesson.timetableUnitIds[lessonInfo.lesson.timetableUnitIds.length - 1];
-  const lastUnit = timetableUnits.value.find(unit => unit.id === lastUnitId);
+  const lastUnitId =
+    lessonInfo.lesson.timetableUnitIds[
+      lessonInfo.lesson.timetableUnitIds.length - 1
+    ];
+  const lastUnit = timetableUnits.value.find((unit) => unit.id === lastUnitId);
   return formatTime(lastUnit.endTime);
-}
+};
 
 const getLessonStatus = (lessonInfo) => {
-  if (selectedDate.value < formatDate(new Date()))      // For past dates
+  if (selectedDate.value < formatDate(new Date()))
+    // For past dates
     return { status: "completed", progress: 100 };
-  else if (selectedDate.value > formatDate(new Date())) // For future dates
+  else if (selectedDate.value > formatDate(new Date()))
+    // For future dates
     return { status: "upcoming", progress: 0 };
 
   const now = getCombinedDateTime();
@@ -88,29 +93,31 @@ const fetchLessonsFilters = computed(() => {
   return {
     from: fromDate.toISOString(),
     until: untilDate.toISOString(),
-    fetchAll: true
+    fetchAll: true,
   };
 });
 
 const auth = useAuthStore();
 const lessonsQuery = useStudentLessonInfoPeriodConstraint(
   auth.userId,
-  fetchLessonsFilters
+  fetchLessonsFilters,
 );
 
-const lessonInfos = computed(() =>
-  lessonsQuery.data.value?.pages?.flatMap((page) => page.items) ?? []
+const lessonInfos = computed(
+  () => lessonsQuery.data.value?.pages?.flatMap((page) => page.items) ?? [],
 );
 
 const sortedLessonInfosWithStatus = computed(() => {
-  return lessonInfos.value.map(lessonInfo => ({
+  return lessonInfos.value
+    .map((lessonInfo) => ({
       ...lessonInfo,
       status: getLessonStatus(lessonInfo),
       startTime: getStartTime(lessonInfo),
-      endTime: getEndTime(lessonInfo)
-    })).toSorted((a, b) => {
+      endTime: getEndTime(lessonInfo),
+    }))
+    .toSorted((a, b) => {
       return toMinutes(a.startTime) - toMinutes(b.startTime);
-  });
+    });
 });
 
 // Computed
@@ -125,7 +132,7 @@ const days = computed(() => {
     const isToday = dateStr === formatDate(new Date());
 
     daysArray.push({
-      name: date.toLocaleDateString("uk-UA", { weekday: "short" }),
+      name: date.toLocaleDateString("en-US", { weekday: "short" }),
       number: date.getDate(),
       isCurrentMonth: date.getMonth() === new Date().getMonth(),
       isSelected: selectedDate.value === dateStr,
@@ -139,7 +146,7 @@ const days = computed(() => {
 
 // Methods
 const updateMonthDisplay = () => {
-  currentMonth.value = currentWeekStart.value.toLocaleDateString("uk-UA", {
+  currentMonth.value = currentWeekStart.value.toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
   });
@@ -177,27 +184,29 @@ setInterval(() => {
 </script>
 
 <template>
-  <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+  <div
+    class="flex flex-col flex-1 max-w-md h-full mx-auto bg-white rounded-lg shadow-md p-6"
+  >
     <!-- Header -->
     <div class="flex items-center justify-between mb-2">
       <div class="flex flex-col">
         <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <Calendar class="w-5 h-5" />
-          Розклад
+          Timetable
         </h2>
         <span class="text-xs text-gray-400 mt-1">{{ currentMonth }}</span>
       </div>
       <div class="flex items-center gap-1">
         <button
           type="button"
-          class="p-1.5 text-gray-400 hover:text-gray-500 rounded-full hover:bg-gray-100"
+          class="cursor-pointer p-1.5 text-gray-400 hover:text-gray-500 rounded-full hover:bg-gray-100"
           @click="previousWeek"
         >
           <ChevronLeftIcon class="w-5 h-5" />
         </button>
         <button
           type="button"
-          class="p-1.5 text-gray-400 hover:text-gray-500 rounded-full hover:bg-gray-100"
+          class="cursor-pointer p-1.5 text-gray-400 hover:text-gray-500 rounded-full hover:bg-gray-100"
           @click="nextWeek"
         >
           <ChevronRightIcon class="w-5 h-5" />
@@ -208,24 +217,20 @@ setInterval(() => {
     <!-- Calendar Grid -->
     <div class="grid grid-cols-7 gap-1 text-center text-xs text-gray-500 mb-2">
       <div class="py-2">M</div>
-      <div class="py-2">T</div>
+      <div class="py-2">Tu</div>
       <div class="py-2">W</div>
-      <div class="py-2">T</div>
+      <div class="py-2">Th</div>
       <div class="py-2">F</div>
-      <div class="py-2">S</div>
-      <div class="py-2">S</div>
+      <div class="py-2">Sa</div>
+      <div class="py-2">Su</div>
     </div>
 
     <div class="grid grid-cols-7 gap-1 mb-6">
-      <div
-        v-for="(day, dayIdx) in days"
-        :key="day.date"
-        class="flex justify-center"
-      >
+      <div v-for="day in days" :key="day.date" class="flex justify-center">
         <button
           type="button"
           :class="[
-            'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors',
+            'cursor-pointer w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors',
             day.isSelected
               ? 'bg-black text-white'
               : day.isToday
@@ -242,7 +247,9 @@ setInterval(() => {
     </div>
 
     <!-- Lessons List -->
-    <div class="space-y-3">
+    <div
+      class="flex flex-col flex-1 space-y-3 h-full overflow-y-auto custom-scrollbar pr-3"
+    >
       <div
         v-for="lessonInfo in sortedLessonInfosWithStatus"
         :key="lessonInfo.lesson.course.title + lessonInfo.startTime"
@@ -254,12 +261,21 @@ setInterval(() => {
         }"
       >
         <div class="flex items-center justify-between mb-1">
-          <h3 class="text-lg font-semibold">{{ lessonInfo.lesson.course.title }}</h3>
-          <span class="text-sm text-gray-500">
+          <h3 class="text-lg font-semibold">
+            {{ lessonInfo.lesson.course.title }}
+          </h3>
+          <span class="text-sm text-gray-500 whitespace-nowrap">
             {{ lessonInfo.startTime }} – {{ lessonInfo.endTime }}
           </span>
         </div>
-        <p class="text-sm text-gray-700 mb-2">Teacher: {{ lessonInfo.lesson.teacher.firstname + " " + lessonInfo.lesson.teacher.lastname }}</p>
+        <p class="text-sm text-gray-700 mb-2">
+          Teacher:
+          {{
+            lessonInfo.lesson.teacher.firstname +
+            " " +
+            lessonInfo.lesson.teacher.lastname
+          }}
+        </p>
         <div class="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
           <div
             class="h-full bg-blue-500 transition-all"

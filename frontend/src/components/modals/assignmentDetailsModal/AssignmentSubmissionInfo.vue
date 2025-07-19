@@ -394,6 +394,14 @@ const fetchFiles = async () => {
 };
 
 watch(
+  () => props.submission,
+  (newSubmission) => {
+    console.log("Submission changed:", newSubmission);
+  },
+  { immediate: true },
+);
+
+watch(
   () => props.submission.fileUrls,
   (newFileUrls) => {
     if (newFileUrls.length > 0) {

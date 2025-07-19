@@ -17,14 +17,13 @@ const { student, fullName, avatarUrl } = storeToRefs(studentStore);
 
 const sidebarRef = ref(null);
 const showUserMenu = ref(false);
-
 const scrollContainer = ref(null);
 
 // Example teams data (optional)
 const teams = ref([
   { id: 1, name: "Mathematics Dept", href: "#", initial: "M", current: false },
-  { id: 2, name: "Science Dept", href: "#", initial: "S", current: false },
-  { id: 3, name: "Admin Team", href: "#", initial: "A", current: false },
+  // { id: 2, name: "Science Dept", href: "#", initial: "S", current: false },
+  // { id: 3, name: "Admin Team", href: "#", initial: "A", current: false },
 ]);
 
 const visibleNavItems = computed(() =>

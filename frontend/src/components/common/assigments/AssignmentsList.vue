@@ -121,11 +121,13 @@ const selectedAssignment = ref<EnrichedAssignmentWithSubmission | null>(null);
 
 // Methods
 const openModal = (assignment: EnrichedAssignmentWithSubmission) => {
+  console.log("Opening modal for assignment:", assignment);
   selectedAssignment.value = assignment;
   isModalOpen.value = true;
 };
 
 const closeModal = () => {
+  console.log("Closing modal");
   isModalOpen.value = false;
   selectedAssignment.value = null;
 };

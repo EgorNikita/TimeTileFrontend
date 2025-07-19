@@ -10,7 +10,7 @@
           alt="Course icon"
           class="w-16 h-16 rounded-lg bg-white/10 p-2"
         />
-        <div>
+        <div class="flex flex-col justify-center items-start">
           <DialogTitle as="h2" class="text-2xl font-bold mb-1">
             {{ assignment.assignment.title }}
           </DialogTitle>
