@@ -15,6 +15,7 @@ const userId = auth.userId!;
 
 const studentLessonInfoQuery = useStudentLessonInfoWithGrades(userId, {
   courseIds: [props.courseId],
+  descending: true
 });
 
 const lessons = computed(
