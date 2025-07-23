@@ -14,20 +14,6 @@ const toMinutes = (time) => {
   return h * 60 + m;
 };
 
-const getCombinedDateTime = () => {
-  const date = new Date(selectedDate.value);
-  const time = currentTime.value;
-
-  const combined = new Date(date); // Clone to avoid mutation
-  combined.setHours(
-    time.getHours(),
-    time.getMinutes(),
-    time.getSeconds(),
-    time.getMilliseconds(),
-  );
-  return combined;
-};
-
 const getStartTime = (lessonInfo) => {
   const firstUnitId = Math.min(
     ...lessonInfo.lesson.timetableUnitIds.map((id) => Number(id)),
@@ -47,17 +33,18 @@ const getEndTime = (lessonInfo) => {
 };
 
 const getLessonStatus = (lessonInfo) => {
-  if (selectedDate.value < formatDate(new Date()))
+  const today = formatDate(new Date());
+  if (selectedDate.value < today)
     // For past dates
     return { status: "completed", progress: 100 };
-  else if (selectedDate.value > formatDate(new Date()))
+  else if (selectedDate.value > today)
     // For future dates
     return { status: "upcoming", progress: 0 };
 
-  const now = getCombinedDateTime();
+  const now = toMinutes(formatTime(currentTime.value));
 
-  const start = getStartTime(lessonInfo);
-  const end = getEndTime(lessonInfo);
+  const start = toMinutes(getStartTime(lessonInfo));
+  const end = toMinutes(getEndTime(lessonInfo));
 
   if (now < start) return { status: "upcoming", progress: 0 };
   if (now >= end) return { status: "completed", progress: 100 };
