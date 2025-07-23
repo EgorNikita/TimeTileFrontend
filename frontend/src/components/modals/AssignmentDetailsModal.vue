@@ -78,11 +78,9 @@
                 />
 
                 <!-- Assignment Files -->
-                <!--                <AssignmentFiles-->
-                <!--                  :assignment="assignment.assignment"-->
-                <!--                  :files="assigmentFiles"-->
-                <!--                  :is-loading="assignmentFilesQuery.isLoading"-->
-                <!--                />-->
+                <AssignmentFiles
+                  :assignment="enrichedAssignment.assignment"
+                />
               </div>
 
               <!-- Footer -->
@@ -124,6 +122,7 @@ import AssignmentSubmissionInfo from "@/components/modals/assignmentDetailsModal
 import { useSubmitSubmission } from "@/tanStackQueries/student/assignment/useSubmitSubmission";
 import { useSubmissionFiles } from "@/tanStackQueries/student/assignment/useSubmissionFiles";
 import AssignmentGrade from "@/components/modals/assignmentDetailsModal/AssignmentGrade.vue";
+import AssignmentFiles from "@/components/modals/assignmentDetailsModal/AssignmentFiles.vue";
 
 const props = defineProps<{
   assignment: EnrichedAssignmentWithSubmission;
