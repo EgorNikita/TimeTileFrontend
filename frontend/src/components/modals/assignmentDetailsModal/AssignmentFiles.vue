@@ -1,6 +1,6 @@
 <!-- AssignmentFiles.vue -->
 <template>
-  <div v-if="assignment.fileUrls.length > 0" class="mb-6">
+  <div v-if="assignmentWithFiles.files.length > 0" class="mb-6">
     <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
       <DocumentTextIcon class="w-5 h-5 mr-2 text-gray-600" />
       Files
@@ -22,80 +22,8 @@
           :key="index"
           class="flex items-center justify-between p-3 bg-white rounded-lg border hover:bg-gray-50 transition-colors"
         >
-          <div class="flex items-center space-x-3 flex-1 min-w-0">
-            <!-- File Type Icon -->
-            <div class="flex-shrink-0">
-              <DocumentIcon
-                v-if="getFileType(file) === 'document'"
-                class="w-8 h-8 text-gray-800"
-              />
-              <PhotoIcon
-                v-else-if="getFileType(file) === 'image'"
-                class="w-8 h-8 text-gray-800"
-              />
-              <FilmIcon
-                v-else-if="getFileType(file) === 'video'"
-                class="w-8 h-8 text-purple-600"
-              />
-              <SpeakerWaveIcon
-                v-else-if="getFileType(file) === 'audio'"
-                class="w-8 h-8 text-orange-600"
-              />
-              <ArchiveBoxIcon
-                v-else-if="getFileType(file) === 'archive'"
-                class="w-8 h-8 text-yellow-600"
-              />
-              <CodeBracketIcon
-                v-else-if="getFileType(file) === 'code'"
-                class="w-8 h-8 text-red-600"
-              />
-              <DocumentTextIcon
-                v-else-if="getFileType(file) === 'text'"
-                class="w-8 h-8 text-gray-600"
-              />
-              <TableCellsIcon
-                v-else-if="getFileType(file) === 'spreadsheet'"
-                class="w-8 h-8 text-teal-600"
-              />
-              <PresentationChartLineIcon
-                v-else-if="getFileType(file) === 'presentation'"
-                class="w-8 h-8 text-indigo-600"
-              />
-              <DocumentIcon v-else class="w-8 h-8 text-gray-500" />
-            </div>
-
-            <!-- File Info -->
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-gray-800 truncate">
-                {{ file.name }}
-              </p>
-              <p class="text-xs text-gray-800">
-                {{ formatFileSize(file.size) }} • {{ getFileTypeLabel(file) }}
-              </p>
-            </div>
-          </div>
-
-          <!-- Actions -->
-          <div class="flex items-center space-x-2 ml-4">
-            <!-- Open/Preview button -->
-            <button
-              @click="openFile(file)"
-              class="cursor-pointer p-2 text-gray-800 hover:text-green-800 hover:bg-green-100 rounded-full transition-colors"
-              :title="canBePreviewed(file) ? 'Preview file' : 'Open file'"
-            >
-              <EyeIcon v-if="canBePreviewed(file)" class="w-4 h-4" />
-              <ArrowTopRightOnSquareIcon v-else class="w-4 h-4" />
-            </button>
-
-            <!-- Download button -->
-            <button
-              @click="downloadFile(file)"
-              class="cursor-pointer p-2 text-gray-800 hover:text-green-800 hover:bg-green-100 rounded-full transition-colors"
-              title="Download file"
-            >
-              <ArrowDownTrayIcon class="w-4 h-4" />
-            </button>
-          </div>
+          <FilePreview :file="file" />
+          <FileActionBar :file="file" />
         </div>
       </div>
     </div>
@@ -107,27 +35,8 @@ import { DocumentTextIcon } from "@heroicons/vue/24/outline";
 import { computed, onMounted, reactive, watch } from "vue";
 import { fetchFileByGuidAsFile } from "@/services/fileService";
 import { EnrichedAssignmentWithFiles } from "@/types/assignment";
-import {
-  DocumentIcon,
-  PhotoIcon,
-  FilmIcon,
-  SpeakerWaveIcon,
-  ArchiveBoxIcon,
-  CodeBracketIcon,
-  TableCellsIcon,
-  PresentationChartLineIcon,
-  EyeIcon,
-  ArrowTopRightOnSquareIcon,
-  ArrowDownTrayIcon,
-} from "@heroicons/vue/24/outline";
-import {
-  canBePreviewed,
-  downloadFile,
-  formatFileSize,
-  getFileType,
-  getFileTypeLabel,
-  openFile
-} from "@/helpers/fileHelpers";
+import FileActionBar from "@/components/modals/assignmentDetailsModal/FileActionBar.vue";
+import FilePreview from "@/components/modals/assignmentDetailsModal/FilePreview.vue";
 
 const props = defineProps<{
   assignment: EnrichedAssignmentWithFiles;
