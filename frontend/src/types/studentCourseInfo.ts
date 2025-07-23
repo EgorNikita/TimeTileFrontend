@@ -1,8 +1,7 @@
 export interface StudentCourseInfo {
   courseId: number;
   course: CourseInfo;
-  examGradeId: number | null;
-  hasExam: boolean;
+  gradeId: number | null;
   positionX: number;
   positionY: number;
   averageGrade: number;
@@ -26,8 +25,7 @@ interface CourseInfo {
 export interface StudentCourseFilters {
   termIds?: number[];
   CourseId?: number;
-  ExamGradeId?: number | null;
-  HasExam?: boolean;
+  GradeId?: number | null;
   PositionX?: number;
   PositionY?: number;
 }

@@ -28,8 +28,8 @@ export function useEnrichedStudentCourseInfo(
 
       const subjectIds = coursePage.items.map((c) => c.course.subjectId);
       const gradeIds = coursePage.items
-        .filter((studentToCourse) => studentToCourse.examGradeId != null)
-        .map((studentToCourse) => studentToCourse.examGradeId!);
+        .filter((studentToCourse) => studentToCourse.gradeId != null)
+        .map((studentToCourse) => studentToCourse.gradeId!);
 
       const subjects =
         subjectIds.length > 0 ? await fetchSubjectsByIds(subjectIds) : [];
@@ -50,7 +50,7 @@ export function useEnrichedStudentCourseInfo(
         (courseStudent: StudentCourseInfo) => ({
           ...courseStudent,
           subjectTitle: subjectMap.get(courseStudent.course.subjectId) ?? "",
-          termMark: gradeMap.get(courseStudent.examGradeId!) ?? null,
+          termMark: gradeMap.get(courseStudent.gradeId!) ?? null,
         }),
       );
 
