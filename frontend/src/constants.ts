@@ -88,7 +88,10 @@ export const API_ENDPOINTS = {
   INSTITUTION_MEMBERS: "/institution-members",
 
   // User management
-  USERS: "/users",
+  USERS: {
+    DEFAULT: "/users",
+    BY_IDS: "/users/bulk",
+  },
   ROLES: "/roles",
 
   // Academic structure
