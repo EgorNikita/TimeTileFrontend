@@ -105,6 +105,7 @@ export const API_ENDPOINTS = {
   },
   GROUPS: "/groups",
   TERMS: "/terms",
+  MESSAGES: "/messages",
 
   // Assignments and submissions
   ASSIGNMENTS: {
