@@ -13,6 +13,12 @@ export function useMessagesWithSignalR(
   const messagesQuery = useMessages(filters, pageSize);
 
   const handleNewMessage = (message: EnrichedMessage) => {
+    const messageAppliesHere = filters.courseIds?.includes(message.courseId)
+
+    if (!messageAppliesHere) {
+      return // Don't update cache if message doesn't belong here
+    }
+
     const queryKey = ['messages', filters] as const
 
     // Add new message to the cache

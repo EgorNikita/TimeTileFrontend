@@ -50,7 +50,7 @@ export function useMessages(
       return (nextPage - 1) * pageSize < total ? nextPage : undefined;
     },
 
-    staleTime: 1000 * 60 * 15,
+    staleTime: 0,
     initialPageParam: 1,
   })
 }
