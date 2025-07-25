@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/vue-query";
 import { useMessages } from "@/tanStackQueries/student/message/useMessages";
 import { useSignalRStore, WebSocketMessage } from "@/store/modules/signalR";
 import { onUnmounted } from "vue";
+import { transformAvatarUrl } from "@/services/common/serviceUtils";
 
 export function useMessagesWithSignalR(
   filters: MessageFilters = {},
@@ -18,6 +19,8 @@ export function useMessagesWithSignalR(
     if (!messageAppliesHere) {
       return // Don't update cache if message doesn't belong here
     }
+
+    message.user = transformAvatarUrl(message.user);
 
     const queryKey = ['messages', filters] as const
 

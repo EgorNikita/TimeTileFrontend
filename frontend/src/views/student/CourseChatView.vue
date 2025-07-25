@@ -127,136 +127,142 @@ const belongsToPreviousMessage = (index: number) => {
       @scroll="handleScroll"
     >
       <!-- Loading indicator for fetching older messages -->
-      <div
-        v-if="messagesQuery.isFetchingNextPage.value"
-        class="flex justify-center py-2"
-      >
-        <div
-          class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"
-        ></div>
-      </div>
+<!--      <div-->
+<!--        v-if="messagesQuery.isFetchingNextPage.value"-->
+<!--        class="flex justify-center py-2"-->
+<!--      >-->
+<!--        <div-->
+<!--          class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"-->
+<!--        ></div>-->
+<!--      </div>-->
 
       <!-- Error state -->
-      <div v-if="messagesQuery.error.value" class="text-center py-4">
-        <p class="text-red-500 mb-2">Failed to load messages</p>
-        <button
-          @click="messagesQuery.refetch()"
-          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-        >
-          Retry
-        </button>
-      </div>
+<!--      <div v-if="messagesQuery.error.value" class="text-center py-4">-->
+<!--        <p class="text-red-500 mb-2">Failed to load messages</p>-->
+<!--        <button-->
+<!--          @click="messagesQuery.refetch()"-->
+<!--          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"-->
+<!--        >-->
+<!--          Retry-->
+<!--        </button>-->
+<!--      </div>-->
 
       <!-- Messages -->
       <div
-        v-for="(message, index) in reversedMessages"
-        :key="message.id"
-        class="group"
+          v-for="(message, index) in reversedMessages"
+          :key="message.id"
+          class="group animate-fade-in"
       >
         <!-- Message bubble -->
         <div
-          class="flex items-start space-x-3"
-          :class="{
-            'mt-1': belongsToPreviousMessage(index),
-            'mt-4': !belongsToPreviousMessage(index),
-          }"
+            class="flex items-start space-x-3 hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors duration-200"
+            :class="{
+        'mt-0': belongsToPreviousMessage(index),
+        'mt-4': !belongsToPreviousMessage(index),
+      }"
         >
-          <!-- Avatar (only show if not same user as previous) -->
+          <!-- Avatar -->
           <div
-            v-if="!belongsToPreviousMessage(index)"
-            class="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium"
+              v-if="!belongsToPreviousMessage(index)"
+              class="relative flex-shrink-0"
           >
-            {{ message.user.firstname.charAt(0).toUpperCase() }}
+            <!-- Avatar image with fallback to initials -->
+            <img
+                class="w-10 h-10 rounded-full object-cover shadow-md"
+                :src="message.user.avatarUrl"
+                alt="`${message.user.firstname} avatar`"
+            />
           </div>
+
           <!-- Spacer for grouped messages -->
-          <div v-else class="flex-shrink-0 w-8"></div>
+          <div v-else class="flex-shrink-0 w-10"></div>
 
           <!-- Message content -->
           <div class="flex-1 min-w-0">
             <!-- User info (only show if not same user as previous) -->
             <div
-              v-if="!belongsToPreviousMessage(index)"
-              class="flex items-baseline space-x-2 mb-1"
+                v-if="!belongsToPreviousMessage(index)"
+                class="flex items-center space-x-2 mb-1"
             >
-              <span class="font-medium text-gray-900">
-                {{ message.user.firstname + message.user.lastname }}
-              </span>
-              <span class="text-xs text-gray-500">
-                {{ formatMessageTime(message.sentAt) }}
-              </span>
+        <span class="font-semibold text-gray-900 text-sm">
+          {{ message.user.firstname }} {{ message.user.lastname }}
+        </span>
+              <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+          {{ formatMessageTime(message.sentAt) }}
+        </span>
             </div>
 
-            <!-- Message text -->
-            <div class="bg-gray-100 rounded-lg px-3 py-2 max-w-2xl">
-              <p class="text-gray-800 whitespace-pre-wrap break-words">
-                {{ message.content || "(No content)" }}
-              </p>
+            <!-- Message bubble -->
+            <div class="relative">
+              <div class="bg-white border border-gray-200 rounded-2xl px-4 py-3 shadow-sm hover:shadow-md transition-shadow duration-200 max-w-2xl"
+                   :class="{
+               'rounded-tl-md': !belongsToPreviousMessage(index)
+             }">
+                <p class="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap break-words">
+                  {{ message.content || "(No content)" }}
+                </p>
 
-              <!-- Edited indicator -->
-              <span
-                v-if="message.editedAt"
-                class="text-xs text-gray-400 italic mt-1 block"
-              >
-                (edited)
-              </span>
-            </div>
-
-            <!-- Timestamp for grouped messages (show on hover) -->
-            <div
-              v-if="belongsToPreviousMessage(index)"
-              class="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-gray-400 mt-1"
-            >
-              {{ formatMessageTime(message.sentAt) }}
+                <!-- Edited indicator -->
+                <div
+                    v-if="message.editedAt"
+                    class="flex items-center space-x-1 mt-2 pt-2 border-t border-gray-100"
+                >
+                  <svg class="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                  </svg>
+                  <span class="text-xs text-gray-400 italic">edited</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Initial loading state -->
-      <div
-        v-if="messagesQuery.isLoading.value"
-        class="flex justify-center py-8"
-      >
-        <div
-          class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"
-        ></div>
-      </div>
+<!--      <div-->
+<!--        v-if="messagesQuery.isLoading.value"-->
+<!--        class="flex justify-center py-8"-->
+<!--      >-->
+<!--        <div-->
+<!--          class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"-->
+<!--        ></div>-->
+<!--      </div>-->
 
       <!-- No messages state -->
-      <div
-        v-if="!messagesQuery.isLoading.value && messages.length === 0"
-        class="text-center py-8"
-      >
-        <p class="text-gray-500">
-          No messages yet. Be the first to start the conversation!
-        </p>
-      </div>
-    </div>
+<!--      <div-->
+<!--        v-if="!messagesQuery.isLoading.value && messages.length === 0"-->
+<!--        class="text-center py-8"-->
+<!--      >-->
+<!--        <p class="text-gray-500">-->
+<!--          No messages yet. Be the first to start the conversation!-->
+<!--        </p>-->
+<!--      </div>-->
+<!--    </div>-->
 
     <!-- Scroll to bottom button (show when user scrolled up) -->
-    <div
-      v-if="!isAtBottom && messages.length > 0"
-      class="absolute bottom-20 right-5"
-    >
-      <button
-        @click="scrollToBottom"
-        class="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 shadow-lg transition-colors"
-        title="Scroll to bottom"
-      >
-        <svg
-          class="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M19 14l-7 7m0 0l-7-7m7 7V3"
-          />
-        </svg>
-      </button>
+<!--    <div-->
+<!--      v-if="!isAtBottom && messages.length > 0"-->
+<!--      class="absolute bottom-20 right-5"-->
+<!--    >-->
+<!--      <button-->
+<!--        @click="scrollToBottom"-->
+<!--        class="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 shadow-lg transition-colors"-->
+<!--        title="Scroll to bottom"-->
+<!--      >-->
+<!--        <svg-->
+<!--          class="w-5 h-5"-->
+<!--          fill="none"-->
+<!--          stroke="currentColor"-->
+<!--          viewBox="0 0 24 24"-->
+<!--        >-->
+<!--          <path-->
+<!--            stroke-linecap="round"-->
+<!--            stroke-linejoin="round"-->
+<!--            stroke-width="2"-->
+<!--            d="M19 14l-7 7m0 0l-7-7m7 7V3"-->
+<!--          />-->
+<!--        </svg>-->
+<!--      </button>-->
     </div>
 
     <div class="border-t p-4 flex items-center space-x-2">

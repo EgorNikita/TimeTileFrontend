@@ -21,3 +21,12 @@ export function transformAvatarUrls<T extends { avatarUrl: string }>(
     avatarUrl: `${API_BASE_URL}${API_ENDPOINTS.FILES}/${item.avatarUrl}`,
   }));
 }
+
+export function transformAvatarUrl<T extends { avatarUrl: string }>(
+  entity: T,
+): T {
+  return {
+    ...entity,
+    avatarUrl: `${API_BASE_URL}${API_ENDPOINTS.FILES}/${entity.avatarUrl}`,
+  };
+}

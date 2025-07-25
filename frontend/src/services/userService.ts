@@ -1,6 +1,7 @@
 import { User } from "@/types/user";
 import { API_ENDPOINTS } from "@/constants";
 import { createApi } from "@/utils/apiClient";
+import { transformAvatarUrls } from "@/services/common/serviceUtils";
 
 const api = createApi();
 
@@ -16,5 +17,5 @@ export async function fetchUsersByIds(ids: number[]): Promise<User[]> {
     throw new Error(response?.error ?? "Failed to fetch users");
   }
 
-  return response.data;
+  return transformAvatarUrls(response.data);
 }
