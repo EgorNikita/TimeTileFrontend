@@ -2,6 +2,7 @@
 export const TOKEN_KEY = "auth_token" as const;
 export const REFRESH_TOKEN_KEY = "refresh_token" as const;
 export const API_BASE_URL = "http://localhost:5282" as const;
+export const MESSAGES_HUB_URL = "http://localhost:5282/messages-hub" as const;
 
 // User roles - matching your backend GeneralRoles
 export const ROLES = {
