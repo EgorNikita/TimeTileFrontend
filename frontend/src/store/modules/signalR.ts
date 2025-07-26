@@ -71,7 +71,7 @@ export const useSignalRStore = defineStore('signalR', {
       }
     },
 
-    on(methodName: WebSocketMessage, handler: (...args: any[]) => void){
+    on(methodName: WebSocketMessage, handler: (...args: any[]) => void | Promise<void>){
       if (this.connection?.state === HubConnectionState.Connected) {
         this.connection.on(methodName, handler);
       } else {

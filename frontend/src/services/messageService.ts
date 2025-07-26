@@ -1,5 +1,5 @@
 import { PagedListParams } from "@/types/common/PagedList";
-import { Message, MessageFilters } from "@/types/message";
+import { CreateMessagePayload, Message, MessageFilters } from "@/types/message";
 import { PagedList } from "@/common/types/pagedList";
 import { buildQueryParams } from "@/helpers/queryParamsBuilder";
 import { API_ENDPOINTS } from "@/constants";
@@ -22,4 +22,36 @@ export async function fetchMessages(
   }
 
   return response.data;
+}
+
+export async function createMessage(
+  payload: CreateMessagePayload
+): Promise<void> {
+  const formData = new FormData();
+
+  formData.append("courseId", payload.courseId.toString());
+
+  if (payload.content !== undefined) {
+    formData.append("content", payload.content);
+  }
+
+  if (payload.files && payload.files.length > 0) {
+    for (const file of payload.files) {
+      formData.append("files", file);
+    }
+  }
+
+  const response = await api.post(
+    API_ENDPOINTS.MESSAGES,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+
+  if (!response || !response.isSuccess) {
+    throw new Error(response?.error ?? "Creating message failed");
+  }
 }

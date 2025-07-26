@@ -23,3 +23,9 @@ export interface MessageFilters {
   from?: string;
   until?: string;
 }
+
+export interface CreateMessagePayload {
+  courseId: number;
+  content?: string;
+  files?: File[];
+}
