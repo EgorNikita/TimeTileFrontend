@@ -11,6 +11,7 @@ import {
   isTokenRemembered,
   storeTokens,
 } from "@/utils/tokenUtils";
+import { useSignalRStore } from "@/store/modules/signalR";
 
 // Types and Interfaces
 interface User {
@@ -151,6 +152,8 @@ export const useAuthStore = defineStore("auth", {
 
       if (result.isFailure) return result;
 
+      await this._connectSignalR();
+
       this.loginAttempts = 0;
       this.isInitialized = true;
       return success({
@@ -163,11 +166,13 @@ export const useAuthStore = defineStore("auth", {
     async logout(): Promise<void> {
       await authService.logout();
       this._clearAuthState();
+      await this._disconnectSignalR();
     },
 
     async logoutAll(): Promise<void> {
       await authService.logoutAll();
       this._clearAuthState();
+      await this._disconnectSignalR();
     },
 
     async initializeAuth(): Promise<Result<boolean, string>> {
@@ -213,7 +218,13 @@ export const useAuthStore = defineStore("auth", {
 
       const { accessToken, refreshToken } = refreshResult.data;
       const remembered = isTokenRemembered();
-      return this._setTokens(accessToken, refreshToken, remembered);
+      const setTokensResult = this._setTokens(accessToken, refreshToken, remembered);
+
+      await this._disconnectSignalR();
+      if (setTokensResult.isSuccess) {
+        await this._connectSignalR();
+      }
+      return setTokensResult;
     },
 
     _setTokens(
@@ -249,5 +260,29 @@ export const useAuthStore = defineStore("auth", {
       this.isInitialized = false;
       clearAllTokens();
     },
+
+    _connectSignalR(): Promise<void> {
+      try {
+        const signalR = useSignalRStore();
+        if (!signalR.isConnected) {
+          return signalR.connect();
+        }
+      } catch (error) {
+        console.error('Failed to connect SignalR:', error);
+      }
+      return Promise.resolve();
+    },
+
+    _disconnectSignalR(): Promise<void> {
+      try {
+        const signalR = useSignalRStore();
+        if (signalR.isConnected) {
+          return signalR.disconnect();
+        }
+      } catch (error) {
+        console.error('Failed to disconnect SignalR:', error);
+      }
+      return Promise.resolve();
+    }
   },
 });

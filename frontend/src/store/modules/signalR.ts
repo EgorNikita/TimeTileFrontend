@@ -31,6 +31,12 @@ export const useSignalRStore = defineStore('signalR', {
         if (this.connection?.state === HubConnectionState.Connected) return;
 
         const auth = useAuthStore();
+
+        if (!auth.token) {
+          console.log('No token available, skipping SignalR connection');
+          return;
+        }
+
         this.connection = new HubConnectionBuilder()
           .withUrl(MESSAGES_HUB_URL, {
             accessTokenFactory: () => auth.token!,
