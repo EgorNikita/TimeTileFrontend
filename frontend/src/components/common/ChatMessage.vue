@@ -2,11 +2,14 @@
 import { EnrichedMessage } from "@/types/message";
 import FilePreview from "@/components/modals/assignmentDetailsModal/FilePreview.vue";
 import FileActionBar from "@/components/modals/assignmentDetailsModal/FileActionBar.vue";
+import { computed } from "vue";
 
-defineProps<{
+const props = defineProps<{
   message: EnrichedMessage;
   belongsToPreviousMessage: Boolean;
 }>();
+
+const hasContent = computed(() => props.message.content?.length && props.message.content?.length > 0);
 
 // Format date helper
 const formatMessageTime = (date: Date) => {
@@ -85,12 +88,12 @@ const formatMessageTime = (date: Date) => {
              :class="{
                'rounded-tl-md': !belongsToPreviousMessage
              }">
-          <p class="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap break-words">
-            {{ message.content || "(No content)" }}
+          <p v-if="hasContent" class="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap break-words">
+            {{ message.content }}
           </p>
 
           <div v-if="message.files.length > 0">
-            <div class="mt-3">
+            <div :class="{ 'mt-3': hasContent }">
               <div class="space-y-2">
                 <div
                   v-for="(file, index) in message.files"

@@ -4,6 +4,9 @@ import { computed, ref, nextTick, onMounted, watch } from "vue";
 import { useMessagesWithSignalR } from "@/tanStackQueries/student/message/useMessagesWithSignalR";
 import { useSignalRStore } from "@/store/modules/signalR";
 import ChatMessage from "@/components/common/ChatMessage.vue";
+import { useCreateMessage } from "@/tanStackQueries/student/message/useCreateMessage";
+import FileUploadSection from "@/components/modals/assignmentDetailsModal/FileUploadSection.vue";
+import { ArrowRightIcon } from "@heroicons/vue/24/outline";
 
 const route = useRoute();
 const courseId = Number.parseInt(route.params.courseId as string);
@@ -38,11 +41,40 @@ const scrollToBottom = async () => {
 // Watch for new messages and scroll to bottom
 watch(messages, scrollToBottom);
 
-const newMessage = ref('');
+// Data
+const selectedFiles = ref<File[]>([]);
+const content = ref<string>("");
+const isInProgress = ref(false);
+
+const clearForm = () => {
+  selectedFiles.value = [];
+  content.value = "";
+};
+
+const { mutate: create } = useCreateMessage();
 
 const sendMessage = async () => {
-  await signalR.sendMessage(courseId, newMessage.value.trim());
-  newMessage.value = '';
+  if (isInProgress.value) return;
+
+  isInProgress.value = true;
+
+  try {
+    if (selectedFiles.value.length > 0) {
+      create({
+        courseId: courseId,
+        content: content.value.trim(),
+        files: selectedFiles.value,
+      })
+    } else {
+      await signalR.sendMessage(courseId, content.value.trim());
+      content.value = '';
+    }
+  } catch (error) {
+    console.error("Error creating message:", error);
+  } finally {
+    isInProgress.value = false;
+    clearForm();
+  }
 }
 
 onMounted(() => {
@@ -174,21 +206,45 @@ const belongsToPreviousMessage = (index: number) => {
       <!--      </button>-->
     </div>
 
-    <div class="border-t p-4 flex items-center space-x-2">
-      <input
-        v-model="newMessage"
-        type="text"
-        placeholder="Type your message..."
-        class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        @keydown.enter="sendMessage"
+    <form @submit.prevent="sendMessage" class="space-y-4 border-t bg-gray-50 p-2 ">
+      <!-- File Upload Section -->
+      <FileUploadSection
+        v-model:files="selectedFiles"
+        :disabled="isInProgress"
       />
-      <button
-        @click="sendMessage"
-        :disabled="!newMessage.trim()"
-        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50 transition"
-      >
-        Send
-      </button>
-    </div>
+
+      <!-- Content -->
+      <div>
+        <textarea
+          id="content"
+          v-model="content"
+          rows="1"
+          :disabled="isInProgress"
+          class="w-full px-3 py-2 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:opacity-50"
+          placeholder="Add any note..."
+        />
+      </div>
+
+      <!-- Submit Button -->
+      <div class="flex justify-end space-x-3">
+        <button
+          type="button"
+          @click="clearForm"
+          :disabled="isInProgress || (selectedFiles.length === 0 && content.length === 0)"
+          class="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+        >
+          Clear
+        </button>
+        <button
+          type="submit"
+          :disabled="isInProgress"
+          class="cursor-pointer px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+        >
+          <span v-if="isInProgress">Sending...</span>
+          <span v-else>Send</span>
+          <ArrowRightIcon v-if="!isInProgress" class="w-4 h-4" />
+        </button>
+      </div>
+    </form>
   </div>
 </template>

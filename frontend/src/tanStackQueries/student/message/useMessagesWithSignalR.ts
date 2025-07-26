@@ -4,6 +4,7 @@ import { useMessages } from "@/tanStackQueries/student/message/useMessages";
 import { useSignalRStore, WebSocketMessage } from "@/store/modules/signalR";
 import { onUnmounted } from "vue";
 import { transformAvatarUrl } from "@/services/common/serviceUtils";
+import { fetchFilesByUrls } from "@/services/fileService";
 
 export function useMessagesWithSignalR(
   filters: MessageFilters = {},
@@ -13,7 +14,7 @@ export function useMessagesWithSignalR(
   const queryClient = useQueryClient();
   const messagesQuery = useMessages(filters, pageSize);
 
-  const handleNewMessage = (message: EnrichedMessage) => {
+  const handleNewMessage = async (message: EnrichedMessage) => {
     const messageAppliesHere = filters.courseIds?.includes(message.courseId)
 
     if (!messageAppliesHere) {
@@ -21,7 +22,7 @@ export function useMessagesWithSignalR(
     }
 
     message.user = transformAvatarUrl(message.user);
-    message.files = [];     // TODO: load actual files
+    message.files = await fetchFilesByUrls(message.fileUrls);
 
     const queryKey = ['messages', filters] as const
 
