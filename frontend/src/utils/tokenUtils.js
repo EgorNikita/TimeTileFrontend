@@ -1,6 +1,7 @@
 import { TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/constants.ts";
 import { failure, success } from "@/utils/resultPattern.ts";
 import { jwtDecode } from "jwt-decode";
+import { useSignalRStore } from "@/store/modules/signalR.js";
 
 export const getAuthToken = () => {
   return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
@@ -22,6 +23,19 @@ export const storeTokens = (accessToken, refreshToken, rememberMe = false) => {
   // Store in chosen storage
   storage.setItem(TOKEN_KEY, accessToken);
   storage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+
+  connectSignalR();
+};
+
+const connectSignalR = () => {
+  try {
+    const signalR = useSignalRStore();
+    if (!signalR.isConnected) {
+      signalR.connect();
+    }
+  } catch (error) {
+    console.error('Failed to connect SignalR:', error);
+  }
 };
 
 export const clearAllTokens = () => {
