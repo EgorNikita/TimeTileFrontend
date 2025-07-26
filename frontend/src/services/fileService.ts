@@ -1,7 +1,10 @@
 import { createApi, defaultApi } from "@/utils/apiClient";
 import { API_ENDPOINTS } from "@/constants";
 
-const api = createApi();
+export async function fetchFilesByUrls(urls: string[]): Promise<File[]> {
+  const promises = urls.map((url) => fetchFileByGuidAsFile(url));
+  return Promise.all(promises);
+}
 
 export async function fetchFileByGuidAsFile(guid: string): Promise<File> {
   const url = `${API_ENDPOINTS.FILES}/${guid}`;
