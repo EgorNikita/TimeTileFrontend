@@ -3,6 +3,7 @@ import { useInfiniteQuery } from "@tanstack/vue-query";
 import { fetchMessages } from "@/services/messageService";
 import { PagedList } from "@/common/types/pagedList";
 import { fetchUsersByIds } from "@/services/userService";
+import { fetchFilesByUrls } from "@/services/fileService";
 
 export function useMessages(
   filters: MessageFilters = {},
@@ -25,11 +26,17 @@ export function useMessages(
 
       const users = await fetchUsersByIds(userIds);
 
-      const enrichedMessages: EnrichedMessage[] = messages
-        .map((message) => {
-          const user = users.find(u => u.id === message.userId);
-          return { ...message, user: user };
-        })
+      const enrichedMessagesPromises = messages.map(async (message) => {
+        const user = users.find(u => u.id === message.userId);
+        const files = await fetchFilesByUrls(message.fileUrls);       // TODO: bulk endpoint on files
+        return {
+          ...message,
+          user: user,
+          files: files
+        };
+      });
+
+      const enrichedMessages: EnrichedMessage[] = (await Promise.all(enrichedMessagesPromises))
         .filter((item): item is EnrichedMessage => item !== null);
 
       return {

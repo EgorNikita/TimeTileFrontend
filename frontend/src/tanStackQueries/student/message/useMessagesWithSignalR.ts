@@ -21,6 +21,7 @@ export function useMessagesWithSignalR(
     }
 
     message.user = transformAvatarUrl(message.user);
+    message.files = [];     // TODO: load actual files
 
     const queryKey = ['messages', filters] as const
 

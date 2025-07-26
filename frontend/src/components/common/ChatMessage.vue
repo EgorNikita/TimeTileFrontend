@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { EnrichedMessage } from "@/types/message";
+import FilePreview from "@/components/modals/assignmentDetailsModal/FilePreview.vue";
+import FileActionBar from "@/components/modals/assignmentDetailsModal/FileActionBar.vue";
 
 defineProps<{
   message: EnrichedMessage;
@@ -86,6 +88,21 @@ const formatMessageTime = (date: Date) => {
           <p class="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap break-words">
             {{ message.content || "(No content)" }}
           </p>
+
+          <div v-if="message.files.length > 0">
+            <div class="mt-3">
+              <div class="space-y-2">
+                <div
+                  v-for="(file, index) in message.files"
+                  :key="index"
+                  class="flex items-center justify-between p-3 bg-white/70 rounded-lg border border-gray-800 hover:bg-white/90 transition-colors"
+                >
+                  <FilePreview :file="file" />
+                  <FileActionBar :file="file" />
+                </div>
+              </div>
+            </div>
+          </div>
 
           <!-- Edited indicator -->
           <div

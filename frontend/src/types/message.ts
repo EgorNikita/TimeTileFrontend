@@ -13,6 +13,7 @@ export interface Message {
 
 export interface EnrichedMessage extends Message {
   user: User;
+  files: File[];
 }
 
 export interface MessageFilters {
