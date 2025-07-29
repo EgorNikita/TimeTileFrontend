@@ -1,5 +1,6 @@
 import { createApi, defaultApi } from "@/utils/apiClient";
 import { API_ENDPOINTS } from "@/constants";
+import { getExtensionFromMimeType } from "@/helpers/fileHelpers";
 
 export async function fetchFilesByUrls(urls: string[]): Promise<File[]> {
   const promises = urls.map((url) => fetchFileByGuidAsFile(url));
@@ -39,6 +40,8 @@ export async function fetchFileByGuidAsFile(guid: string): Promise<File> {
       response.headers["content-type"] ||
       blob.type ||
       "application/octet-stream";
+
+    filename += getExtensionFromMimeType(contentType)
 
     return new File([blob], filename, { type: contentType });
   } catch (error) {
