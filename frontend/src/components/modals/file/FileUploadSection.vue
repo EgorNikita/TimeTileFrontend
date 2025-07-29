@@ -104,7 +104,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  "update:files": [files: File[]];
+  "process:files": [files: File[]];
+  "remove:file": [index: number];
 }>();
 
 const isDragOver = ref(false);
@@ -163,18 +164,17 @@ const handleDrop = (event: DragEvent) => {
   processFiles(droppedFiles);
 };
 
-const processFiles = (selectedFiles: File[]) => {
+const processFiles = (files: File[]) => {
   isProcessing.value = true;
-  const validFiles = selectedFiles.filter(
-    (file) => validMimeTypes.includes(file.type) && file.size <= maxSize,
+  const validFiles = files.filter(
+      (file) => validMimeTypes.includes(file.type) && file.size <= maxSize,
   );
-  emit("update:files", [...props.files, ...validFiles]);
+
+  emit("process:files", validFiles);
   isProcessing.value = false;
 };
 
 const removeFile = (index: number) => {
-  const newFiles = [...props.files];
-  newFiles.splice(index, 1);
-  emit("update:files", newFiles);
+  emit("remove:file", index);
 };
 </script>

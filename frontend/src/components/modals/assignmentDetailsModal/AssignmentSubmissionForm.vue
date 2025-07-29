@@ -7,7 +7,7 @@
 
     <form @submit.prevent="handleSubmit" class="space-y-4">
       <!-- File Upload Section -->
-      <FileUploadSection
+      <FileUploadHandler
         v-model:files="selectedFiles"
         :disabled="isSubmitting"
       />
@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { DocumentArrowUpIcon, ArrowRightIcon } from "@heroicons/vue/24/outline";
-import FileUploadSection from "@/components/modals/file/FileUploadSection.vue";
+import FileUploadHandler from "@/components/modals/file/FileUploadHandler.vue";
 
 const emit = defineEmits<{
   submit: [files: File[], note: string];
