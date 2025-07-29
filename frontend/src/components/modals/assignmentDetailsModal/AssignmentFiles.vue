@@ -33,10 +33,10 @@
 <script setup lang="ts">
 import { DocumentTextIcon } from "@heroicons/vue/24/outline";
 import { computed, onMounted, reactive, watch } from "vue";
-import { fetchFilesByUrls } from "@/services/fileService";
+import {fetchRawFilesByUrls} from "@/services/fileService";
 import { EnrichedAssignmentWithFiles } from "@/types/assignment";
-import FileActionBar from "@/components/modals/assignmentDetailsModal/FileActionBar.vue";
-import FilePreview from "@/components/modals/assignmentDetailsModal/FilePreview.vue";
+import FileActionBar from "@/components/modals/file/FileActionBar.vue";
+import FilePreview from "@/components/modals/file/FilePreview.vue";
 
 const props = defineProps<{
   assignment: EnrichedAssignmentWithFiles;
@@ -65,7 +65,7 @@ const fetchFiles = async () => {
 
   try {
     const fileUrls = props.assignment.fileUrls.map((fileInfo) => fileInfo.fileUrl)
-    fileState.files = await fetchFilesByUrls(fileUrls);
+    fileState.files = await fetchRawFilesByUrls(fileUrls);
     console.log("Fetched files:", fileState.files);
   } catch (err) {
     fileState.error =

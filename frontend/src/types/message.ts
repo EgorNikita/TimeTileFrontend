@@ -1,5 +1,6 @@
 import { FileInfo } from "@/types/assignment";
 import { User } from "@/types/user";
+import {EnrichedFile} from "@/types/file";
 
 export interface Message {
   id: number;
@@ -13,7 +14,7 @@ export interface Message {
 
 export interface EnrichedMessage extends Message {
   user: User;
-  files: File[];
+  files: EnrichedFile[];
 }
 
 export interface MessageFilters {

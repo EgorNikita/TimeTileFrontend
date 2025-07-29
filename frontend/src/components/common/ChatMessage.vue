@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { EnrichedMessage } from "@/types/message";
-import FilePreview from "@/components/modals/assignmentDetailsModal/FilePreview.vue";
-import FileActionBar from "@/components/modals/assignmentDetailsModal/FileActionBar.vue";
+import FilePreview from "@/components/modals/file/FilePreview.vue";
+import FileActionBar from "@/components/modals/file/FileActionBar.vue";
 import { computed, ref } from "vue";
 import { useAuthStore } from "@/store/modules/auth";
 
@@ -37,6 +37,11 @@ const handleEditMessage = () => {
 }
 
 const hasContent = computed(() => props.message.content?.length && props.message.content?.length > 0);
+
+const rawFiles = computed(() =>
+  props.message.files.map(enrichedFile => enrichedFile.file) ??
+  []
+);
 
 // Format date helper
 const formatMessageTime = (date: Date) => {
@@ -120,7 +125,7 @@ const formatMessageTime = (date: Date) => {
             <div :class="{ 'mt-3': hasContent }">
               <div class="space-y-2">
                 <div
-                  v-for="(file, index) in message.files"
+                  v-for="(file, index) in rawFiles"
                   :key="index"
                   class="flex items-center justify-between p-3 bg-white/70 rounded-lg border border-gray-800 hover:bg-white/90 transition-colors"
                 >

@@ -1,13 +1,26 @@
-import { createApi, defaultApi } from "@/utils/apiClient";
+import { defaultApi } from "@/utils/apiClient";
 import { API_ENDPOINTS } from "@/constants";
 import { getExtensionFromMimeType } from "@/helpers/fileHelpers";
+import {EnrichedFile} from "@/types/file";
 
-export async function fetchFilesByUrls(urls: string[]): Promise<File[]> {
+export async function fetchFilesByUrls(urls: string[]): Promise<EnrichedFile[]> {
   const promises = urls.map((url) => fetchFileByGuidAsFile(url));
   return Promise.all(promises);
 }
 
-export async function fetchFileByGuidAsFile(guid: string): Promise<File> {
+export async function fetchRawFilesByUrls(urls: string[]): Promise<File[]> {
+  const promises = urls.map((url) => fetchRawFileByGuidAsFile(url));
+  return Promise.all(promises);
+}
+
+export async function fetchFileByGuidAsFile(guid:string): Promise<EnrichedFile> {
+  return {
+    file: await fetchRawFileByGuidAsFile(guid),
+    guid: guid
+  };
+}
+
+export async function fetchRawFileByGuidAsFile(guid: string): Promise<File> {
   const url = `${API_ENDPOINTS.FILES}/${guid}`;
 
   try {

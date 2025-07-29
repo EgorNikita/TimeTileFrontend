@@ -51,7 +51,7 @@ import { CheckCircleIcon } from "@heroicons/vue/24/outline";
 import { formatDateTo21May2025at } from "@/utils/dateUtils";
 import { EnrichedSubmissionWithFiles } from "@/types/assignment";
 import { computed, onMounted, reactive, watch } from "vue";
-import { fetchFilesByUrls } from "@/services/fileService";
+import {fetchFilesByUrls, fetchRawFilesByUrls} from "@/services/fileService";
 import FilePreview from "@/components/modals/file/FilePreview.vue";
 import FileActionBar from "@/components/modals/file/FileActionBar.vue";
 
@@ -82,7 +82,7 @@ const fetchFiles = async () => {
 
   try {
     const fileUrls = props.submission.fileUrls.map((fileInfo) => fileInfo.fileUrl)
-    fileState.files = await fetchFilesByUrls(fileUrls);
+    fileState.files = await fetchRawFilesByUrls(fileUrls);
     console.log("Fetched files:", fileState.files);
   } catch (err) {
     fileState.error =
