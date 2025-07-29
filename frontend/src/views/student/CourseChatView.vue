@@ -7,6 +7,7 @@ import ChatMessage from "@/components/common/ChatMessage.vue";
 import { useCreateMessage } from "@/tanStackQueries/student/message/useCreateMessage";
 import FileUploadSection from "@/components/modals/assignmentDetailsModal/FileUploadSection.vue";
 import { ArrowRightIcon } from "@heroicons/vue/24/outline";
+import {EnrichedMessage} from "@/types/message";
 
 const route = useRoute();
 const courseId = Number.parseInt(route.params.courseId as string);
@@ -29,6 +30,7 @@ const signalR = useSignalRStore();
 
 const messagesContainer = ref<HTMLElement>();
 const isAtBottom = ref(true);
+const isFormOpened = ref(false);
 
 // Auto-scroll to bottom when new messages arrive
 const scrollToBottom = async () => {
@@ -39,12 +41,41 @@ const scrollToBottom = async () => {
 };
 
 // Watch for new messages and scroll to bottom
-watch(messages, scrollToBottom);
+watch(messages, () => {
+  if (isAtBottom.value) scrollToBottom();
+});
 
 // Data
 const selectedFiles = ref<File[]>([]);
 const content = ref<string>("");
+const messageToEditId = ref<number>(-1);
 const isInProgress = ref(false);
+const isEditForm = ref(false);
+
+const openForm = () => {
+  isFormOpened.value = true;
+  isEditForm.value = false;
+
+  scrollToBottom();
+};
+
+const isFormEmpty = computed(
+  () => selectedFiles.value.length === 0 && content.value.length === 0,
+);
+
+const openEditForm = (message: EnrichedMessage) => {
+  content.value = message.content ?? "";
+  selectedFiles.value = message.files ?? [];
+  messageToEditId.value = message.id;
+
+  isFormOpened.value = true;
+  isEditForm.value = true;
+};
+
+const closeForm = () => {
+  clearForm();
+  isFormOpened.value = false;
+};
 
 const clearForm = () => {
   selectedFiles.value = [];
@@ -53,40 +84,52 @@ const clearForm = () => {
 
 const { mutate: create } = useCreateMessage();
 
-const sendMessage = async () => {
+const submitForm = async () => {
   if (isInProgress.value) return;
 
   isInProgress.value = true;
 
   try {
-    if (selectedFiles.value.length > 0) {
-      create({
-        courseId: courseId,
-        content: content.value.trim(),
-        files: selectedFiles.value,
-      })
+    if (isEditForm.value) {
+      await editMessage();
     } else {
-      await signalR.sendMessage(courseId, content.value.trim());
-      content.value = '';
+      await sendMessage();
     }
   } catch (error) {
-    console.error("Error creating message:", error);
+    console.error("Error submitting form:", error);
   } finally {
     isInProgress.value = false;
-    clearForm();
+    closeForm();
+  }
+};
+
+const sendMessage = async () => {
+  if (selectedFiles.value.length > 0) {
+    create({
+      courseId: courseId,
+      content: content.value.trim(),
+      files: selectedFiles.value,
+    });
+  } else {
+    await signalR.sendMessage(courseId, content.value.trim());
   }
 }
 
-onMounted(() => {
-  scrollToBottom();
-});
+const editMessage = async () => {
+  await signalR.editMessage(messageToEditId.value, content.value.trim());
+}
+
+watch(selectedFiles, (newVal) => console.log(newVal));
+
+onMounted(scrollToBottom);
 
 // Handle scroll events to determine if user scrolled up
 const handleScroll = () => {
   if (!messagesContainer.value) return;
 
   const { scrollTop, scrollHeight, clientHeight } = messagesContainer.value;
-  isAtBottom.value = scrollTop + clientHeight >= scrollHeight - 10; // 10px threshold
+  const threshold = clientHeight / 4; // 1/4 of the viewport height
+  isAtBottom.value = scrollTop + clientHeight >= scrollHeight - threshold;
 
   // Load more messages when scrolled to top
   if (
@@ -112,12 +155,13 @@ const belongsToPreviousMessage = (index: number) => {
   if (index === 0) return false;
   return (
     reversedMessages.value[index].userId ===
-    reversedMessages.value[index - 1].userId
-    &&
+      reversedMessages.value[index - 1].userId &&
     Math.abs(
-      (new Date(reversedMessages.value[index].sentAt)).getTime() -
-      (new Date(reversedMessages.value[index - 1].sentAt)).getTime()
-    ) / (1000 * 60) <= 15
+      new Date(reversedMessages.value[index].sentAt).getTime() -
+        new Date(reversedMessages.value[index - 1].sentAt).getTime(),
+    ) /
+      (1000 * 60) <=
+      15
   );
 };
 </script>
@@ -157,6 +201,7 @@ const belongsToPreviousMessage = (index: number) => {
         :key="message.id"
         :message="message"
         :belongs-to-previous-message="belongsToPreviousMessage(index)"
+        @openEditForm="openEditForm"
       />
 
       <!-- Initial loading state -->
@@ -206,7 +251,30 @@ const belongsToPreviousMessage = (index: number) => {
       <!--      </button>-->
     </div>
 
-    <form @submit.prevent="sendMessage" class="space-y-4 border-t bg-gray-50 p-2 ">
+    <!-- Action Button -->
+    <button
+      v-if="!isFormOpened"
+      @click="openForm"
+      class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center space-x-2 z-10"
+    >
+      <!-- Icon (you can change this based on your variable state) -->
+      <svg class="w-5 h-5" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+        />
+      </svg>
+
+      <span>Add Message</span>
+    </button>
+
+    <form
+      v-if="isFormOpened"
+      @submit.prevent="submitForm"
+      class="space-y-4 border-t bg-gray-50 p-3"
+    >
       <!-- File Upload Section -->
       <FileUploadSection
         v-model:files="selectedFiles"
@@ -226,24 +294,45 @@ const belongsToPreviousMessage = (index: number) => {
       </div>
 
       <!-- Submit Button -->
-      <div class="flex justify-end space-x-3">
+      <div class="flex justify-between items-center">
+        <!-- Close button on the left -->
         <button
           type="button"
-          @click="clearForm"
-          :disabled="isInProgress || (selectedFiles.length === 0 && content.length === 0)"
-          class="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-        >
-          Clear
-        </button>
-        <button
-          type="submit"
+          @click="closeForm"
           :disabled="isInProgress"
-          class="cursor-pointer px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+          class="cursor-pointer px-4 py-2 text-sm font-medium text-white bg-red-500 border border-gray-300 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
         >
-          <span v-if="isInProgress">Sending...</span>
-          <span v-else>Send</span>
-          <ArrowRightIcon v-if="!isInProgress" class="w-4 h-4" />
+          <svg class="w-4 h-4" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+          <span>Close</span>
         </button>
+
+        <!-- Clear and Send buttons on the right -->
+        <div class="flex space-x-3">
+          <button
+            type="button"
+            @click="clearForm"
+            :disabled="isInProgress || isFormEmpty"
+            class="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+          >
+            Clear
+          </button>
+          <button
+            type="submit"
+            :disabled="isInProgress || isFormEmpty"
+            class="cursor-pointer px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+          >
+            <span v-if="isInProgress">In progress...</span>
+            <span v-else>{{ isEditForm ? "Edit" : "Send" }}</span>
+            <ArrowRightIcon v-if="!isInProgress" class="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </form>
   </div>

@@ -47,10 +47,43 @@ export function useMessagesWithSignalR(
     })
   }
 
+  const handleEditedMessage = async (message: EnrichedMessage) => {
+    const messageAppliesHere = filters.courseIds?.includes(message.courseId)
+
+    if (!messageAppliesHere) {
+      return // Don't update cache if message doesn't belong here
+    }
+
+    console.log('here');
+
+    const queryKey = ['messages', filters] as const
+
+    // Update message in the cache
+    queryClient.setQueryData(queryKey, (oldData: any) => {
+      if (!oldData?.pages) return oldData
+
+      return {
+        ...oldData,
+        pages: oldData.pages.map((page) => ({
+          ...page,
+          items: page.items.map((m) => (m.id == message.id
+            ? {
+              ...message,
+              user: m.user,
+              files: m.files,
+            }
+            : m)),
+        })),
+      };
+    })
+  }
+
   signalR.on(WebSocketMessage.MessageReceived, handleNewMessage);
+  signalR.on(WebSocketMessage.MessageEdited, handleEditedMessage);
 
   onUnmounted(() => {
     signalR.off(WebSocketMessage.MessageReceived, handleNewMessage);
+    signalR.off(WebSocketMessage.MessageEdited, handleEditedMessage);
   });
 
   return messagesQuery;

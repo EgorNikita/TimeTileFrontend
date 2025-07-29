@@ -2,12 +2,39 @@
 import { EnrichedMessage } from "@/types/message";
 import FilePreview from "@/components/modals/assignmentDetailsModal/FilePreview.vue";
 import FileActionBar from "@/components/modals/assignmentDetailsModal/FileActionBar.vue";
-import { computed } from "vue";
+import { computed, ref } from "vue";
+import { useAuthStore } from "@/store/modules/auth";
 
 const props = defineProps<{
   message: EnrichedMessage;
   belongsToPreviousMessage: Boolean;
 }>();
+
+const emit = defineEmits<{
+  openEditForm: [message: EnrichedMessage];
+}>();
+
+const isInProgress = ref(false);
+
+const auth = useAuthStore();
+
+const userId = auth.userId!;
+
+const canBeEdited = props.message.userId.toString() === userId;
+
+const handleEditMessage = () => {
+  if (isInProgress.value) return;
+
+  isInProgress.value = true;
+
+  try {
+    emit("openEditForm", props.message);
+  } catch (error) {
+    console.error("Error opening form for edit:", error);
+  } finally {
+    isInProgress.value = false;
+  }
+}
 
 const hasContent = computed(() => props.message.content?.length && props.message.content?.length > 0);
 
@@ -82,12 +109,9 @@ const formatMessageTime = (date: Date) => {
         </span>
       </div>
 
-      <!-- Message bubble -->
-      <div class="relative">
-        <div class="bg-white border border-gray-200 rounded-2xl px-4 py-3 shadow-sm hover:shadow-md transition-shadow duration-200 max-w-2xl"
-             :class="{
-               'rounded-tl-md': !belongsToPreviousMessage
-             }">
+      <div class="relative flex items-end min-w-0">
+        <div class="bg-white border border-gray-200 rounded-2xl px-4 py-3 shadow-sm hover:shadow-md transition-shadow duration-200 max-w-2xl w-full"
+             :class="{ 'rounded-tl-md': !belongsToPreviousMessage }">
           <p v-if="hasContent" class="text-gray-800 text-sm leading-relaxed whitespace-pre-wrap break-words">
             {{ message.content }}
           </p>
@@ -115,9 +139,21 @@ const formatMessageTime = (date: Date) => {
             <svg class="w-3 h-3 text-gray-400" viewBox="0 0 20 20">
               <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
             </svg>
-            <span class="text-xs text-gray-400 italic">edited</span>
+            <span class="text-xs text-gray-400 italic">edited at {{ formatMessageTime(message.editedAt) }}</span>
           </div>
         </div>
+
+        <!-- Edit button (positioned right to message content) -->
+        <button
+          v-if="canBeEdited"
+          class="ml-2 p-2 rounded-full bg-white border border-gray-300 hover:bg-gray-100 text-gray-600 hover:text-gray-800 shadow-md transition-all duration-200 flex-shrink-0"
+          title="Edit message"
+          @click="handleEditMessage"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+        </button>
       </div>
     </div>
   </div>
