@@ -52,8 +52,8 @@ import { formatDateTo21May2025at } from "@/utils/dateUtils";
 import { EnrichedSubmissionWithFiles } from "@/types/assignment";
 import { computed, onMounted, reactive, watch } from "vue";
 import { fetchFilesByUrls } from "@/services/fileService";
-import FilePreview from "@/components/modals/assignmentDetailsModal/FilePreview.vue";
-import FileActionBar from "@/components/modals/assignmentDetailsModal/FileActionBar.vue";
+import FilePreview from "@/components/modals/file/FilePreview.vue";
+import FileActionBar from "@/components/modals/file/FileActionBar.vue";
 
 const props = defineProps<{
   submission: EnrichedSubmissionWithFiles;

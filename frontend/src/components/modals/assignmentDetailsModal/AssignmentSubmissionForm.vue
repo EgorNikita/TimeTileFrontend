@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { DocumentArrowUpIcon, ArrowRightIcon } from "@heroicons/vue/24/outline";
-import FileUploadSection from "./FileUploadSection.vue";
+import FileUploadSection from "@/components/modals/file/FileUploadSection.vue";
 
 const emit = defineEmits<{
   submit: [files: File[], note: string];
