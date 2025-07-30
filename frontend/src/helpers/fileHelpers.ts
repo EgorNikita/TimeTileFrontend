@@ -14,29 +14,6 @@ export const formatFileSize = (bytes: number): string => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
-export const getExtensionFromMimeType = (mimeType: string): string => {
-  const mimeToExtension: Record<string, string> = {
-    // Images
-    'image/png': '.png',
-    'image/jpeg': '.jpg',
-    'image/jpg': '.jpeg',
-
-    // Documents
-    'application/pdf': '.pdf',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
-
-    // Text files
-    'text/plain': '.txt',
-
-    // Archives
-    'application/zip': '.zip',
-    'application/x-zip-compressed': '.zip'
-  };
-
-  return mimeToExtension[mimeType] || '';
-}
-
 // Function to get file type based on MIME type
 export const getFileType = (file: File): string => {
     const mimeType = file.type.toLowerCase();
