@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useStudentLessonInfoWithGrades } from "@/tanStackQueries/student/student/useStudentLessonInfoWithGrades";
-import { useAuthStore } from "@/store/modules/auth";
 import { useStudentAttendanceCount } from "@/tanStackQueries/student/student/useStudentAttendanceCount";
 import LazyScrollWrapper from "@/components/common/LazyScrollWrapper.vue";
 import { formatDateTo21May2025 } from "@/utils/dateUtils";
+import { useAuth } from "@/composables/useAuth";
 
 const props = defineProps<{
   courseId: number;
 }>();
 
-const auth = useAuthStore();
-const userId = auth.userId!;
+const { user } = useAuth();
+const userId = user.currentUser.value?.id!;
 
 const studentLessonInfoQuery = useStudentLessonInfoWithGrades(userId, {
   courseIds: [props.courseId],

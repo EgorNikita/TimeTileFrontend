@@ -1,12 +1,15 @@
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
-import { SubmitSubmissionPayload } from "@/types/assignment";
-import { submitSubmission } from "@/services/assignmentService";
+import {
+  assignmentApi,
+  SubmitSubmissionPayload,
+} from "@/services/assignmentApi";
 
 export function useSubmitSubmission() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: SubmitSubmissionPayload) => submitSubmission(data),
+    mutationFn: (data: SubmitSubmissionPayload) =>
+      assignmentApi.submitSubmission(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["submissions"] });
     },

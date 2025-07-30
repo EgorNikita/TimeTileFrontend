@@ -1,13 +1,12 @@
 import { useQuery } from "@tanstack/vue-query";
-import { fetchLessonStatuses } from "@/services/lessonService";
-import { LessonStatusFilters } from "@/types/lesson";
+import { lessonApi, LessonStatusFilters } from "@/services/lessonApi";
 
 export function useLessonStatuses(filters: LessonStatusFilters = {}) {
   return useQuery({
     queryKey: ["lessonStatuses", filters] as const,
 
     queryFn: async () => {
-      return await fetchLessonStatuses({
+      return await lessonApi.fetchLessonStatuses({
         ...filters,
       });
     },

@@ -1,14 +1,13 @@
 import { useInfiniteQuery } from "@tanstack/vue-query";
 import { PagedList } from "@/common/types/pagedList";
-import { Lesson, LessonFilters } from "@/types/lesson";
-import { fetchLessons } from "@/services/lessonService";
+import { Lesson, lessonApi, LessonFilters } from "@/services/lessonApi";
 
 export function useLessons(filters: LessonFilters = {}, pageSize = 20) {
   return useInfiniteQuery({
     queryKey: ["lessons", filters] as const,
 
     queryFn: async ({ pageParam = 1 }) => {
-      return fetchLessons({ ...filters, page: pageParam, pageSize });
+      return lessonApi.fetchLessons({ ...filters, page: pageParam, pageSize });
     },
 
     getNextPageParam: (

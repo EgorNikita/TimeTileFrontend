@@ -1,14 +1,13 @@
 import { useInfiniteQuery } from "@tanstack/vue-query";
-import { fetchGrades } from "@/services/gradeService";
-import type { Grade, GradeFilters } from "@/types/grade";
 import { PagedList } from "@/common/types/pagedList";
+import { Grade, gradeApi, GradeFilters } from "@/services/gradeApi";
 
 export function useGradesLazy(filters: GradeFilters = {}, pageSize = 10) {
   return useInfiniteQuery({
     queryKey: ["grades", filters] as const,
 
     queryFn: async ({ pageParam = 1 }) => {
-      return fetchGrades({ ...filters, page: pageParam, pageSize });
+      return gradeApi.fetchGrades({ ...filters, page: pageParam, pageSize });
     },
 
     getNextPageParam: (

@@ -1,37 +1,43 @@
-<script setup>
-import { ref } from "vue";
+<script setup lang="ts">
+import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
-import { useAuthStore } from "@/store/modules/auth.ts";
+import { useAuth } from "@/composables/useAuth";
+import { ROUTE_NAMES } from "@/constants";
 
-/* ---------- props ---------- */
-const props = defineProps({
-  navItems: {
-    type: Array,
-    required: true,
-  },
-  teams: {
-    type: Array,
-    default: () => [],
-  },
-  schoolName: {
-    type: String,
-    default: "",
-  },
-});
+interface NavItem {
+  name: string;
+  label: string;
+  icon: any;
+}
 
-/* ---------- state ---------- */
+interface Team {
+  id: number;
+  name: string;
+  href: string;
+  initial: string;
+  current: boolean;
+}
+
+const props = defineProps<{
+  navItems: NavItem[];
+  teams?: Team[];
+  schoolName?: string;
+}>();
+
 const sidebarOpen = ref(false);
 
 /* ---------- auth + routing ---------- */
-const auth = useAuthStore();
+const { institution } = useAuth();
 const route = useRoute();
 
-/* ---------- methods ---------- */
-const isCurrentRoute = (routeName) => {
+const institutionDomain = computed(
+  () => institution.currentInstitution?.value?.domain || "",
+);
+
+const isCurrentRoute = (routeName: string): boolean => {
   return route.name === routeName;
 };
 
-/* ---------- expose for parent components ---------- */
 defineExpose({
   toggleSidebar: () => {
     sidebarOpen.value = !sidebarOpen.value;
@@ -103,7 +109,7 @@ defineExpose({
                       <RouterLink
                         :to="{
                           name: item.name,
-                          params: { institutionDomain: auth.institutionDomain },
+                          params: { institutionDomain },
                         }"
                         class="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold transition-colors"
                         :class="
@@ -150,8 +156,8 @@ defineExpose({
                 <li class="mt-auto">
                   <RouterLink
                     :to="{
-                      name: 'settings',
-                      params: { schoolDomain: auth.schoolDomain },
+                      name: ROUTE_NAMES.LOGIN,
+                      params: { institutionDomain },
                     }"
                     class="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-400 hover:bg-gray-800 hover:text-white"
                   >
@@ -209,7 +215,7 @@ defineExpose({
                   <RouterLink
                     :to="{
                       name: item.name,
-                      params: { institutionDomain: auth.institutionDomain },
+                      params: { institutionDomain },
                     }"
                     class="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold transition-colors"
                     :class="
@@ -254,6 +260,10 @@ defineExpose({
             <!-- Settings link -->
             <li class="mt-auto">
               <RouterLink
+                :to="{
+                  name: ROUTE_NAMES.LOGIN,
+                  params: { institutionDomain },
+                }"
                 class="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-400 hover:bg-gray-800 hover:text-white"
               >
                 <svg
@@ -280,30 +290,6 @@ defineExpose({
           </ul>
         </nav>
       </div>
-    </div>
-
-    <!-- Mobile menu button (should be placed in your main layout) -->
-    <div class="lg:hidden">
-      <button
-        type="button"
-        class="-m-2.5 p-2.5 text-gray-700"
-        @click="sidebarOpen = true"
-      >
-        <span class="sr-only">Open sidebar</span>
-        <svg
-          class="size-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="1.5"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-          />
-        </svg>
-      </button>
     </div>
   </div>
 </template>

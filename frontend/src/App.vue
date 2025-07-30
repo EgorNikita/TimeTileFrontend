@@ -1,9 +1,15 @@
-<script>
-import LoginView from "@/views/LoginView.vue";
+<script lang="ts">
+import { goToDefaultRoute } from "@/router/navigation";
+import { defineComponent, onMounted } from "vue";
 
-export default {
-  components: { LoginView },
-};
+export default defineComponent({
+  name: "App",
+  setup() {
+    onMounted(() => {
+      goToDefaultRoute();
+    });
+  },
+});
 </script>
 
 <template>

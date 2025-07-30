@@ -6,18 +6,13 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/vue/24/solid";
 import { Component } from "vue";
-import { Course } from "@/types/course";
-
-export interface Assignment {
-  id: number;
-  title: string;
-  description: string;
-  publishedAt: Date;
-  deadline: Date;
-  uploadAfterDeadline: boolean;
-  hasAttachments: boolean;
-  courseId: number;
-}
+import {
+  Assignment,
+  FileInfo,
+  Status,
+  Submission,
+} from "@/services/assignmentApi";
+import { Course } from "@/services/courseApi";
 
 export interface EnrichedAssignment extends Assignment {
   course: Course;
@@ -27,32 +22,8 @@ export interface EnrichedAssignmentWithFiles extends EnrichedAssignment {
   fileUrls: FileInfo[];
 }
 
-export interface AssignmentFilters {
-  studentIds?: number[];
-  courseIds?: (string | number)[];
-}
-
-export interface Submission {
-  id: number;
-  assignmentId: number;
-  studentId: number;
-  gradeId?: number;
-  status: Status;
-  studentNote?: string;
-  feedback?: string;
-  hasAttachments: boolean;
-
-  submittedAt?: string;
-}
-
 export interface EnrichedSubmissionWithFiles extends Submission {
   fileUrls: FileInfo[];
-}
-
-export interface SubmissionFilters {
-  studentIds?: number[];
-  assignmentIds?: number;
-  statuses?: string[];
 }
 
 export interface AssignmentsWithSubmission<
@@ -72,26 +43,6 @@ export type EnrichedAssignmentWithSubmission = AssignmentsWithSubmission<
   EnrichedAssignment,
   Submission
 >;
-
-export interface FileInfo {
-  fileUrl: string;
-}
-
-export interface SubmitSubmissionPayload {
-  id: number;
-  studentNote?: string;
-  filesToAdd?: File[]; // raw File objects from input or drag/drop
-  filesToRemove?: number[]; // file IDs to delete
-}
-
-export enum Status {
-  NOT_SUBMITTED = "NotSubmitted",
-  SUBMITTED = "Submitted",
-  SUBMITTED_LATE = "SubmittedLate",
-  ACCEPTED = "Accepted",
-  REJECTED = "Rejected",
-  EXPIRED = "Expired",
-}
 
 export interface GroupedAssignmentByDate {
   date: string;

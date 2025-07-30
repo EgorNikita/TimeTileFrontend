@@ -1,6 +1,6 @@
 import { ComputedRef, Ref, unref } from "vue";
 import { useQuery } from "@tanstack/vue-query";
-import { fetchGradeById } from "@/services/gradeService";
+import { gradeApi } from "@/services/gradeApi";
 
 export const useGradeByIdQuery = (
   gradeId: ComputedRef<number> | Ref<number> | number,
@@ -10,7 +10,7 @@ export const useGradeByIdQuery = (
 
     queryFn: async () => {
       const gradeIdValue = unref(gradeId);
-      return await fetchGradeById(gradeIdValue);
+      return await gradeApi.fetchGradeById(gradeIdValue);
     },
   });
 };

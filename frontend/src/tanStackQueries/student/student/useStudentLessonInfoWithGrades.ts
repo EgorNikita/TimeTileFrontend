@@ -1,12 +1,8 @@
 import { useInfiniteQuery } from "@tanstack/vue-query";
 import { PagedList } from "@/common/types/pagedList";
-import { fetchStudentLessonsInfo } from "@/services/studentService";
-import {
-  StudentLessonFilters,
-  StudentLessonInfoWithGrades,
-} from "@/types/studentLessonsInfo";
-import { Grade, GradeType } from "@/types/grade";
-import { fetchGrades } from "@/services/gradeService";
+import { studentApi, StudentLessonFilters } from "@/services/studentApi";
+import { Grade, gradeApi, GradeType } from "@/services/gradeApi";
+import { StudentLessonInfoWithGrades } from "@/types/studentLessonsInfo";
 
 export function useStudentLessonInfoWithGrades(
   studentId: number | string,
@@ -17,7 +13,7 @@ export function useStudentLessonInfoWithGrades(
     queryKey: ["studentLessonInfoWithGrades", filters] as const,
 
     queryFn: async ({ pageParam = 1 }) => {
-      const lessonPage = await fetchStudentLessonsInfo(studentId, {
+      const lessonPage = await studentApi.fetchStudentLessonsInfo(studentId, {
         ...filters,
         page: pageParam,
         pageSize,
@@ -27,7 +23,7 @@ export function useStudentLessonInfoWithGrades(
 
       const gradesPaged =
         lessonIds.length > 0
-          ? await fetchGrades({
+          ? await gradeApi.fetchGrades({
               entity: { lessonIds },
               pageSize: lessonIds.length * 2,
             })

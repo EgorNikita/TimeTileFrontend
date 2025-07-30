@@ -1,13 +1,12 @@
 import { useQuery } from "@tanstack/vue-query";
-import { TimetableUnitFilters } from "@/types/timetable";
-import { fetchTimetableUnits } from "@/services/timetableService";
+import { timetableApi, TimetableUnitFilters } from "@/services/timetableApi";
 
 export function useTimetableUnits(filters: TimetableUnitFilters = {}) {
   return useQuery({
     queryKey: ["timetableUnits", filters] as const,
 
     queryFn: async () => {
-      const pagedTimetableUnits = await fetchTimetableUnits({
+      const pagedTimetableUnits = await timetableApi.fetchTimetableUnits({
         ...filters,
         sortBy: "startTime",
       });

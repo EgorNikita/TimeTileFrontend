@@ -1,7 +1,7 @@
 import { useInfiniteQuery } from "@tanstack/vue-query";
 import type { CourseFilters, Course } from "@/types/course";
-import { fetchCourses } from "@/services/courseService";
 import { PagedList } from "@/common/types/pagedList";
+import { courseApi } from "@/services/courseApi";
 
 export function useCourses(filters: CourseFilters = {}, pageSize = 20) {
   return useInfiniteQuery({
@@ -9,7 +9,7 @@ export function useCourses(filters: CourseFilters = {}, pageSize = 20) {
 
     queryFn: async ({ pageParam = 1 }) => {
       try {
-        return await fetchCourses({
+        return await courseApi.fetchCourses({
           ...filters,
           page: pageParam,
           pageSize,

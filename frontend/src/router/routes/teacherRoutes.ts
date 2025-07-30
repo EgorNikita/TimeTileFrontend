@@ -1,6 +1,7 @@
 import { ROLES } from "@/constants.ts";
+import { RouteRecordRaw } from "vue-router";
 
-export const teacherRoutes = [
+export const teacherRoutes: RouteRecordRaw[] = [
   {
     path: "/:institutionDomain/InstitutionMember",
     component: () => import("@/layouts/TeacherLayout.vue"),

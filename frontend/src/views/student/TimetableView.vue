@@ -43,9 +43,9 @@ import {
 } from "@/components/common/timetable/timetableConstants";
 import { useTimetableUnits } from "@/tanStackQueries/student/timetableUnit/useTimetableUnits";
 import { useStudentLessonInfoPeriodConstraint } from "@/tanStackQueries/student/student/useStudentLessonInfoPeriodConstraint";
-import { useAuthStore } from "@/store/modules/auth";
 import { useLessonStatuses } from "@/tanStackQueries/student/lesson/useLessonStatuses";
 import { TimetableLesson } from "@/components/common/timetable/timetableInterfaces";
+import { useAuth } from "@/composables/useAuth";
 
 // Refs
 const container = ref<HTMLElement | null>(null);
@@ -89,17 +89,17 @@ const fetchLessonFilters = computed(() => ({
   until: new Date(
     startOfWeek.value.getTime() + 6 * 24 * 60 * 60 * 1000,
   ).toDateString(),
-  fetchAll: true
+  fetchAll: true,
 }));
 
 // Lessons
-const auth = useAuthStore();
+const { user } = useAuth();
 const lessonsQuery = useStudentLessonInfoPeriodConstraint(
-  auth.userId!,
+  user.currentUser.value?.id!,
   fetchLessonFilters,
 );
-const lessons = computed(() =>
-  lessonsQuery.data.value?.pages?.flatMap((page) => page.items) ?? []
+const lessons = computed(
+  () => lessonsQuery.data.value?.pages?.flatMap((page) => page.items) ?? [],
 );
 
 const timetableLessons = computed((): TimetableLesson[] => {

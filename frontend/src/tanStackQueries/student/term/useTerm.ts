@@ -1,14 +1,13 @@
 import { useInfiniteQuery } from "@tanstack/vue-query";
-import { fetchTerms } from "@/services/termService";
 import { PagedList } from "@/common/types/pagedList";
-import { Term, TermFilters } from "@/types/term";
+import { Term, termApi, TermFilters } from "@/services/termApi";
 
 export function useTerms(filters: TermFilters = {}, pageSize = 10) {
   return useInfiniteQuery({
     queryKey: ["terms", filters] as const,
 
     queryFn: async ({ pageParam = 1 }) => {
-      return fetchTerms({ ...filters, page: pageParam, pageSize });
+      return termApi.fetchTerms({ ...filters, page: pageParam, pageSize });
     },
 
     getNextPageParam: (

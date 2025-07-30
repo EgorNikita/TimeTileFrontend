@@ -1,13 +1,13 @@
 import { useInfiniteQuery } from "@tanstack/vue-query";
 import { PagedList } from "@/common/types/pagedList";
-import { fetchStudentCoursesInfo } from "@/services/studentService";
 import {
-  EnrichedStudentCourseInfo,
+  studentApi,
   StudentCourseFilters,
   StudentCourseInfo,
-} from "@/types/studentCourseInfo";
-import { fetchSubjectsByIds } from "@/services/subjectService";
-import { fetchGradesByIds } from "@/services/gradeService";
+} from "@/services/studentApi";
+import { EnrichedStudentCourseInfo } from "@/types/studentCourseInfo";
+import { subjectApi } from "@/services/subjectApi";
+import { gradeApi } from "@/services/gradeApi";
 
 export function useEnrichedStudentCourseInfo(
   studentId: number | string,
@@ -18,13 +18,11 @@ export function useEnrichedStudentCourseInfo(
     queryKey: ["useEnrichedStudentCourseInfo", filters] as const,
 
     queryFn: async ({ pageParam = 1 }) => {
-      const coursePage = await fetchStudentCoursesInfo(studentId, {
+      const coursePage = await studentApi.fetchStudentCoursesInfo(studentId, {
         ...filters,
         page: pageParam,
         pageSize,
       });
-
-      console.log("coursePage", coursePage);
 
       const subjectIds = coursePage.items.map((c) => c.course.subjectId);
       const gradeIds = coursePage.items
@@ -32,9 +30,11 @@ export function useEnrichedStudentCourseInfo(
         .map((studentToCourse) => studentToCourse.examGradeId!);
 
       const subjects =
-        subjectIds.length > 0 ? await fetchSubjectsByIds(subjectIds) : [];
+        subjectIds.length > 0
+          ? await subjectApi.fetchSubjectsByIds(subjectIds)
+          : [];
       const grades =
-        gradeIds.length > 0 ? await fetchGradesByIds(gradeIds) : [];
+        gradeIds.length > 0 ? await gradeApi.fetchGradesByIds(gradeIds) : [];
 
       const subjectMap = new Map<number, string>();
       for (const subject of subjects) {
@@ -53,8 +53,6 @@ export function useEnrichedStudentCourseInfo(
           termMark: gradeMap.get(courseStudent.examGradeId!) ?? null,
         }),
       );
-
-      console.log("enrichedCourses", enrichedCourses);
 
       return {
         items: enrichedCourses,

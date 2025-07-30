@@ -9,7 +9,7 @@ import {
 } from "@/components/common/timetable/timetableInterfaces";
 import { timeToMinutes } from "@/components/common/timetable/timetableUtils";
 import DayView from "@/components/common/timetable/DayView.vue";
-import { TimetableUnit } from "@/types/timetable";
+import { TimetableUnit } from "@/services/timetableApi";
 
 // Props
 interface Props {
@@ -118,7 +118,9 @@ const processedLessons = computed((): ProcessedLesson[] => {
 
       const timetableUnitId = units[0]?.id;
       // otherwise lesson will be displayed on break's row
-      const gridRowStart = timetableData.value.findIndex(unit => unit.id === timetableUnitId) + 1;
+      const gridRowStart =
+        timetableData.value.findIndex((unit) => unit.id === timetableUnitId) +
+        1;
       const rowSpan = units.length;
 
       console.log("Unit", units[0]?.title);

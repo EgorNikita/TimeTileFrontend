@@ -1,6 +1,6 @@
 import { ComputedRef, Ref, unref } from "vue";
 import { useQuery } from "@tanstack/vue-query";
-import { fetchSubmissionFiles } from "@/services/assignmentService";
+import { assignmentApi } from "@/services/assignmentApi";
 
 export const useSubmissionFiles = (
   id: ComputedRef<number> | Ref<number> | number,
@@ -10,7 +10,7 @@ export const useSubmissionFiles = (
 
     queryFn: async () => {
       const idValue = unref(id);
-      const fileUrls = await fetchSubmissionFiles(idValue);
+      const fileUrls = await assignmentApi.fetchSubmissionFiles(idValue);
       console.log("fileUrls", fileUrls);
       return fileUrls;
     },

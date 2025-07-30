@@ -3,7 +3,6 @@ import {
   CalendarDaysIcon,
   ClipboardDocumentListIcon,
   VariableIcon,
-  UserGroupIcon,
 } from "@heroicons/vue/24/outline";
 
 export default [

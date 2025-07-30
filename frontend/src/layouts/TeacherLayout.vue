@@ -1,6 +1,6 @@
 <script setup>
 import { useRouter } from "vue-router";
-import { useAuthStore } from "@/store/modules/auth.ts.js";
+import { useAuthStore } from "@/stores/modules/authStore.ts.js";
 import navItems from "@/navigation/teacherNav";
 import Sidebar from "@/components/common/Sidebar.vue";
 

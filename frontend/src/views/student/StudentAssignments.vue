@@ -42,15 +42,12 @@
 <script setup lang="ts">
 import { computed, ComputedRef, ref, watchEffect } from "vue";
 import { useAssignmentsWithSubmission } from "@/tanStackQueries/student/assignment/useAssignmentsWithSubmission";
-import {
-  EnrichedAssignmentWithSubmission,
-  Status,
-  SubmissionFilters,
-} from "@/types/assignment";
+import { EnrichedAssignmentWithSubmission } from "@/types/assignment";
 import AssignmentsList from "@/components/common/assigments/AssignmentsList.vue";
 import { useBulkCourses } from "@/tanStackQueries/student/course/useBulkCourses";
-import { Course } from "@/types/course";
 import CourseSelector from "@/components/common/CourseSelector.vue";
+import { Status, SubmissionFilters } from "@/services/assignmentApi";
+import { Course } from "@/services/courseApi";
 
 const tabs = [
   { id: "upcoming", name: "Upcoming" },
@@ -88,7 +85,9 @@ const currentFilters = computed(() => {
   return baseFilters;
 });
 
-const assignmentsQuery = useAssignmentsWithSubmission(currentFilters);
+const assignmentsQuery = useAssignmentsWithSubmission({
+  filters: currentFilters,
+});
 const assignments = computed(
   () => assignmentsQuery.data.value?.pages?.flatMap((page) => page.items) ?? [],
 );

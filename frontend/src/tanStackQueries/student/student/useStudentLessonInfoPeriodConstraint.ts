@@ -1,16 +1,13 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/vue-query";
-import { fetchStudentLessonsInfo } from "@/services/studentService";
-import {
-  StudentEnrichedLessonInfo,
-  StudentLessonFilters, StudentLessonInfoWithGrades
-} from "@/types/studentLessonsInfo";
-import { fetchSubjectsByIds } from "@/services/subjectService";
-import { fetchCoursesByIds } from "@/services/courseService";
-import { fetchTeachersByIds } from "@/services/teacherService";
-import { fetchRoomsByIds } from "@/services/roomService";
+import { useInfiniteQuery } from "@tanstack/vue-query";
+import { studentApi, StudentLessonFilters } from "@/services/studentApi";
+import { teacherApi } from "@/services/teacherApi";
+import { roomApi } from "@/services/roomApi";
 import { EnrichedLesson } from "@/types/lesson";
 import { ComputedRef, unref } from "vue";
 import { PagedList } from "@/common/types/pagedList";
+import { subjectApi } from "@/services/subjectApi";
+import { courseApi } from "@/services/courseApi";
+import { StudentEnrichedLessonInfo } from "@/types/studentLessonsInfo";
 
 export function useStudentLessonInfoPeriodConstraint(
   studentId: string | number,
@@ -28,21 +25,12 @@ export function useStudentLessonInfoPeriodConstraint(
       try {
         const filtersValue = unref(filters);
 
-        console.log(
-          "Fetching lessons for student:",
-          studentId,
-          "with filters:",
-          filtersValue,
-        );
-
-        const lessonPage = await fetchStudentLessonsInfo(studentId, {
+        const lessonPage = await studentApi.fetchStudentLessonsInfo(studentId, {
           entity: filtersValue,
           page: pageParam,
           pageSize,
         });
         const lessonsInfo = lessonPage.items;
-
-        console.log("Fetched Lessons Info:", lessonsInfo);
 
         const subjectIds = Array.from(
           new Set(lessonsInfo.map((l) => l.lesson.subjectId).filter(Boolean)),
@@ -58,13 +46,11 @@ export function useStudentLessonInfoPeriodConstraint(
         );
 
         const [subjects, courses, teachers, rooms] = await Promise.all([
-          fetchSubjectsByIds(subjectIds),
-          fetchCoursesByIds(courseIds),
-          fetchTeachersByIds(teacherIds),
-          fetchRoomsByIds(roomIds),
+          subjectApi.fetchSubjectsByIds(subjectIds),
+          courseApi.fetchCoursesByIds(courseIds),
+          teacherApi.fetchTeachersByIds(teacherIds),
+          roomApi.fetchRoomsByIds(roomIds),
         ]);
-
-        console.log("Fetched Subjects:", subjects);
 
         const enrichedLessonsInfo: StudentEnrichedLessonInfo[] = lessonsInfo
           .map((lessonInfo) => {
@@ -103,8 +89,6 @@ export function useStudentLessonInfoPeriodConstraint(
             return { ...lessonInfo, lesson: enrichedLesson };
           })
           .filter((item): item is StudentEnrichedLessonInfo => item !== null);
-
-        console.log("Enriched Lessons Info:", enrichedLessonsInfo);
 
         return {
           items: enrichedLessonsInfo,

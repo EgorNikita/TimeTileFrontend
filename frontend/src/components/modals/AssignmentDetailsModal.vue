@@ -112,7 +112,7 @@ import {
   TransitionChild,
   TransitionRoot,
 } from "@headlessui/vue";
-import { EnrichedAssignmentWithSubmission, Status } from "@/types/assignment";
+import { EnrichedAssignmentWithSubmission } from "@/types/assignment";
 import { useAssignmentFiles } from "@/tanStackQueries/student/assignment/useAssignmentFiles";
 import AssignmentModalHeader from "@/components/modals/assignmentDetailsModal/AssignmentModalHeader.vue";
 import AssignmentStatusGrid from "@/components/modals/assignmentDetailsModal/AssignmentStatusGrid.vue";
@@ -124,6 +124,7 @@ import AssignmentSubmissionInfo from "@/components/modals/assignmentDetailsModal
 import { useSubmitSubmission } from "@/tanStackQueries/student/assignment/useSubmitSubmission";
 import { useSubmissionFiles } from "@/tanStackQueries/student/assignment/useSubmissionFiles";
 import AssignmentGrade from "@/components/modals/assignmentDetailsModal/AssignmentGrade.vue";
+import { Status } from "@/services/assignmentApi";
 
 const props = defineProps<{
   assignment: EnrichedAssignmentWithSubmission;

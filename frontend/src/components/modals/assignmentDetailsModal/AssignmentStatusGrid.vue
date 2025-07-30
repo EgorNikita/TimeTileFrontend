@@ -61,10 +61,10 @@
 import { CalendarIcon, ClockIcon } from "@heroicons/vue/24/outline";
 import {
   EnrichedAssignmentWithSubmission,
-  Status,
   statusMetaMap,
 } from "@/types/assignment";
 import { formatDateTo21May2025at } from "@/utils/dateUtils";
+import { Status } from "@/services/assignmentApi";
 
 const props = defineProps<{
   assignment: EnrichedAssignmentWithSubmission;

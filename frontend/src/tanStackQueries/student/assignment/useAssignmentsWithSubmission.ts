@@ -1,26 +1,24 @@
 import { useInfiniteQuery } from "@tanstack/vue-query";
-import {
-  BasicAssignmentWithSubmission,
-  SubmissionFilters,
-} from "@/types/assignment";
-import {
-  fetchAssignmentByIds,
-  fetchSubmissions,
-} from "@/services/assignmentService";
+
 import { ComputedRef, unref } from "vue";
 import { PagedList } from "@/common/types/pagedList";
+import { assignmentApi, SubmissionFilters } from "@/services/assignmentApi";
+import { BasicAssignmentWithSubmission } from "@/types/assignment";
 
-export function useAssignmentsWithSubmission(
-  filters: SubmissionFilters | ComputedRef<SubmissionFilters> = {},
+export function useAssignmentsWithSubmission({
+  filters = {},
   pageSize = 15,
-) {
+}: {
+  filters?: SubmissionFilters | ComputedRef<SubmissionFilters>;
+  pageSize?: number;
+}) {
   return useInfiniteQuery({
     queryKey: ["useAssignmentsWithSubmission", filters] as const,
 
     queryFn: async ({ pageParam = 1 }) => {
       const filtersValue = unref(filters);
 
-      const submissionPage = await fetchSubmissions({
+      const submissionPage = await assignmentApi.fetchSubmissions({
         ...filtersValue,
         descending: true,
         page: pageParam,
@@ -28,7 +26,8 @@ export function useAssignmentsWithSubmission(
       });
 
       const assignmentIds = submissionPage.items.map((s) => s.assignmentId);
-      const assignments = await fetchAssignmentByIds(assignmentIds);
+      const assignments =
+        await assignmentApi.fetchAssignmentsByIds(assignmentIds);
 
       const assignmentsWithSubmission: BasicAssignmentWithSubmission[] =
         submissionPage.items.map((submission) => {

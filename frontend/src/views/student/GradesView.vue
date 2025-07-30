@@ -2,17 +2,17 @@
 import { computed, reactive, ref, watch } from "vue";
 import TermSelector from "@/components/common/TermSelector.vue";
 import { useTerms } from "@/tanStackQueries/student/term/useTerm.js";
-import { Term } from "@/types/term";
-import { useAuthStore } from "@/store/modules/auth.ts";
 import { useEnrichedStudentCourseInfo } from "@/tanStackQueries/student/student/useEnrichedStudentCourseInfo";
 import GradesCourseCard from "@/components/student/GradesCourseCard.vue";
 import LazyScrollWrapper from "@/components/common/LazyScrollWrapper.vue";
+import { Term } from "@/services/termApi";
+import { useAuth } from "@/composables/useAuth";
 
 const props = defineProps({
   scrollContainer: Object,
 });
 
-const auth = useAuthStore();
+const { user } = useAuth();
 const termsQuery = useTerms({ startDateUntil: new Date().toISOString() });
 
 const selectedTerm = ref<Term | null>(null);
@@ -41,7 +41,7 @@ const filters = reactive({
 });
 
 const studentCourseInfoQuery = useEnrichedStudentCourseInfo(
-  auth.userId!,
+  user.currentUser.value?.id!,
   filters,
 );
 

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/vue-query";
 import { ComputedRef, Ref } from "vue";
-import { fetchSubjectsByIds } from "@/services/subjectService";
+import { subjectApi } from "@/services/subjectApi";
 
 export const useBulkSubjectsQuery = (
   ids: ComputedRef<number[]> | Ref<number[]> | number[],
@@ -11,7 +11,7 @@ export const useBulkSubjectsQuery = (
 
     queryFn: async () => {
       const idsValue = Array.isArray(ids) ? ids : ids.value;
-      return await fetchSubjectsByIds(idsValue);
+      return await subjectApi.fetchSubjectsByIds(idsValue);
     },
 
     staleTime: 1000 * 60 * 5, // 5 minutes

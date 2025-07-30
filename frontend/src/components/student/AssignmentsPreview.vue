@@ -7,7 +7,7 @@ import { EnrichedAssignmentWithSubmission } from "@/types/assignment";
 import AssignmentPreviewCard from "@/components/student/AssignmentPreviewCard.vue";
 import { Course } from "@/types/course";
 
-const assignmentsQuery = useAssignmentsWithSubmission();
+const assignmentsQuery = useAssignmentsWithSubmission({});
 
 const assignments = computed(
   () => assignmentsQuery.data.value?.pages?.flatMap((page) => page.items) ?? [],

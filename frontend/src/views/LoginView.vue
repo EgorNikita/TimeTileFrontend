@@ -1,27 +1,31 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import { useAuthStore } from "@/store/modules/auth.ts";
+import { useRoute } from "vue-router";
+import { useAuth } from "@/composables/useAuth";
+import { goToDefaultRoute, navigateSafely } from "@/router/navigation";
 
-const router = useRouter();
 const route = useRoute();
-const auth = useAuthStore();
+const { auth } = useAuth();
 
+// Form state
 const form = ref({
   username: "",
   password: "",
   rememberMe: false,
 });
 
-const ui = ref({
-  isLoading: false,
-  showPassword: false,
-  error: "",
-  fieldErrors: {},
+// UI state
+const isLoading = ref(false);
+const showPassword = ref(false);
+const error = ref("");
+const fieldErrors = ref<Record<string, string>>({});
+
+const isFormValid = computed(() => {
+  return Object.keys(validateForm()).length === 0;
 });
 
-const validateForm = () => {
-  const errors = {};
+function validateForm(): Record<string, string> {
+  const errors: Record<string, string> = {};
 
   if (!form.value.username.trim()) {
     errors.username = "Username is required";
@@ -34,65 +38,66 @@ const validateForm = () => {
   }
 
   return errors;
-};
-
-const isFormValid = computed(() => {
-  const errors = validateForm();
-  return Object.keys(errors).length === 0;
-});
+}
 
 const handleLogin = async () => {
   const errors = validateForm();
   if (Object.keys(errors).length > 0) {
-    ui.value.fieldErrors = errors;
-    ui.value.error = "Please fix the errors above";
+    fieldErrors.value = errors;
+    error.value = "Please fix the issues above";
     return;
   }
 
-  ui.value.isLoading = true;
-  ui.value.error = "";
-  ui.value.fieldErrors = {};
+  isLoading.value = true;
+  error.value = "";
+  fieldErrors.value = {};
 
   const { username, password, rememberMe } = form.value;
-  const loginResult = await auth.login({
-    username: username.trim(),
+
+  const result = await auth.login({
+    login: username.trim(),
     password,
     rememberMe,
   });
 
-  ui.value.isLoading = false;
+  isLoading.value = false;
 
-  if (loginResult.isSuccess) {
-    await handleSuccessfulLogin();
+  if (result.isSuccess) {
+    await redirectAfterLogin();
   } else {
-    handleLoginError(loginResult.error);
+    handleLoginError(result.error);
+    form.value.password = "";
   }
 };
 
-const handleSuccessfulLogin = async () => {
-  const redirectPath = route.query?.redirect;
+const redirectAfterLogin = async () => {
+  const redirectPath = route.query.redirect;
 
   try {
     if (isValidRedirectPath(redirectPath)) {
-      console.log("Redirecting to original path:", redirectPath);
-      await router.replace(redirectPath);
+      await navigateSafely(redirectPath);
     } else {
-      const fallback = auth.defaultRoute;
-      if (fallback) {
-        console.log("Redirecting to default route:", fallback);
-        await router.replace(fallback);
-      } else {
-        throw new Error("Unable to determine redirect destination");
-      }
+      await goToDefaultRoute();
     }
-  } catch (error) {
-    console.error("Redirect failed:", error);
-    ui.value.error =
-      "Login successful but redirect failed. Please navigate manually.";
+  } catch (err) {
+    console.error("Redirect error:", err);
+    error.value =
+      "Login successful, but redirect failed. Please navigate manually.";
   }
 };
 
-const isValidRedirectPath = (path) => {
+const handleLoginError = (err: any) => {
+  console.error("Login failed:", err);
+
+  error.value = err?.message || "Login failed. Please try again.";
+};
+
+onMounted(async () => {
+  await auth.checkAuth();
+  if (auth.isAuthenticated) await redirectAfterLogin();
+});
+
+function isValidRedirectPath(path: unknown): path is string {
   return (
     typeof path === "string" &&
     path.startsWith("/") &&
@@ -100,55 +105,11 @@ const isValidRedirectPath = (path) => {
     !path.startsWith("/login") &&
     path.length > 1
   );
-};
+}
 
-const handleLoginError = (error) => {
-  console.error("Login error:", error);
-
-  if (error.message?.includes("credentials")) {
-    ui.value.error = "Invalid username or password";
-  } else if (
-    error.message?.includes("network") ||
-    error.message?.includes("fetch")
-  ) {
-    ui.value.error =
-      "Network error. Please check your connection and try again.";
-  } else if (error.message?.includes("rate limit")) {
-    ui.value.error =
-      "Too many login attempts. Please wait a moment and try again.";
-  } else {
-    ui.value.error = error.message || "Login failed. Please try again.";
-  }
-
-  form.value.password = "";
-};
-
-const togglePasswordVisibility = () => {
-  ui.value.showPassword = !ui.value.showPassword;
-};
-
-const handleSubmit = (event) => {
-  handleLogin();
-};
-
-// Redirect if already authenticated
-onMounted(async () => {
-  // Initialize auth if not already done
-  if (!auth.isInitialized) {
-    await auth.initializeAuth();
-  }
-
-  // Redirect if already logged in
-  if (auth.isAuthenticated) {
-    const redirectPath = route.query?.redirect;
-
-    if (isValidRedirectPath(redirectPath)) {
-      await router.replace(redirectPath);
-    } else if (auth.defaultRoute) {
-      await router.replace(auth.defaultRoute);
-    }
-  }
-});
+function togglePasswordVisibility() {
+  showPassword.value = !showPassword.value;
+}
 </script>
 
 <template>
@@ -187,17 +148,17 @@ onMounted(async () => {
             </div>
 
             <!-- Error Message -->
-            <div v-if="ui.error" class="rounded-md bg-red-50 p-4">
+            <div v-if="error" class="rounded-md bg-red-50 p-4">
               <div class="flex">
                 <div class="ml-3">
                   <h3 class="text-sm font-medium text-red-800">
-                    {{ ui.error }}
+                    {{ error }}
                   </h3>
                 </div>
               </div>
             </div>
 
-            <form @submit.prevent="handleSubmit" class="space-y-6">
+            <form @submit.prevent="handleLogin" class="space-y-6">
               <!-- Email -->
               <div>
                 <label
@@ -211,21 +172,21 @@ onMounted(async () => {
                     type="email"
                     name="email"
                     id="email"
-                    :disabled="ui.isLoading"
+                    :disabled="isLoading"
                     autocomplete="email"
                     required
                     :class="[
                       'block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-accentcolor sm:text-sm/6',
-                      ui.fieldErrors.username
+                      fieldErrors.username
                         ? 'outline-red-300'
                         : 'outline-gray-300',
                     ]"
                   />
                   <span
-                    v-if="ui.fieldErrors.username"
+                    v-if="fieldErrors.username"
                     class="mt-2 text-sm text-red-600"
                   >
-                    {{ ui.fieldErrors.username }}
+                    {{ fieldErrors.username }}
                   </span>
                 </div>
               </div>
@@ -240,15 +201,15 @@ onMounted(async () => {
                 <div class="mt-2 relative">
                   <input
                     v-model="form.password"
-                    :type="ui.showPassword ? 'text' : 'password'"
+                    :type="showPassword ? 'text' : 'password'"
                     name="password"
                     id="password"
-                    :disabled="ui.isLoading"
+                    :disabled="isLoading"
                     autocomplete="current-password"
                     required
                     :class="[
                       'block w-full rounded-md bg-white px-3 py-1.5 pr-10 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-accentcolor sm:text-sm/6',
-                      ui.fieldErrors.password
+                      fieldErrors.password
                         ? 'outline-red-300'
                         : 'outline-gray-300',
                     ]"
@@ -258,12 +219,12 @@ onMounted(async () => {
                   <button
                     type="button"
                     @click="togglePasswordVisibility"
-                    :disabled="ui.isLoading"
-                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
+                    :disabled="isLoading"
+                    class="cursor-pointer absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700"
                     aria-label="Toggle password visibility"
                   >
                     <svg
-                      v-if="ui.showPassword"
+                      v-if="showPassword"
                       class="h-5 w-5"
                       fill="none"
                       stroke="currentColor"
@@ -301,10 +262,10 @@ onMounted(async () => {
                   </button>
                 </div>
                 <span
-                  v-if="ui.fieldErrors.password"
+                  v-if="fieldErrors.password"
                   class="mt-2 text-sm text-red-600"
                 >
-                  {{ ui.fieldErrors.password }}
+                  {{ fieldErrors.password }}
                 </span>
               </div>
 
@@ -318,8 +279,8 @@ onMounted(async () => {
                         id="remember-me"
                         name="remember-me"
                         type="checkbox"
-                        :disabled="ui.isLoading"
-                        class="col-start-1 row-start-1 appearance-none rounded-sm border border-gray-300 bg-white checked:border-accentcolor checked:bg-accentcolor indeterminate:border-accentcolor indeterminate:bg-accentcolor focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accentcolor disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto"
+                        :disabled="isLoading"
+                        class="cursor-pointer col-start-1 row-start-1 appearance-none rounded-sm border border-gray-300 bg-white checked:border-accentcolor checked:bg-accentcolor indeterminate:border-accentcolor indeterminate:bg-accentcolor focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accentcolor disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto"
                       />
                       <svg
                         class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25"
@@ -361,10 +322,10 @@ onMounted(async () => {
               <div>
                 <button
                   type="submit"
-                  :disabled="!isFormValid || ui.isLoading"
-                  class="flex w-full justify-center rounded-md bg-accentcolor px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accentcolor disabled:opacity-50 disabled:cursor-not-allowed"
+                  :disabled="!isFormValid || isLoading"
+                  class="cursor-pointer flex w-full justify-center rounded-md bg-accentcolor px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accentcolor disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <span v-if="ui.isLoading">Signing in...</span>
+                  <span v-if="isLoading">Signing in...</span>
                   <span v-else>Sign In</span>
                 </button>
               </div>

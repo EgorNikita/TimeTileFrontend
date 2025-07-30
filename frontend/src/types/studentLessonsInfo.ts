@@ -1,16 +1,9 @@
-import { EnrichedLesson, Lesson } from "@/types/lesson";
-import { Grade } from "@/types/grade";
-
-interface BaseStudentLessonInfo {
-  lessonId: number;
-  cameAt?: string;
-  leftAt?: string;
-  gradeId?: number;
-}
-
-export interface StudentLessonInfo extends BaseStudentLessonInfo {
-  lesson: Lesson;
-}
+import { EnrichedLesson } from "@/types/lesson";
+import {
+  BaseStudentLessonInfo,
+  StudentLessonInfo,
+} from "@/services/studentApi";
+import { Grade } from "@/services/gradeApi";
 
 export interface StudentEnrichedLessonInfo extends BaseStudentLessonInfo {
   lesson: EnrichedLesson;
@@ -19,19 +12,4 @@ export interface StudentEnrichedLessonInfo extends BaseStudentLessonInfo {
 export interface StudentLessonInfoWithGrades extends StudentLessonInfo {
   homeworkGrade?: Grade;
   classworkGrade?: Grade;
-}
-
-export interface StudentLessonFilters {
-  courseIds?: number[];
-  from?: string;
-  until?: string;
-}
-
-export interface StudentAttendanceCountInfo {
-  totalLessons: number;
-  attendedLessons: number;
-}
-
-export interface StudentAttendanceCountFilters {
-  courseIds?: number[];
 }

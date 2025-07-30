@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import CoursesOverview from "@/components/common/CoursesOverview.vue";
 import GradesPreview from "@/components/student/GradesPreview.vue";
 import TimetablePreview from "@/components/student/TimetablePreview.vue";

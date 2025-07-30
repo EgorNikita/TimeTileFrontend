@@ -1,11 +1,11 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/20/solid";
 import { Calendar } from "lucide-vue-next";
 import { useTimetableUnits } from "@/tanStackQueries/student/timetableUnit/useTimetableUnits.js";
 import { useStudentLessonInfoPeriodConstraint } from "@/tanStackQueries/student/student/useStudentLessonInfoPeriodConstraint.js";
-import { useAuthStore } from "@/store/modules/auth.js";
 import { formatTime } from "@/components/common/timetable/timetableUtils.js";
+import { useAuth } from "@/composables/useAuth.js";
 
 // Helper Functions
 const formatDate = (date) => date.toISOString().split("T")[0];
@@ -98,9 +98,9 @@ const fetchLessonsFilters = computed(() => {
   };
 });
 
-const auth = useAuthStore();
+const { user } = useAuth();
 const lessonsQuery = useStudentLessonInfoPeriodConstraint(
-  auth.userId,
+  user.currentUser.value.id,
   fetchLessonsFilters,
 );
 

@@ -18,6 +18,8 @@ export function transformAvatarUrls<T extends { avatarUrl: string }>(
 ): T[] {
   return entities.map((item) => ({
     ...item,
-    avatarUrl: `${API_BASE_URL}${API_ENDPOINTS.FILES}/${item.avatarUrl}`,
+    avatarUrl: item.avatarUrl
+      ? `${API_BASE_URL}${API_ENDPOINTS.FILES}/${item.avatarUrl}`
+      : "",
   }));
 }

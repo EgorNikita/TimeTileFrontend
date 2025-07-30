@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/vue-query";
 import { computed, ComputedRef, Ref, unref } from "vue";
-import { fetchCoursesByIds } from "@/services/courseService";
+import { courseApi } from "@/services/courseApi";
 
 export const useBulkCourses = (
   ids: ComputedRef<number[]> | Ref<number[]> | number[],
@@ -14,7 +14,7 @@ export const useBulkCourses = (
     queryKey: ["bulk-courses", ids],
 
     queryFn: () => {
-      return fetchCoursesByIds(idsRef.value);
+      return courseApi.fetchCoursesByIds(idsRef.value);
     },
 
     staleTime: 1000 * 60 * 5, // 5 minutes

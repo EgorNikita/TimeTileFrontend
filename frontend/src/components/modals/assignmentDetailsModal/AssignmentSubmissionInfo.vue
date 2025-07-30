@@ -128,7 +128,7 @@ import {
 import { formatDateTo21May2025at } from "@/utils/dateUtils";
 import { EnrichedSubmissionWithFiles } from "@/types/assignment";
 import { computed, onMounted, reactive, watch } from "vue";
-import { fetchFileByGuidAsFile } from "@/services/fileService";
+import { fileApi } from "@/services/fileService";
 
 const props = defineProps<{
   submission: EnrichedSubmissionWithFiles;
@@ -362,10 +362,15 @@ const openFile = (file: File) => {
 
 // Function to download file
 const downloadFile = (file: File) => {
+  console.log("Raw file name:", JSON.stringify(file.name));
   const url = URL.createObjectURL(file);
   const a = document.createElement("a");
   a.href = url;
-  a.download = file.name;
+  a.download = file.name
+    .replace(/^"+|"+$/g, "") // Remove surrounding quotes
+    .replace(/^\s+|\s+$/g, "") // Remove leading/trailing whitespace
+    .replace(/\s+/g, "_"); // Replace spaces with underscores
+  console.log("Original filename:", a.download);
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -380,7 +385,7 @@ const fetchFiles = async () => {
 
   try {
     const filePromises = props.submission.fileUrls.map(async (fileUrl) => {
-      return await fetchFileByGuidAsFile(fileUrl.fileUrl);
+      return await fileApi.fetchFileByGuidAsFile(fileUrl.fileUrl);
     });
     fileState.files = await Promise.all(filePromises);
     console.log("Fetched files:", fileState.files);

@@ -111,11 +111,11 @@
 <script setup lang="ts">
 import {
   EnrichedAssignmentWithSubmission,
-  Status,
   statusMetaMap,
 } from "@/types/assignment";
 import { formatDateTo21May2025at } from "@/utils/dateUtils";
 import { computed } from "vue";
+import { Status } from "@/services/assignmentApi";
 
 const props = defineProps<{
   assignment: EnrichedAssignmentWithSubmission;

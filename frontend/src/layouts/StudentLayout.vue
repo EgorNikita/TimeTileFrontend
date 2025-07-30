@@ -1,23 +1,19 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from "vue";
-import { useAuthStore } from "@/store/modules/auth.ts";
-import navItems from "@/navigation/studentNav.js";
+import navItems from "@/navigation/studentNav";
 import Sidebar from "@/components/common/Sidebar.vue";
-import { useStudentStore } from "@/store/modules/student.js";
-import { storeToRefs } from "pinia";
-import { useInstitutionStore } from "@/store/modules/institution.js";
 import router from "@/router/router.js";
-import { ROUTE_NAMES } from "@/constants.ts";
+import { useAuth } from "@/composables/useAuth";
+import { ROUTE_NAMES } from "@/constants";
 
-const auth = useAuthStore();
-const studentStore = useStudentStore();
-const institutionStore = useInstitutionStore();
+const { auth, user, institution } = useAuth();
 
-const { student, fullName, avatarUrl } = storeToRefs(studentStore);
+const userData = computed(() => user.currentUser.value);
+const institutionData = computed(() => institution.currentInstitution.value);
 
-const sidebarRef = ref(null);
+const sidebarRef = ref<InstanceType<typeof Sidebar> | null>(null);
 const showUserMenu = ref(false);
-const scrollContainer = ref(null);
+const scrollContainer = ref<HTMLElement | null>(null);
 
 // Example teams data (optional)
 const teams = ref([
@@ -26,22 +22,17 @@ const teams = ref([
   // { id: 3, name: "Admin Team", href: "#", initial: "A", current: false },
 ]);
 
-const visibleNavItems = computed(() =>
-  navItems.filter((item) => {
-    if (!item.permissions) return true;
-    return item.permissions.every((p) => student.permissions.includes(p));
-  }),
-);
-
 // Close dropdowns when clicking outside
-const handleClickOutside = (event) => {
-  if (!event.target.closest(".relative")) {
+const handleClickOutside = (event: Event) => {
+  const target = event.target as HTMLElement;
+  if (!target.closest(".relative")) {
     showUserMenu.value = false;
   }
 };
 
 const logout = async () => {
   try {
+    showUserMenu.value = false;
     await auth.logout();
     await router.replace({ name: ROUTE_NAMES.LOGIN });
   } catch (error) {
@@ -49,33 +40,17 @@ const logout = async () => {
   }
 };
 
-onMounted(async () => {
+const toggleSidebar = () => {
+  if (
+    sidebarRef.value &&
+    typeof sidebarRef.value.toggleSidebar === "function"
+  ) {
+    sidebarRef.value.toggleSidebar();
+  }
+};
+
+onMounted(() => {
   document.addEventListener("click", handleClickOutside);
-
-  const studentId = auth.userId;
-  const institutionId = auth.institutionId;
-
-  if (!studentId) {
-    console.warn("No student ID present in auth store");
-    return;
-  }
-
-  if (!institutionId) {
-    console.warn("No institution ID present in auth store");
-    return;
-  }
-
-  const studentResult = await studentStore.fetchStudentById(studentId);
-  const institutionResult =
-    await institutionStore.fetchInstitutionById(institutionId);
-
-  if (!studentResult.isSuccess) {
-    console.error("Failed to fetch student data:", studentResult.error);
-  }
-
-  if (!institutionResult.isSuccess) {
-    console.error("Failed to fetch institution data:", institutionResult.error);
-  }
 });
 
 onUnmounted(() => {
@@ -88,9 +63,9 @@ onUnmounted(() => {
     <!-- Sidebar Component -->
     <Sidebar
       ref="sidebarRef"
-      :nav-items="visibleNavItems"
+      :nav-items="navItems"
       :teams="teams"
-      :school-name="institutionStore.institution.title || 'Institution Name'"
+      :school-name="institutionData?.title || 'Institution Name'"
     />
 
     <!-- Main content area -->
@@ -103,7 +78,7 @@ onUnmounted(() => {
         <button
           type="button"
           class="-m-2.5 p-2.5 text-gray-700 lg:hidden"
-          @click="sidebarRef?.toggleSidebar()"
+          @click="toggleSidebar"
         >
           <span class="sr-only">Open sidebar</span>
           <svg
@@ -190,14 +165,14 @@ onUnmounted(() => {
                 <img
                   class="size-8 rounded-md bg-gray-50"
                   :src="
-                    avatarUrl ||
+                    userData?.avatarUrl ||
                     'https://plus.unsplash.com/premium_vector-1724790120830-587ead1ffa26?q=80&w=882&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
                   "
-                  :alt="fullName"
+                  :alt="user.fullName.value || 'User Avatar'"
                 />
                 <span class="hidden lg:flex lg:items-center">
                   <span class="ml-4 text-sm/6 font-semibold text-gray-900">{{
-                    fullName || "???"
+                    user.fullName.value || "User"
                   }}</span>
                   <svg
                     class="ml-2 size-5 text-gray-400"
