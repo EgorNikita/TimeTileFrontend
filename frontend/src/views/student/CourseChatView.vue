@@ -5,12 +5,15 @@ import { useMessagesWithSignalR } from "@/tanStackQueries/student/message/useMes
 import { useSignalRStore } from "@/store/modules/signalR";
 import ChatMessage from "@/components/common/ChatMessage.vue";
 import { useCreateMessage } from "@/tanStackQueries/student/message/useCreateMessage";
-import FileUploadSection from "@/components/modals/assignmentDetailsModal/FileUploadSection.vue";
 import { ArrowRightIcon } from "@heroicons/vue/24/outline";
 import {EnrichedMessage} from "@/types/message";
+import {EnrichedFile} from "@/types/file";
+import FileManagementHandler, { UploadedFile } from "@/components/modals/file/FileManagementHandler.vue";
+import {useUpdateMessage} from "@/tanStackQueries/student/message/useUpdateMessage";
 
 const route = useRoute();
 const courseId = Number.parseInt(route.params.courseId as string);
+const signalR = useSignalRStore();
 
 const messagesQuery = useMessagesWithSignalR({
   courseIds: [courseId],
@@ -26,31 +29,23 @@ const messages = computed(
 
 const reversedMessages = computed(() => messages.value.reverse());
 
-const signalR = useSignalRStore();
-
+// Data
 const messagesContainer = ref<HTMLElement>();
 const isAtBottom = ref(true);
+
 const isFormOpened = ref(false);
+const isEditForm = ref(false);
 
-// Auto-scroll to bottom when new messages arrive
-const scrollToBottom = async () => {
-  if (messagesContainer.value) {
-    await nextTick();
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
-  }
-};
-
-// Watch for new messages and scroll to bottom
-watch(messages, () => {
-  if (isAtBottom.value) scrollToBottom();
-});
-
-// Data
-const selectedFiles = ref<File[]>([]);
+const selectedFiles = ref<EnrichedFile[]>([]);
 const content = ref<string>("");
 const messageToEditId = ref<number>(-1);
+const addedFilesCounter = ref<number>(0);
+
 const isInProgress = ref(false);
-const isEditForm = ref(false);
+
+const isFormEmpty = computed(
+    () => selectedFiles.value.length === 0 && content.value.length === 0,
+);
 
 const openForm = () => {
   isFormOpened.value = true;
@@ -58,10 +53,6 @@ const openForm = () => {
 
   scrollToBottom();
 };
-
-const isFormEmpty = computed(
-  () => selectedFiles.value.length === 0 && content.value.length === 0,
-);
 
 const openEditForm = (message: EnrichedMessage) => {
   content.value = message.content ?? "";
@@ -78,11 +69,41 @@ const closeForm = () => {
 };
 
 const clearForm = () => {
-  selectedFiles.value = [];
   content.value = "";
+  selectedFiles.value = [];
 };
 
+const handleFilesUpdate = (updatedFiles: UploadedFile[]) => {
+  if (!isEditForm.value) return;
+
+  // Conversion of UploadedFile[] to EnrichedFile[]
+  selectedFiles.value = updatedFiles.map(uploadedFile => ({
+      file: uploadedFile.file,
+      guid: uploadedFile.isNew
+        ? (++addedFilesCounter.value).toString()
+        : uploadedFile.guid!
+    })
+  );
+}
+
+const calculateFileChanges = () => {
+  const message = messages.value.find(message => message.id === messageToEditId.value)!;
+  const originalFiles = message.files ?? [];
+
+  const originalGuids = originalFiles.map(file => file.guid);
+  const currentGuids = selectedFiles.value?.map(file => file.guid) ?? [];
+
+  const addedFiles = selectedFiles.value
+      .filter(file => !originalGuids.includes(file.guid))
+      .map(enrichedFile => enrichedFile.file);
+
+  const deletedGuids = originalGuids.filter(guid => !currentGuids.includes(guid));
+
+  return { addedFiles, deletedGuids };
+}
+
 const { mutate: create } = useCreateMessage();
+const { mutate: update } = useUpdateMessage();
 
 const submitForm = async () => {
   if (isInProgress.value) return;
@@ -108,7 +129,7 @@ const sendMessage = async () => {
     create({
       courseId: courseId,
       content: content.value.trim(),
-      files: selectedFiles.value,
+      files: selectedFiles.value.map<File>(enrichedFile => enrichedFile.file),
     });
   } else {
     await signalR.sendMessage(courseId, content.value.trim());
@@ -116,12 +137,20 @@ const sendMessage = async () => {
 }
 
 const editMessage = async () => {
-  await signalR.editMessage(messageToEditId.value, content.value.trim());
+  const { addedFiles, deletedGuids } = calculateFileChanges();
+  if (addedFiles.length === 0 && deletedGuids.length === 0) {
+    await signalR.editMessage(messageToEditId.value, content.value.trim());
+  } else {
+    update({
+      messageId: messageToEditId.value,
+      payload: {
+        content: content.value.trim(),
+        filesToAdd: addedFiles,
+        filesToRemove: deletedGuids
+      }
+    });
+  }
 }
-
-watch(selectedFiles, (newVal) => console.log(newVal));
-
-onMounted(scrollToBottom);
 
 // Handle scroll events to determine if user scrolled up
 const handleScroll = () => {
@@ -150,20 +179,35 @@ const handleScroll = () => {
   }
 };
 
+// Auto-scroll to bottom when new messages arrive
+const scrollToBottom = async () => {
+  if (messagesContainer.value) {
+    await nextTick();
+    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+  }
+};
+
 // Check if message is from same user as previous message and was sent in almost the same time
 const belongsToPreviousMessage = (index: number) => {
   if (index === 0) return false;
   return (
     reversedMessages.value[index].userId ===
-      reversedMessages.value[index - 1].userId &&
+    reversedMessages.value[index - 1].userId &&
     Math.abs(
       new Date(reversedMessages.value[index].sentAt).getTime() -
-        new Date(reversedMessages.value[index - 1].sentAt).getTime(),
+      new Date(reversedMessages.value[index - 1].sentAt).getTime(),
     ) /
-      (1000 * 60) <=
-      15
+    (1000 * 60) <=
+    15
   );
 };
+
+// Watch for new messages and scroll to bottom
+watch(messages, () => {
+  if (isAtBottom.value) scrollToBottom();
+});
+
+onMounted(scrollToBottom);
 </script>
 
 <template>
@@ -276,9 +320,10 @@ const belongsToPreviousMessage = (index: number) => {
       class="space-y-4 border-t bg-gray-50 p-3"
     >
       <!-- File Upload Section -->
-      <FileUploadSection
+      <FileManagementHandler
         v-model:files="selectedFiles"
         :disabled="isInProgress"
+        @update:files="handleFilesUpdate"
       />
 
       <!-- Content -->
