@@ -106,7 +106,10 @@ export const API_ENDPOINTS = {
   },
   GROUPS: "/groups",
   TERMS: "/terms",
-  MESSAGES: "/messages",
+  MESSAGES: {
+    DEFAULT: "/messages",
+    PATCH: (id: number) => `/messages/${id}`,
+  },
 
   // Assignments and submissions
   ASSIGNMENTS: {

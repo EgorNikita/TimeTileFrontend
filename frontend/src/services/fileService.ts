@@ -26,12 +26,12 @@ export async function fetchRawFileByGuidAsFile(guid: string): Promise<File> {
   try {
     const response = await defaultApi.downloadFile(url);
 
-    console.log("Response from fetching file by GUID:", response);
-    console.log("All headers:", response.headers);
-    console.log(
-      "Content-Disposition:",
-      response.headers["content-disposition"],
-    );
+    // console.log("Response from fetching file by GUID:", response);
+    // console.log("All headers:", response.headers);
+    // console.log(
+    //   "Content-Disposition:",
+    //   response.headers["content-disposition"],
+    // );
 
     if (!response?.data) {
       throw new Error(`Failed to fetch file: 'No data received'`);

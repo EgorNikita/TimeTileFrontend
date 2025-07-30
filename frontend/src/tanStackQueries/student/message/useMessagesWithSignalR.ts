@@ -54,7 +54,7 @@ export function useMessagesWithSignalR(
       return // Don't update cache if message doesn't belong here
     }
 
-    console.log('here');
+    const files = await fetchFilesByUrls(message.fileUrls);
 
     const queryKey = ['messages', filters] as const
 
@@ -70,7 +70,7 @@ export function useMessagesWithSignalR(
             ? {
               ...message,
               user: m.user,
-              files: m.files,
+              files: files,
             }
             : m)),
         })),

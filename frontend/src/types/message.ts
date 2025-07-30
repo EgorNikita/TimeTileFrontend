@@ -30,3 +30,9 @@ export interface CreateMessagePayload {
   content?: string;
   files?: File[];
 }
+
+export interface UpdateMessagePayload {
+  content?: string;
+  filesToAdd?: File[];
+  filesToRemove?: string[];
+}
