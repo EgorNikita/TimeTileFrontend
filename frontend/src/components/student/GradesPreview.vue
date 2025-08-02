@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import GradesPreviewCard from "./GradesPreviewCard.vue";
-import { GradeFilters } from "@/types/grade";
 import { useGradesLazy } from "@/tanStackQueries/student/grades/useGradesLazy";
 import { useBulkSubjectsQuery } from "@/tanStackQueries/student/subject/useBulkSubjects";
 import LazyScrollWrapper from "@/components/common/LazyScrollWrapper.vue";
+import { GradeFilters } from "@/services/gradeApi";
 
 interface Props {
   filters?: GradeFilters;
@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const gradesQuery = useGradesLazy({
   ...props.filters,
-  descending: true
+  descending: true,
 });
 
 // Computed properties for reactive gradeStore data
@@ -59,7 +59,7 @@ const gradesWithSubjects = computed(() => {
     class="relative bg-white rounded-xl shadow-md p-6 pr-4 flex flex-col h-full min-h-0"
   >
     <!-- Header -->
-    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex-shrink-0">
+    <h2 class="text-2xl font-bold text-gray-800 mb-3 flex-shrink-0">
       New grades
     </h2>
 

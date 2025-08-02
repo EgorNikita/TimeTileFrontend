@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
 import navItems from "@/navigation/studentNav";
 import Sidebar from "@/components/common/Sidebar.vue";
 import router from "@/router/router.js";

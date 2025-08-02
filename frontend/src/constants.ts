@@ -38,6 +38,7 @@ export const ROUTE_NAMES = {
   STUDENT_ASSIGNMENTS: "StudentAssignments",
   STUDENT_GRADES: "StudentGrades",
   STUDENT_TIMETABLE: "StudentTimetable",
+  STUDENT_COURSE_CHAT: "StudentCourseChat",
 
   // Institution Member routes (Teachers, Staff, etc.)
   INSTITUTION_MEMBER_HOME: "InstitutionMemberHome",

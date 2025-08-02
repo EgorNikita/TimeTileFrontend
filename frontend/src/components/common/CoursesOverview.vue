@@ -1,64 +1,46 @@
 <script setup lang="ts">
-import CourseCard from "@/components/common/CourseCard.vue";
 import { UserGroupIcon } from "@heroicons/vue/24/outline";
 import draggable from "vuedraggable";
 import { computed, ref, watch } from "vue";
-
-import { useCourses } from "@/tanStackQueries/student/course/useCourses";
-import type { Course, CourseFilters } from "@/types/course";
-import { useBulkSubjectsQuery } from "@/tanStackQueries/student/subject/useBulkSubjects";
 import LazyScrollWrapper from "@/components/common/LazyScrollWrapper.vue";
+import { CourseFilters } from "@/services/courseApi";
+import { EnrichedStudentCourseInfo } from "@/types/studentCourseInfo";
+import { useEnrichedStudentCourseInfo } from "@/tanStackQueries/student/student/useEnrichedStudentCourseInfo";
+import { useAuth } from "@/composables/useAuth";
+import CourseCard from "@/components/common/CourseCard.vue";
 
 // Props
 interface Props {
   filters?: CourseFilters;
   allowDragAndDrop?: boolean;
   scrollThreshold?: number;
-  scrollContainer: HTMLElement | null;
+  scrollContainer?: HTMLElement | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   filters: () => ({}),
   allowDragAndDrop: true,
   scrollThreshold: 200,
+  scrollContainer: null,
 });
 
 // Reactive state
 const isDragging = ref(false);
-const draggableCourses = ref<Course[]>([]);
+const draggableCourses = ref<EnrichedStudentCourseInfo[]>([]);
 
-// Queries
-const coursesQuery = useCourses(props.filters);
+const { user } = useAuth();
 
-// Computed properties
-const allCourses = computed(() => {
-  if (!coursesQuery.data?.value) return [];
-  return coursesQuery.data.value.pages.flatMap((page) => page.items);
-});
+const studentCourseInfoQuery = useEnrichedStudentCourseInfo(
+  user.currentUser.value?.id!,
+  {},
+  20,
+);
 
-const subjectIds = computed(() => [
-  ...new Set(allCourses.value.map((course) => course.subjectId)),
-]);
-
-const subjectsQuery = useBulkSubjectsQuery(subjectIds);
-
-const subjectTitleMap = computed(() => {
-  const map = new Map<number, string>();
-  if (subjectsQuery.data?.value) {
-    subjectsQuery.data.value.forEach((subject) => {
-      map.set(subject.id, subject.title);
-    });
-  }
-  return map;
-});
-
-const enrichedCourses = computed(() => {
-  return allCourses.value.map((course) => ({
-    ...course,
-    subjectTitle:
-      subjectTitleMap.value.get(course.subjectId) ?? "Unknown Subject",
-  }));
-});
+const courses = computed(
+  () =>
+    studentCourseInfoQuery.data.value?.pages?.flatMap((page) => page.items) ??
+    [],
+);
 
 // Drag and drop handlers
 const handleDragStart = () => {
@@ -75,17 +57,17 @@ const handleDragEnd = async () => {
 };
 
 // API calls
-const saveCoursesOrder = async (courses: Course[]) => {
+const saveCoursesOrder = async (courses: EnrichedStudentCourseInfo[]) => {
   console.log(
     "Saving course order:",
-    courses.map((c) => c.id),
+    courses.map((c) => c.courseId),
   );
   // TODO: implement API call to save order
 };
 
 // Watchers
 watch(
-  enrichedCourses,
+  courses,
   (newCourses) => {
     draggableCourses.value = [...newCourses];
   },
@@ -105,16 +87,16 @@ watch(
 
     <LazyScrollWrapper
       :scroll-container="props.scrollContainer"
-      :query="coursesQuery"
+      :query="studentCourseInfoQuery"
     >
       <!-- Course Grid -->
       <draggable
         v-model="draggableCourses"
         tag="div"
-        class="grid flex-wrap gap-4 mt-2"
+        class="grid gap-4 mt-2"
         style="grid-template-columns: repeat(auto-fit, minmax(270px, 1fr))"
         :animation="500"
-        :disabled="!allowDragAndDrop"
+        :disabled="!props.allowDragAndDrop"
         ghost-class="ghost-card"
         chosen-class="chosen-card"
         drag-class="drag-card"
@@ -123,36 +105,31 @@ watch(
         :scroll-speed="2"
         @start="handleDragStart"
         @end="handleDragEnd"
-        item-key="id"
+        item-key="courseId"
       >
         <template #item="{ element: course }">
-          <div class="course-item">
-            <CourseCard :course="course" />
-          </div>
+          <CourseCard :course="course" />
         </template>
       </draggable>
     </LazyScrollWrapper>
   </div>
 </template>
 
-<style scoped>
+<style>
 .ghost-card {
-  opacity: 0.5;
+  opacity: 0.3 !important;
+  transition: none !important;
 }
 
 .chosen-card {
-  cursor: grabbing;
+  cursor: grabbing !important;
+  transform: scale(1.05) !important;
+  transition: none !important;
 }
 
 .drag-card {
-  transform: rotate(5deg);
-}
-
-.course-item {
-  transition: transform 0.2s ease;
-}
-
-.course-item:hover {
-  transform: translateY(-2px);
+  transform: rotate(5deg) scale(1.1) !important;
+  opacity: 0.8 !important;
+  transition: none !important;
 }
 </style>
