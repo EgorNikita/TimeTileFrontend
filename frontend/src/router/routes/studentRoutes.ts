@@ -33,6 +33,11 @@ export const studentRoutes: RouteRecordRaw[] = [
         name: ROUTE_NAMES.STUDENT_GRADES,
         component: () => import("@/views/student/GradesView.vue"),
       },
+      {
+        path: "course/:courseId/chat",
+        name: ROUTE_NAMES.STUDENT_COURSE_CHAT,
+        component: () => import("@/views/student/CourseChatView.vue"),
+      },
     ],
   },
 ];

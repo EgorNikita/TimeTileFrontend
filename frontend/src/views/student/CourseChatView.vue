@@ -87,6 +87,7 @@
 import { useRoute } from "vue-router";
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useChatForm } from "@/composables/useChatForm";
+import { useMessagesWithRealTime } from "@/composables/useMessagesWithRealTime";
 //
 // import ChatMessage from "@/components/common/ChatMessage.vue";
 // import FileManagementHandler from "@/components/modals/file/FileManagementHandler.vue";
@@ -99,7 +100,7 @@ const route = useRoute();
 const courseId = Number.parseInt(route.params.courseId as string);
 
 // === Messages ===
-const messagesQuery = useMessagesWithSignalR({
+const messagesQuery = useMessagesWithRealTime({
   courseIds: [courseId],
   sortBy: "sentAt",
   descending: true,
