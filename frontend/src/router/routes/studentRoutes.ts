@@ -3,7 +3,8 @@ import { ROLES, ROUTE_NAMES } from "@/constants";
 
 export const studentRoutes: RouteRecordRaw[] = [
   {
-    path: "/:institutionDomain/Student",
+    path: "/:institutionDomain/student",
+    name: ROUTE_NAMES.STUDENT_ROOT,
     component: () => import("@/layouts/StudentLayout.vue"),
     meta: { role: ROLES.STUDENT },
     children: [

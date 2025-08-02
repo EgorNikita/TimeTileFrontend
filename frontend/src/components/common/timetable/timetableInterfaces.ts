@@ -1,6 +1,6 @@
-import { LessonStatus } from "@/types/lesson";
-import { TimetableUnit } from "@/types/timetable";
 import { StudentEnrichedLessonInfo } from "@/types/studentLessonsInfo";
+import { LessonStatus } from "@/services/lessonApi";
+import { TimetableUnit } from "@/services/timetableApi";
 
 export interface Day {
   date: Date;

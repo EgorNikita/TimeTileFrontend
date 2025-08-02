@@ -31,6 +31,7 @@ export const ROUTE_NAMES = {
   NOT_FOUND: "NotFound",
 
   // Student routes
+  STUDENT_ROOT: "StudentRoot",
   STUDENT_HOME: "StudentHome",
   STUDENT_COURSES: "StudentCourses",
   STUDENT_SCHEDULE: "StudentSchedule",

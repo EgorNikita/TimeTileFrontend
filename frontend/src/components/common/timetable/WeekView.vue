@@ -42,7 +42,7 @@ const handleHeaderClick = (day: WeekDay): void => {
   <div class="flex flex-col h-full bg-gray-50">
     <!-- Header Row -->
     <div
-      class="sticky top-[64px] z-30 grid lg:grid-cols-[100px_repeat(7,1fr)] sm:grid-cols-[50px_repeat(7,1fr)] divide-x divide-gray-200 rounded-t-lg shadow-sm"
+      class="sticky top-[64px] z-30 grid grid-cols-[60px_repeat(7,1fr)] sm:grid-cols-[80px_repeat(7,1fr)] lg:grid-cols-[100px_repeat(7,1fr)] divide-x divide-gray-200 rounded-t-lg shadow-sm"
     >
       <!-- Empty top-left cell -->
       <div class="bg-white rounded-tl-lg border-r border-gray-200" />
@@ -51,14 +51,21 @@ const handleHeaderClick = (day: WeekDay): void => {
       <div
         v-for="(day, index) in props.weekDays"
         :key="`header-${day.date}`"
-        class="flex items-center justify-center py-3 bg-white cursor-pointer hover:bg-gray-50 transition-colors"
+        class="flex flex-col sm:flex-row sm:items-center justify-center py-2 sm:py-3 bg-white cursor-pointer hover:bg-gray-50 transition-colors min-w-0"
         :class="index === props.weekDays.length - 1 ? 'rounded-tr-lg' : ''"
         @click="handleHeaderClick(day)"
       >
-        <span class="flex items-baseline">
-          <span class="text-sm font-medium text-gray-700">{{ day.full }}</span>
+        <span
+          class="flex flex-col sm:flex-row sm:items-baseline items-center min-w-0"
+        >
+          <!-- Day name - abbreviated on mobile -->
+          <span class="text-xs sm:text-sm font-medium text-gray-700 truncate">
+            <span class="sm:hidden">{{ day.full.substring(0, 3) }}</span>
+            <span class="hidden sm:inline">{{ day.full }}</span>
+          </span>
+          <!-- Date circle -->
           <span
-            class="ml-2 w-7 h-7 flex items-center justify-center rounded-full font-semibold text-sm transition-colors"
+            class="mt-1 sm:mt-0 sm:ml-2 w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full font-semibold text-xs sm:text-sm transition-colors flex-shrink-0"
             :class="
               day.isToday
                 ? 'text-white bg-indigo-600'
@@ -74,7 +81,7 @@ const handleHeaderClick = (day: WeekDay): void => {
     <!-- Timetable Body -->
     <div class="relative flex-1 overflow-auto">
       <div
-        class="grid lg:grid-cols-[100px_repeat(7,1fr)] sm:grid-cols-[50px_repeat(7,1fr)] divide-x divide-y divide-gray-200 min-h-full"
+        class="grid grid-cols-[60px_repeat(7,1fr)] sm:grid-cols-[80px_repeat(7,1fr)] lg:grid-cols-[100px_repeat(7,1fr)] divide-x divide-y divide-gray-200 min-h-full"
         :style="{
           gridTemplateRows: gridTemplateRows,
           gridAutoFlow: 'row dense',
@@ -87,7 +94,7 @@ const handleHeaderClick = (day: WeekDay): void => {
         >
           <!-- Time Label Column -->
           <div
-            class="sticky left-0 z-10 flex flex-col h-full items-center justify-center px-2 py-2 text-xs border-r border-gray-200"
+            class="sticky left-0 z-10 flex flex-col h-full items-center justify-center px-1 sm:px-2 py-2 text-xs border-r border-gray-200 min-w-0"
             :class="
               unit.isBreak
                 ? 'bg-gray-100 text-gray-400'
@@ -95,23 +102,46 @@ const handleHeaderClick = (day: WeekDay): void => {
             "
             :style="{ gridColumn: 1, gridRow: rowIndex + 1 }"
           >
+            <!-- Start time -->
             <div
-              class="flex-1 self-start flex items-center justify-center text-gray-400 mt-1 text-center leading-tight"
+              class="flex-1 self-start flex items-center justify-center text-gray-400 mt-1 text-center leading-tight text-[10px] sm:text-xs"
             >
-              {{ formatTime(unit.startTime) }}
+              <span class="sm:hidden">{{
+                formatTime(unit.startTime).substring(0, 5)
+              }}</span>
+              <span class="hidden sm:inline">{{
+                formatTime(unit.startTime)
+              }}</span>
             </div>
+
+            <!-- Unit title and duration -->
             <div
               class="flex-1 flex flex-col items-center justify-center font-semibold text-center leading-tight"
             >
-              <div class="mt-0.5 text-xs">{{ unit.title }}</div>
-              <div v-if="unit.isBreak" class="mt-0.5 text-xs text-gray-300">
-                {{ Math.round(unit.duration) }}min
+              <div
+                class="mt-0.5 text-[10px] sm:text-xs truncate max-w-full px-1"
+              >
+                <span class="sm:hidden">{{ unit.title.substring(0, 2) }}</span>
+                <span class="hidden sm:inline">{{ unit.title }}</span>
+              </div>
+              <div
+                v-if="unit.isBreak"
+                class="mt-0.5 text-[10px] sm:text-xs text-gray-300"
+              >
+                {{ Math.round(unit.duration) }}m
               </div>
             </div>
+
+            <!-- End time -->
             <div
-              class="flex-1 self-end flex items-center justify-center text-gray-400 mt-1 text-center leading-tight"
+              class="flex-1 self-end flex items-center justify-center text-gray-400 mb-1 text-center leading-tight text-[10px] sm:text-xs"
             >
-              {{ formatTime(unit.endTime) }}
+              <span class="sm:hidden">{{
+                formatTime(unit.endTime).substring(0, 5)
+              }}</span>
+              <span class="hidden sm:inline">{{
+                formatTime(unit.endTime)
+              }}</span>
             </div>
           </div>
 
@@ -119,7 +149,7 @@ const handleHeaderClick = (day: WeekDay): void => {
           <div
             v-for="(day, colIndex) in props.weekDays"
             :key="`cell-${unit.id}-${day.date}`"
-            class="relative min-h-[60px] transition-colors duration-150"
+            class="relative min-h-[50px] sm:min-h-[60px] transition-colors duration-150"
             :class="[
               unit.isBreak
                 ? 'bg-gray-10'
@@ -138,7 +168,7 @@ const handleHeaderClick = (day: WeekDay): void => {
           :key="`lesson-${lessonInfo.lessonId}`"
         >
           <div
-            class="relative bg-blue-50 z-21 m-2 p-4 rounded-md text-sm font-medium shadow-sm overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-1 group border border-white/20 backdrop-blur-sm"
+            class="relative bg-blue-50 z-21 m-1 sm:m-2 p-2 sm:p-4 rounded-md text-sm font-medium shadow-sm overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-1 group border border-white/20 backdrop-blur-sm min-w-0"
             :style="{
               gridColumn: lessonInfo.dayIndex + 2,
               gridRow: `${lessonInfo.gridRowStart} / span ${lessonInfo.rowSpan}`,
@@ -146,39 +176,56 @@ const handleHeaderClick = (day: WeekDay): void => {
             @click="handleEventClick(lessonInfo, $event)"
           >
             <!-- Content container -->
-            <div class="relative z-10 space-y-2">
+            <div class="relative z-10 space-y-1 sm:space-y-2 min-w-0">
               <!-- Course title -->
               <div
-                class="font-bold text-gray-700 text-base leading-tight truncate drop-shadow-sm"
+                class="font-bold text-gray-700 text-xs sm:text-base leading-tight truncate drop-shadow-sm"
               >
                 {{ lessonInfo.lesson.course.title }}
               </div>
 
               <!-- Subject title -->
-              <div class="text-gray-700/90 font-medium text-sm truncate">
+              <div
+                class="text-gray-700/90 font-medium text-xs sm:text-sm truncate"
+              >
                 {{ lessonInfo.lesson.subject.title }}
               </div>
 
               <!-- Room info -->
-              <div class="flex items-center space-x-1 text-xs text-gray-700/80">
+              <div
+                class="flex items-center space-x-1 text-[10px] sm:text-xs text-gray-700/80 min-w-0"
+              >
                 <MapPinIcon
-                  class="w-4 h-4 flex-shrink-0 text-gray-700"
+                  class="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-700"
                   aria-hidden="true"
                 />
-                <span class="truncate">{{ lessonInfo.lesson.room.title }}</span>
+                <span class="truncate min-w-0">{{
+                  lessonInfo.lesson.room.title
+                }}</span>
               </div>
 
               <!-- Teacher name -->
-              <div class="flex items-center space-x-1 text-xs text-gray-700/80">
+              <div
+                class="flex items-center space-x-1 text-[10px] sm:text-xs text-gray-700/80 min-w-0"
+              >
                 <UserIcon
-                  class="w-4 h-4 flex-shrink-0 text-gray-700"
+                  class="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-700"
                   aria-hidden="true"
                 />
-                <span class="truncate">{{
-                  lessonInfo.lesson.teacher.lastname +
-                  " " +
-                  lessonInfo.lesson.teacher.firstname
-                }}</span>
+                <span class="truncate min-w-0">
+                  <!-- Show abbreviated name on mobile -->
+                  <span class="sm:hidden">
+                    {{ lessonInfo.lesson.teacher.lastname.substring(0, 1) }}.
+                    {{ lessonInfo.lesson.teacher.firstname.substring(0, 1) }}.
+                  </span>
+                  <span class="hidden sm:inline">
+                    {{
+                      lessonInfo.lesson.teacher.lastname +
+                      " " +
+                      lessonInfo.lesson.teacher.firstname
+                    }}
+                  </span>
+                </span>
               </div>
             </div>
           </div>

@@ -8,7 +8,10 @@ export async function goToDefaultRoute() {
   const userData = user.currentUser.value;
   const institutionDomain = institution.currentInstitution.value?.domain;
 
-  if (!userData || !institutionDomain) return;
+  if (!userData || !institutionDomain) {
+    await router.push({ name: ROUTE_NAMES.LOGIN });
+    return;
+  }
 
   if (userData.isStudent) {
     await router.push({

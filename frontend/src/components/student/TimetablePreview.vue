@@ -185,112 +185,137 @@ setInterval(() => {
 </script>
 
 <template>
-  <div
-    class="flex flex-col flex-1 max-w-md h-full mx-auto bg-white rounded-lg shadow-md p-6"
-  >
+  <div class="flex flex-col h-full bg-white rounded-lg shadow-md">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-2">
-      <div class="flex flex-col">
-        <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <Calendar class="w-5 h-5" />
-          Timetable
+    <div
+      class="flex items-center justify-between p-4 sm:p-6 pb-3 sm:pb-2 border-b border-gray-100"
+    >
+      <div class="flex flex-col min-w-0">
+        <h2
+          class="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2"
+        >
+          <Calendar class="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+          <span class="truncate">Timetable</span>
         </h2>
-        <span class="text-xs text-gray-400 mt-1">{{ currentMonth }}</span>
+        <span class="text-xs text-gray-400 mt-1 truncate">{{
+          currentMonth
+        }}</span>
       </div>
-      <div class="flex items-center gap-1">
+      <div class="flex items-center gap-1 flex-shrink-0">
         <button
           type="button"
-          class="cursor-pointer p-1.5 text-gray-400 hover:text-gray-500 rounded-full hover:bg-gray-100"
+          class="cursor-pointer p-1.5 text-gray-400 hover:text-gray-500 rounded-full hover:bg-gray-100 transition-colors"
           @click="previousWeek"
         >
-          <ChevronLeftIcon class="w-5 h-5" />
+          <ChevronLeftIcon class="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
         <button
           type="button"
-          class="cursor-pointer p-1.5 text-gray-400 hover:text-gray-500 rounded-full hover:bg-gray-100"
+          class="cursor-pointer p-1.5 text-gray-400 hover:text-gray-500 rounded-full hover:bg-gray-100 transition-colors"
           @click="nextWeek"
         >
-          <ChevronRightIcon class="w-5 h-5" />
+          <ChevronRightIcon class="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
       </div>
     </div>
 
-    <!-- Calendar Grid -->
-    <div class="grid grid-cols-7 gap-1 text-center text-xs text-gray-500 mb-2">
-      <div class="py-2">M</div>
-      <div class="py-2">Tu</div>
-      <div class="py-2">W</div>
-      <div class="py-2">Th</div>
-      <div class="py-2">F</div>
-      <div class="py-2">Sa</div>
-      <div class="py-2">Su</div>
-    </div>
+    <!-- Calendar Section -->
+    <div
+      class="px-3 sm:px-6 pt-3 sm:pt-4 pb-2 sm:pb-4 border-b border-gray-100"
+    >
+      <!-- Calendar Grid Headers -->
+      <div
+        class="grid grid-cols-7 gap-1 text-center text-[10px] sm:text-xs text-gray-500 mb-2"
+      >
+        <div class="py-1 sm:py-2">M</div>
+        <div class="py-1 sm:py-2">Tu</div>
+        <div class="py-1 sm:py-2">W</div>
+        <div class="py-1 sm:py-2">Th</div>
+        <div class="py-1 sm:py-2">F</div>
+        <div class="py-1 sm:py-2">Sa</div>
+        <div class="py-1 sm:py-2">Su</div>
+      </div>
 
-    <div class="grid grid-cols-7 gap-1 mb-6">
-      <div v-for="day in days" :key="day.date" class="flex justify-center">
-        <button
-          type="button"
-          :class="[
-            'cursor-pointer w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors',
-            day.isSelected
-              ? 'bg-black text-white'
-              : day.isToday
-                ? 'border border-black text-black'
-                : day.isCurrentMonth
-                  ? 'text-gray-900 hover:bg-gray-100'
-                  : 'text-gray-400',
-          ]"
-          @click="selectDate(day.date)"
-        >
-          {{ day.number }}
-        </button>
+      <!-- Calendar Grid Days -->
+      <div class="grid grid-cols-7 gap-1">
+        <div v-for="day in days" :key="day.date" class="flex justify-center">
+          <button
+            type="button"
+            :class="[
+              'cursor-pointer w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium transition-colors touch-manipulation',
+              day.isSelected
+                ? 'bg-black text-white'
+                : day.isToday
+                  ? 'border border-black text-black'
+                  : day.isCurrentMonth
+                    ? 'text-gray-900 hover:bg-gray-100'
+                    : 'text-gray-400',
+            ]"
+            @click="selectDate(day.date)"
+          >
+            {{ day.number }}
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Lessons List -->
-    <div
-      class="flex flex-col flex-1 space-y-3 h-full overflow-y-auto custom-scrollbar pr-3"
-    >
-      <div
-        v-for="lessonInfo in sortedLessonInfosWithStatus"
-        :key="lessonInfo.lesson.course.title + lessonInfo.startTime"
-        class="p-4 rounded-lg border shadow-sm"
-        :class="{
-          'bg-gray-100': getLessonStatus(lessonInfo).status === 'completed',
-          'bg-blue-50': getLessonStatus(lessonInfo).status === 'current',
-          'bg-white': getLessonStatus(lessonInfo).status === 'upcoming',
-        }"
-      >
-        <div class="flex items-center justify-between mb-1">
-          <h3 class="text-lg font-semibold">
-            {{ lessonInfo.lesson.course.title }}
-          </h3>
-          <span class="text-sm text-gray-500 whitespace-nowrap">
-            {{ lessonInfo.startTime }} – {{ lessonInfo.endTime }}
-          </span>
-        </div>
-        <p class="text-sm text-gray-700 mb-2">
-          Teacher:
-          {{
-            lessonInfo.lesson.teacher.firstname +
-            " " +
-            lessonInfo.lesson.teacher.lastname
-          }}
-        </p>
-        <div class="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-          <div
-            class="h-full bg-blue-500 transition-all"
-            :style="{ width: lessonInfo.status.progress + '%' }"
-          ></div>
-        </div>
-      </div>
+    <div class="flex-1 overflow-y-auto min-h-0">
+      <div class="p-3 sm:p-6 space-y-2 sm:space-y-3">
+        <div
+          v-for="lessonInfo in sortedLessonInfosWithStatus"
+          :key="lessonInfo.lesson.course.title + lessonInfo.startTime"
+          class="p-3 sm:p-4 rounded-lg border shadow-sm"
+          :class="{
+            'bg-gray-100': getLessonStatus(lessonInfo).status === 'completed',
+            'bg-blue-50': getLessonStatus(lessonInfo).status === 'current',
+            'bg-white': getLessonStatus(lessonInfo).status === 'upcoming',
+          }"
+        >
+          <!-- Lesson Header -->
+          <div class="flex items-start justify-between mb-2 gap-2">
+            <h3
+              class="text-sm sm:text-lg font-semibold text-gray-900 leading-tight min-w-0 flex-1"
+            >
+              {{ lessonInfo.lesson.course.title }}
+            </h3>
+            <span
+              class="text-xs sm:text-sm text-gray-500 whitespace-nowrap flex-shrink-0 font-medium"
+            >
+              {{ lessonInfo.startTime }} – {{ lessonInfo.endTime }}
+            </span>
+          </div>
 
-      <!-- No lessons -->
-      <div
-        v-if="lessonInfos.length === 0"
-        class="text-center text-gray-400 mt-10"
-      >
-        No lessons for this day.
+          <!-- Teacher Info -->
+          <p class="text-xs sm:text-sm text-gray-700 mb-2 sm:mb-3 truncate">
+            <span class="font-medium">Teacher:</span>
+            <span class="ml-1">
+              {{
+                lessonInfo.lesson.teacher.firstname +
+                " " +
+                lessonInfo.lesson.teacher.lastname
+              }}
+            </span>
+          </p>
+
+          <!-- Progress Bar -->
+          <div
+            class="h-1.5 sm:h-2 w-full bg-gray-200 rounded-full overflow-hidden"
+          >
+            <div
+              class="h-full bg-blue-500 transition-all duration-300 ease-out"
+              :style="{ width: lessonInfo.status.progress + '%' }"
+            ></div>
+          </div>
+        </div>
+
+        <!-- No lessons -->
+        <div
+          v-if="lessonInfos.length === 0"
+          class="text-center text-gray-400 py-8 sm:py-12"
+        >
+          <div class="text-sm sm:text-base">No lessons for this day.</div>
+        </div>
       </div>
     </div>
   </div>

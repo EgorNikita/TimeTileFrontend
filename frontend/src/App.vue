@@ -1,14 +1,8 @@
 <script lang="ts">
-import { goToDefaultRoute } from "@/router/navigation";
-import { defineComponent, onMounted } from "vue";
+import { defineComponent } from "vue";
 
 export default defineComponent({
   name: "App",
-  setup() {
-    onMounted(() => {
-      goToDefaultRoute();
-    });
-  },
 });
 </script>
 

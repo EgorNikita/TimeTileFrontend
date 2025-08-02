@@ -8,11 +8,11 @@ import {
 } from "@headlessui/vue";
 import { CheckIcon } from "@heroicons/vue/20/solid";
 import { ChevronUpDownIcon } from "@heroicons/vue/24/outline";
-import { Term } from "@/types/term";
 import { useInfiniteQuery } from "@tanstack/vue-query";
 import { PagedList } from "@/common/types/pagedList";
 import { computed } from "vue";
 import LazyScrollWrapper from "@/components/common/LazyScrollWrapper.vue";
+import { Term } from "@/services/termApi";
 
 const props = defineProps<{
   useTermQuery: ReturnType<typeof useInfiniteQuery<PagedList<Term>>>;
@@ -50,36 +50,41 @@ const formatDate = (dateString: string) => {
     as="div"
     :model-value="selectedTerm"
     @update:model-value="handleSelection"
-    class="w-sm"
+    class="w-full max-w-sm"
   >
-    <ListboxLabel class="block text-sm/6 font-medium text-gray-900"
-      >Selected Term</ListboxLabel
-    >
-    <div class="relative mt-2">
+    <ListboxLabel class="block text-sm font-medium text-gray-900 mb-2">
+      Selected Term
+    </ListboxLabel>
+    <div class="relative">
       <ListboxButton
-        class="grid w-full cursor-default grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-3 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6"
+        class="grid w-full cursor-pointer grid-cols-1 rounded-md bg-white py-3 sm:py-2 pr-10 pl-3 sm:pl-3 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-blue-600 focus:ring-inset sm:text-sm transition-colors hover:bg-gray-50 touch-manipulation"
       >
-        <span v-if="selectedTerm" class="col-start-1 row-start-1 truncate pr-6">
-          <div class="font-medium truncate">{{ selectedTerm.title }}</div>
-          <div class="text-xs text-gray-500">
+        <span v-if="selectedTerm" class="col-start-1 row-start-1 pr-6 min-w-0">
+          <div class="font-medium truncate text-sm sm:text-base">
+            {{ selectedTerm.title }}
+          </div>
+          <div class="text-xs text-gray-500 mt-0.5 truncate">
             {{ formatDate(selectedTerm.startDate) }} -
             {{ formatDate(selectedTerm.endDate) }}
           </div>
         </span>
         <ChevronUpDownIcon
-          class="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4"
+          class="col-start-1 row-start-1 w-5 h-5 self-center justify-self-end text-gray-400 pointer-events-none"
           aria-hidden="true"
         />
       </ListboxButton>
 
       <transition
-        leave-active-class="transition ease-in duration-100"
-        leave-from-class="opacity-100"
-        leave-to-class="opacity-0"
+        enter-active-class="transition ease-out duration-100"
+        enter-from-class="opacity-0 scale-95"
+        enter-to-class="opacity-100 scale-100"
+        leave-active-class="transition ease-in duration-75"
+        leave-from-class="opacity-100 scale-100"
+        leave-to-class="opacity-0 scale-95"
       >
         <ListboxOptions
-          class="absolute z-10 mt-1 w-full rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-hidden sm:text-sm"
-          style="max-height: calc(4 * (2rem + 1rem + 0.5rem))"
+          class="absolute z-50 mt-1 w-full rounded-md bg-white shadow-lg focus:outline-none overflow-hidden"
+          :style="{ maxHeight: 'min(50vh, 320px)' }"
         >
           <LazyScrollWrapper
             :query="useTermQuery"
@@ -87,7 +92,7 @@ const formatDate = (dateString: string) => {
             :show-no-more-text="false"
             loading-text="Loading more terms..."
             class="max-h-full overflow-y-auto"
-            style="max-height: calc(4 * (2rem + 1rem + 0.5rem) - 0.5rem)"
+            :style="{ maxHeight: 'min(50vh, 300px)' }"
           >
             <ListboxOption
               as="template"
@@ -98,23 +103,23 @@ const formatDate = (dateString: string) => {
             >
               <li
                 :class="[
-                  active
-                    ? 'bg-blue-600 text-white outline-hidden'
-                    : 'text-gray-900',
-                  'relative cursor-default py-2 pr-4 pl-8 select-none',
+                  active ? 'bg-blue-600 text-white' : 'text-gray-900',
+                  'relative cursor-pointer select-none py-3 sm:py-2 pl-10 pr-4 transition-colors touch-manipulation',
                 ]"
               >
-                <div
-                  :class="[
-                    selected ? 'font-semibold' : 'font-normal',
-                    'block truncate',
-                  ]"
-                >
-                  <div class="truncate">{{ term.title }}</div>
+                <div class="min-w-0">
+                  <div
+                    :class="[
+                      selected ? 'font-semibold' : 'font-normal',
+                      'truncate text-sm sm:text-base',
+                    ]"
+                  >
+                    {{ term.title }}
+                  </div>
                   <div
                     :class="[
                       active ? 'text-blue-200' : 'text-gray-500',
-                      'text-xs',
+                      'text-xs mt-0.5 truncate',
                     ]"
                   >
                     {{ formatDate(term.startDate) }} -
@@ -125,10 +130,10 @@ const formatDate = (dateString: string) => {
                   v-if="selected"
                   :class="[
                     active ? 'text-white' : 'text-blue-600',
-                    'absolute inset-y-0 left-0 flex items-center pl-1.5',
+                    'absolute inset-y-0 left-0 flex items-center pl-3',
                   ]"
                 >
-                  <CheckIcon class="size-5" aria-hidden="true" />
+                  <CheckIcon class="w-5 h-5" aria-hidden="true" />
                 </span>
               </li>
             </ListboxOption>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
 import navItems from "@/navigation/studentNav";
 import Sidebar from "@/components/common/Sidebar.vue";
 import router from "@/router/router.js";
@@ -14,6 +14,8 @@ const institutionData = computed(() => institution.currentInstitution.value);
 const sidebarRef = ref<InstanceType<typeof Sidebar> | null>(null);
 const showUserMenu = ref(false);
 const scrollContainer = ref<HTMLElement | null>(null);
+
+const signingOut = ref(false);
 
 // Example teams data (optional)
 const teams = ref([
@@ -33,9 +35,14 @@ const handleClickOutside = (event: Event) => {
 const logout = async () => {
   try {
     showUserMenu.value = false;
+    signingOut.value = true;
+
     await auth.logout();
     await router.replace({ name: ROUTE_NAMES.LOGIN });
+
+    signingOut.value = false;
   } catch (error) {
+    signingOut.value = false;
     console.error("Logout failed:", error);
   }
 };
@@ -59,7 +66,16 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="h-screen flex overflow-hidden bg-gray-100">
+  <div v-if="signingOut" class="flex-1 flex items-center justify-center">
+    <div class="text-center text-gray-400">
+      <div
+        class="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"
+      ></div>
+      <p class="text-sm">Signing out...</p>
+    </div>
+  </div>
+
+  <div v-else class="h-screen flex overflow-hidden bg-gray-100">
     <!-- Sidebar Component -->
     <Sidebar
       ref="sidebarRef"

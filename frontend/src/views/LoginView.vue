@@ -87,13 +87,13 @@ const redirectAfterLogin = async () => {
 };
 
 const handleLoginError = (err: any) => {
-  console.error("Login failed:", err);
-
   error.value = err?.message || "Login failed. Please try again.";
 };
 
 onMounted(async () => {
-  await auth.checkAuth();
+  const res = await auth.checkAuth();
+  console.log("Auth check result:", res);
+  console.log("Auth check complete:", auth.isAuthenticated.value);
   if (auth.isAuthenticated) await redirectAfterLogin();
 });
 

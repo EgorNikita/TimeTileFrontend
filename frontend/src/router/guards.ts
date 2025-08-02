@@ -2,6 +2,7 @@ import type { Router, RouteLocationNormalized } from "vue-router";
 import { ROUTE_NAMES } from "@/constants";
 import { useAuth } from "@/composables/useAuth";
 import { AppRouteMeta } from "@/router/router";
+import { goToDefaultRoute } from "@/router/navigation";
 
 export function setupNavigationGuards(router: Router) {
   router.beforeEach(async (to, _, next) => {
@@ -15,17 +16,13 @@ export function setupNavigationGuards(router: Router) {
     // Public
     if (meta.isPublic) {
       if (meta.hideForAuthenticated && auth.isAuthenticated && userData) {
-        if (userData.isStudent) return next({ name: ROUTE_NAMES.STUDENT_HOME });
-        else return next({ name: ROUTE_NAMES.TEACHER_HOME });
+        await goToDefaultRoute();
       }
       return next();
     }
 
-    console.log("Navigation Guard", userData);
-
     // Auth check
     if (!auth.isAuthenticated || !userData || !institutionData) {
-      console.log("Route:" + to.fullPath);
       return next({
         name: ROUTE_NAMES.LOGIN,
         query: { redirect: to.fullPath },
