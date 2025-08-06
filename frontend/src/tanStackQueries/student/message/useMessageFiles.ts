@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/vue-query";
-import { fileApi } from "@/services/fileService";
+import { fileApi } from "@/services/fileApi";
 import type { MessageFile } from "@/types/message";
 
 export function useMessageFiles(fileUrls: string[]) {

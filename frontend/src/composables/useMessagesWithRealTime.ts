@@ -1,25 +1,28 @@
 import { onUnmounted } from "vue";
 import { useQueryClient } from "@tanstack/vue-query";
-import { useMessages } from "@/tanStackQueries/student/message/useMessages";
-import { useSignalRStore, WebSocketMessage } from "@/store/modules/signalR";
-import type { MessageFilters, EnrichedMessage } from "@/types/message";
+import type { MessageFilters } from "@/types/message";
+import { useSignalRStore, WebSocketMessage } from "@/stores/SignalRStore";
+import {
+  MessageEnrichedWithUserInfo,
+  useMessagesWithStudent,
+} from "@/tanStackQueries/student/message/useMessagesWithStudent";
 
 export function useMessagesWithRealTime(
   filters: MessageFilters = {},
-  pageSize = 20,
+  pageSize = 40,
 ) {
   const queryClient = useQueryClient();
   const signalR = useSignalRStore();
   const queryKey = ["messages", filters] as const;
 
-  const messagesQuery = useMessages(filters, pageSize);
+  const messagesQuery = useMessagesWithStudent(filters, pageSize);
 
-  const isRelevant = (msg: EnrichedMessage) =>
-    !filters.courseIds?.length || filters.courseIds.includes(msg.courseId);
+  const isRelevant = (message: MessageEnrichedWithUserInfo) =>
+    !filters.courseIds?.length || filters.courseIds.includes(message.courseId);
 
-  const refreshMessages = (msg: EnrichedMessage) => {
-    if (isRelevant(msg)) {
-      queryClient.invalidateQueries({ queryKey });
+  const refreshMessages = async (message: MessageEnrichedWithUserInfo) => {
+    if (isRelevant(message)) {
+      await queryClient.invalidateQueries({ queryKey });
     }
   };
 

@@ -7,7 +7,11 @@ export function useGradesLazy(filters: GradeFilters = {}, pageSize = 10) {
     queryKey: ["grades", filters] as const,
 
     queryFn: async ({ pageParam = 1 }) => {
-      return gradeApi.fetchGrades({ ...filters, page: pageParam, pageSize });
+      return await gradeApi.fetchGrades({
+        ...filters,
+        page: pageParam,
+        pageSize,
+      });
     },
 
     getNextPageParam: (

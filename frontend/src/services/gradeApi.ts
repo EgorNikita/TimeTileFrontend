@@ -3,6 +3,7 @@ import { buildQueryParams } from "@/helpers/queryParamsBuilder";
 import { API_ENDPOINTS } from "@/constants";
 import { PagedListParams } from "@/types/common/PagedList";
 import { api } from "@/utils/apiClient";
+import { Sortable } from "@/types/common/Sortable";
 
 export interface Grade {
   id: number;
@@ -21,7 +22,7 @@ export enum GradeType {
   Homework = "Homework",
 }
 
-export interface GradeFilters {
+export interface GradeFilters extends Sortable {
   coursesIds?: number[];
   studentIds?: number[];
   lessonIds?: number[];

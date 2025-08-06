@@ -128,7 +128,7 @@ import {
 import { formatDateTo21May2025at } from "@/utils/dateUtils";
 import { EnrichedSubmissionWithFiles } from "@/types/assignment";
 import { computed, onMounted, reactive, watch } from "vue";
-import { fileApi } from "@/services/fileService";
+import { fileApi } from "@/services/fileApi";
 
 const props = defineProps<{
   submission: EnrichedSubmissionWithFiles;

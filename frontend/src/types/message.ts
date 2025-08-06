@@ -1,21 +1,15 @@
-export interface MessageFilters {
+import { Sortable } from "@/types/common/Sortable";
+import { Message } from "@/services/messageApi";
+import { User } from "@/services/userApi";
+
+export interface MessageFilters extends Sortable {
   courseIds?: number[];
   userId?: string;
   dateFrom?: Date;
   dateTo?: Date;
 }
 
-export interface BaseMessage {
-  id: string;
-  content: string;
-  userId: string;
-  courseId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  fileUrls: string[];
-}
-
-export interface EnrichedMessage extends BaseMessage {
+export interface EnrichedMessage extends Message {
   user: {
     id: string;
     name: string;

@@ -1,171 +1,162 @@
 <template>
-  <div class="flex flex-col h-full">
-    <!-- Messages -->
+  <div class="flex flex-col h-full overflow-y-auto">
     <div
-      ref="messagesContainer"
-      class="flex-1 overflow-y-auto p-4 space-y-2"
-      @scroll="handleScroll"
+      class="m-2 sm:m-6 lg:m-10 flex flex-col h-full bg-white shadow-md rounded-lg overflow-hidden"
     >
-      <ChatMessage
-        v-for="(message, index) in reversedMessages"
-        :key="message.id"
-        :message="message"
-        :belongs-to-previous-message="isContinuationOfPrevious(index)"
-        @openEditForm="form.openEditForm"
-      />
-    </div>
+      <!-- Course Header -->
+      <CourseHeader :course="course" />
 
-    <!-- Add message button -->
-    <button
-      v-if="!form.isOpen"
-      @click="form.openForm"
-      class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full shadow-lg transition-all duration-200 flex items-center space-x-2 z-10"
-    >
-      <svg class="w-5 h-5" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-        />
-      </svg>
-      <span>Add Message</span>
-    </button>
-
-    <!-- Form -->
-    <form
-      v-if="form.isOpen"
-      @submit.prevent="form.submitForm"
-      class="space-y-4 border-t bg-gray-50 p-3"
-    >
-      <FileManagementHandler
-        v-model:files="form.selectedFiles"
-        :disabled="form.isSubmitting"
-        @update:files="form.handleFilesUpdate"
-      />
-
-      <textarea
-        v-model="form.content"
-        rows="1"
-        :disabled="form.isSubmitting"
-        class="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none disabled:opacity-50"
-        placeholder="Add any note..."
-      />
-
-      <div class="flex justify-between items-center">
-        <button
-          type="button"
-          @click="form.closeForm"
-          :disabled="form.isSubmitting"
-          class="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center space-x-2"
+      <!-- Messages Container -->
+      <div class="flex-1 overflow-hidden flex flex-col">
+        <UpwardsLazyScrollWrapper
+          class="px-2 sm:ml-4 sm:pr-1 space-y-2 sm:space-y-4"
+          :query="messageQuery"
         >
-          <svg class="w-4 h-4" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-          <span>Cancel</span>
-        </button>
+          <div class="pr-2 sm:pr-4 mb-2 sm:mb-4 flex flex-col-reverse">
+            <template v-for="group in groupedMessagesByDate" :key="group.id">
+              <div class="space-y-2 sm:space-y-4">
+                <!-- Date Divider -->
+                <div class="flex items-center my-4 sm:my-6">
+                  <div class="flex-1 h-px bg-gray-200"></div>
+                  <div
+                    class="px-2 sm:px-4 py-1 text-xs font-semibold text-gray-500 bg-gray-50 rounded uppercase tracking-wide"
+                  >
+                    {{ formatDateDivider(group.date) }}
+                  </div>
+                  <div class="flex-1 h-px bg-gray-200"></div>
+                </div>
 
-        <button
-          type="submit"
-          :disabled="form.isSubmitting || form.isEmpty"
-          class="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
-        >
-          <ArrowRightIcon class="w-4 h-4" />
-          <span>{{ form.isEditMode ? "Update" : "Send" }}</span>
-        </button>
+                <!-- Messages under that date -->
+                <MessageBubble
+                  v-for="message in group.messages"
+                  :key="message.id"
+                  :message="message"
+                  :is-own-message="
+                    message.userId === user.currentUser.value?.id
+                  "
+                />
+              </div>
+            </template>
+          </div>
+        </UpwardsLazyScrollWrapper>
       </div>
-    </form>
+
+      <!-- Message Input -->
+      <MessageInputArea @send-message="handleSendMessage" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRoute } from "vue-router";
-import { ref, computed, watch, onMounted, nextTick } from "vue";
-import { useChatForm } from "@/composables/useChatForm";
+
 import { useMessagesWithRealTime } from "@/composables/useMessagesWithRealTime";
-//
-// import ChatMessage from "@/components/common/ChatMessage.vue";
-// import FileManagementHandler from "@/components/modals/file/FileManagementHandler.vue";
-//
-// import { useMessagesWithSignalR } from "@/tanStackQueries/student/message/useMessagesWithSignalR";
-// import { useChatForm } from "@/composables/useChatForm";
-// import type { EnrichedMessage } from "@/types/message";
+import { computed } from "vue";
+import { useAuth } from "@/composables/useAuth";
+import MessageBubble from "@/components/common/chat/MessageBubble.vue";
+import MessageInputArea from "@/components/common/chat/MessageInputArea.vue";
+import CourseHeader from "@/components/common/chat/CourseHeader.vue";
+import { useBulkCoursesEnrichedWithSubject } from "@/tanStackQueries/student/course/useBulkCoursesEnrichedWithSubject";
+import UpwardsLazyScrollWrapper from "@/components/common/UpwardsLazyScrollWrapper.vue";
+import { MessageEnrichedWithUserInfo } from "@/tanStackQueries/student/message/useMessagesWithStudent";
+import { useSignalRStore } from "@/stores/SignalRStore";
+import { messageApi } from "@/services/messageApi";
+
+interface DatedMessageGroup {
+  id: string;
+  date: Date;
+  messages: MessageEnrichedWithUserInfo[];
+}
 
 const route = useRoute();
 const courseId = Number.parseInt(route.params.courseId as string);
 
-// === Messages ===
-const messagesQuery = useMessagesWithRealTime({
+const { user } = useAuth();
+
+const messageQuery = useMessagesWithRealTime({
   courseIds: [courseId],
   sortBy: "sentAt",
   descending: true,
 });
 
+const { send } = useSignalRStore();
+
+const courseQuery = useBulkCoursesEnrichedWithSubject([courseId]);
+
+const course = computed(() => courseQuery.data.value?.[0] ?? null);
+
 const messages = computed(
-  () => messagesQuery.data.value?.pages.flatMap((page) => page.items) ?? [],
+  () => messageQuery.data.value?.pages.flatMap((p) => p.items) ?? [],
 );
-const reversedMessages = computed(() => [...messages.value].reverse());
 
-// === Chat Form (composable) ===
-const form = useChatForm(courseId, () => messages.value);
+const groupedMessagesByDate = computed<DatedMessageGroup[]>(() => {
+  if (!messages.value.length) return [];
 
-// === Scroll handling ===
-const messagesContainer = ref<HTMLElement>();
-const isAtBottom = ref(true);
+  const groupsMap = new Map<string, DatedMessageGroup>();
 
-const scrollToBottom = async () => {
-  await nextTick();
-  if (messagesContainer.value) {
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
-  }
-};
+  for (const msg of [...messages.value].reverse()) {
+    const date = new Date(msg.sentAt);
+    const dateKey = date.toDateString();
 
-const handleScroll = () => {
-  if (!messagesContainer.value) return;
-  const { scrollTop, scrollHeight, clientHeight } = messagesContainer.value;
-  const threshold = clientHeight / 4;
-
-  isAtBottom.value = scrollTop + clientHeight >= scrollHeight - threshold;
-
-  if (
-    scrollTop === 0 &&
-    messagesQuery.hasNextPage.value &&
-    !messagesQuery.isFetchingNextPage.value
-  ) {
-    const prevHeight = scrollHeight;
-    messagesQuery.fetchNextPage().then(() => {
-      nextTick(() => {
-        if (messagesContainer.value) {
-          messagesContainer.value.scrollTop =
-            messagesContainer.value.scrollHeight - prevHeight;
-        }
+    if (!groupsMap.has(dateKey)) {
+      groupsMap.set(dateKey, {
+        date,
+        id: `divider-${dateKey}`,
+        messages: [],
       });
+    }
+
+    groupsMap.get(dateKey)!.messages.push(msg);
+  }
+
+  // Convert map to array and sort descending (newest date first)
+  return Array.from(groupsMap.values()).reverse();
+});
+
+const formatDateDivider = (date: Date): string => {
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const messageDate = new Date(date);
+
+  console.log("formatDateDivider", {
+    today: today.toDateString(),
+    yesterday: yesterday.toDateString(),
+    messageDate: messageDate.toDateString(),
+  });
+
+  if (messageDate.toDateString() === today.toDateString()) {
+    return "Today";
+  }
+
+  if (messageDate.toDateString() === yesterday.toDateString()) {
+    return "Yesterday";
+  }
+
+  if (messageDate.getFullYear() === today.getFullYear()) {
+    return messageDate.toLocaleDateString(undefined, {
+      month: "long",
+      day: "numeric",
     });
   }
+
+  return messageDate.toLocaleDateString(undefined, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 };
 
-const isContinuationOfPrevious = (index: number) => {
-  if (index === 0) return false;
-  const current = reversedMessages.value[index];
-  const prev = reversedMessages.value[index - 1];
-  return (
-    current.userId === prev.userId &&
-    Math.abs(
-      new Date(current.sentAt).getTime() - new Date(prev.sentAt).getTime(),
-    ) /
-      60000 <=
-      15
-  );
+const handleSendMessage = async (content: string, selectedFiles?: File[]) => {
+  if (selectedFiles?.length) {
+    await messageApi.sendMessage({
+      courseId: courseId,
+      content: content.trim(),
+      files: selectedFiles,
+    });
+  } else {
+    await send("SendMessage", courseId, content);
+  }
 };
-
-// Auto scroll
-watch(messages, () => {
-  if (isAtBottom.value) scrollToBottom();
-});
-onMounted(scrollToBottom);
 </script>

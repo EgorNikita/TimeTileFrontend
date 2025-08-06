@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, ComputedRef, ref, watch, watchEffect } from "vue";
+import { computed, ComputedRef, ref, watchEffect } from "vue";
 import LazyScrollWrapper from "@/components/common/LazyScrollWrapper.vue";
 import { useAssignmentsWithSubmission } from "@/tanStackQueries/student/assignment/useAssignmentsWithSubmission";
 import { useBulkCourses } from "@/tanStackQueries/student/course/useBulkCourses";
 import { EnrichedAssignmentWithSubmission } from "@/types/assignment";
 import AssignmentPreviewCard from "@/components/student/AssignmentPreviewCard.vue";
-import { Course } from "@/types/course";
+import { Course } from "@/services/courseApi";
 
 const assignmentsQuery = useAssignmentsWithSubmission({});
 

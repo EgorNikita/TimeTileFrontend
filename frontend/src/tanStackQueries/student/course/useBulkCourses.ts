@@ -13,8 +13,8 @@ export const useBulkCourses = (
   return useQuery({
     queryKey: ["bulk-courses", ids],
 
-    queryFn: () => {
-      return courseApi.fetchCoursesByIds(idsRef.value);
+    queryFn: async () => {
+      return await courseApi.fetchCoursesByIds(idsRef.value);
     },
 
     staleTime: 1000 * 60 * 5, // 5 minutes

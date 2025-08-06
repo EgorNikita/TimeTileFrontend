@@ -1,7 +1,6 @@
 // constants.ts
-export const TOKEN_KEY = "auth_token" as const;
-export const REFRESH_TOKEN_KEY = "refresh_token" as const;
-export const API_BASE_URL = "http://localhost:5282" as const;
+export const API_BASE_URL = "http://localhost:5282";
+export const MESSAGES_HUB_URL = `${API_BASE_URL}/messages-hub`;
 
 // User roles - matching your backend GeneralRoles
 export const ROLES = {
@@ -83,12 +82,17 @@ export const API_ENDPOINTS = {
     CHECK_AUTH: "/auth/check",
   },
 
+  MESSAGES: "/messages",
+
   // Institution management
   INSTITUTIONS: "/institutions",
   INSTITUTION_MEMBERS: "/institution-members",
 
   // User management
-  USERS: "/users",
+  USERS: {
+    DEFAULT: "/users",
+    BY_IDS: "/users/bulk",
+  },
   ROLES: "/roles",
 
   // Academic structure
