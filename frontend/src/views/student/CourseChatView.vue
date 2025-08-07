@@ -1,7 +1,32 @@
 <template>
   <div class="flex flex-col h-full overflow-y-auto">
+    <!-- Back Button -->
+    <div class="flex items-center m-3 sm:m-4 lg:m-5 lg:mb-5">
+      <button
+        @click="goBack"
+        class="cursor-pointer flex items-center text-gray-600 hover:text-gray-900"
+      >
+        <!-- Left Arrow Icon (Heroicons: solid/arrow-left) -->
+        <svg
+          class="w-5 h-5 mr-2"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M15 19l-7-7 7-7"
+          ></path>
+        </svg>
+        <span class="text-sm font-medium">Back</span>
+      </button>
+    </div>
+
     <div
-      class="m-2 sm:m-6 lg:m-10 flex flex-col h-full bg-white shadow-md rounded-lg overflow-hidden"
+      class="m-1 sm:m-4 lg:m-5 sm:mt-0 lg:mt-0 flex flex-col h-full bg-white shadow-md rounded-lg overflow-hidden"
     >
       <!-- Course Header -->
       <CourseHeader :course="course" />
@@ -10,6 +35,7 @@
       <div class="flex-1 overflow-hidden flex flex-col">
         <UpwardsLazyScrollWrapper
           class="px-2 sm:ml-4 sm:pr-1 space-y-2 sm:space-y-4"
+          ref="infiniteScrollerRef"
           :query="messageQuery"
         >
           <div class="pr-2 sm:pr-4 mb-2 sm:mb-4 flex flex-col-reverse">
@@ -51,7 +77,7 @@
 import { useRoute } from "vue-router";
 
 import { useMessagesWithRealTime } from "@/composables/useMessagesWithRealTime";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useAuth } from "@/composables/useAuth";
 import MessageBubble from "@/components/common/chat/MessageBubble.vue";
 import MessageInputArea from "@/components/common/chat/MessageInputArea.vue";
@@ -61,12 +87,15 @@ import UpwardsLazyScrollWrapper from "@/components/common/UpwardsLazyScrollWrapp
 import { MessageEnrichedWithUserInfo } from "@/tanStackQueries/student/message/useMessagesWithStudent";
 import { useSignalRStore } from "@/stores/SignalRStore";
 import { messageApi } from "@/services/messageApi";
+import router from "@/router/router";
 
 interface DatedMessageGroup {
   id: string;
   date: Date;
   messages: MessageEnrichedWithUserInfo[];
 }
+
+const infiniteScrollerRef = ref();
 
 const route = useRoute();
 const courseId = Number.parseInt(route.params.courseId as string);
@@ -149,6 +178,8 @@ const formatDateDivider = (date: Date): string => {
 };
 
 const handleSendMessage = async (content: string, selectedFiles?: File[]) => {
+  infiniteScrollerRef.value?.scrollToTop();
+
   if (selectedFiles?.length) {
     await messageApi.sendMessage({
       courseId: courseId,
@@ -158,5 +189,9 @@ const handleSendMessage = async (content: string, selectedFiles?: File[]) => {
   } else {
     await send("SendMessage", courseId, content);
   }
+};
+
+const goBack = () => {
+  router.back();
 };
 </script>

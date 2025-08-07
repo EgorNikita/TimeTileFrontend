@@ -23,9 +23,7 @@ const isLoading = computed(() => props.query.isFetching.value || false);
 const hasMore = computed(() => props.query.hasNextPage.value || false);
 
 const loadMore = async () => {
-  console.log("Loading more items...");
   if (isLoading.value || !hasMore.value) return;
-  console.log("AAAAAAAAfd", props.query.data.value);
   await props.query.fetchNextPage?.();
 };
 
@@ -60,6 +58,14 @@ watch(activeScrollContainer, (newVal, oldVal) => {
   oldVal?.removeEventListener("scroll", onScroll);
   newVal?.addEventListener("scroll", onScroll);
 });
+
+const scrollToTop = () => {
+  activeScrollContainer.value?.scrollTo({ top: 0, behavior: "auto" });
+};
+
+defineExpose({
+  scrollToTop,
+});
 </script>
 
 <template>
@@ -92,20 +98,6 @@ watch(activeScrollContainer, (newVal, oldVal) => {
           <span class="text-sm font-medium">{{ loadingText }}</span>
         </div>
       </div>
-
-      <!-- End of content indicator -->
-      <!--      <div-->
-      <!--        v-else-if="showNoMoreText && !hasMore"-->
-      <!--        class="flex items-center justify-center py-4"-->
-      <!--      >-->
-      <!--        <div class="text-gray-500 text-sm">-->
-      <!--          <div class="flex items-center gap-2">-->
-      <!--            <div class="h-px bg-gray-300 flex-1"></div>-->
-      <!--            <span>No more items to load</span>-->
-      <!--            <div class="h-px bg-gray-300 flex-1"></div>-->
-      <!--          </div>-->
-      <!--        </div>-->
-      <!--      </div>-->
     </div>
   </div>
 </template>

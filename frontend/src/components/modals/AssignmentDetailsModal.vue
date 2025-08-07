@@ -156,11 +156,11 @@ const enrichedAssignment = computed(() => {
   return {
     assignment: {
       ...assignment,
-      fileUrls: assignmentFileUrls,
+      fileUrls: assignmentFileUrls.map((file) => file.fileUrl),
     },
     submission: {
       ...submission,
-      fileUrls: submissionFileUrls,
+      fileUrls: submissionFileUrls.map((file) => file.fileUrl),
     },
   };
 });

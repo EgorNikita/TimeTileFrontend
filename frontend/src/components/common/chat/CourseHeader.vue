@@ -28,16 +28,6 @@
           </span>
         </div>
       </div>
-
-      <!-- Online Status Indicator -->
-      <div class="flex items-center space-x-2 text-sm text-gray-500">
-        <div class="flex items-center">
-          <div
-            class="h-2 w-2 bg-green-400 rounded-full mr-2 animate-pulse"
-          ></div>
-          <span>Live</span>
-        </div>
-      </div>
     </div>
   </div>
 </template>

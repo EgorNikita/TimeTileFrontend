@@ -39,42 +39,22 @@
 
         <!-- Message Bubble -->
         <div
+          v-if="message.content && message.content.trim()"
           class="relative px-4 py-2 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md"
           :class="messageBubbleClasses"
         >
           <p class="text-sm leading-relaxed whitespace-pre-wrap break-words">
             {{ message.content }}
           </p>
+        </div>
 
+        <div
+          v-if="message.fileUrls && message.fileUrls.length > 0"
+          class="relative px-4 py-2 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md max-w-xs"
+          :class="messageBubbleClasses"
+        >
           <!-- File Attachments -->
-          <div v-if="message.fileUrls.length > 0" class="mt-3 space-y-2">
-            <div
-              v-for="(fileUrl, index) in message.fileUrls"
-              :key="index"
-              class="flex items-center space-x-3 p-3 rounded-xl transition-colors duration-200 hover:bg-opacity-80 cursor-pointer"
-              :class="fileAttachmentClasses"
-            >
-              <div class="flex-shrink-0 p-2 rounded-lg bg-white bg-opacity-20">
-                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fill-rule="evenodd"
-                    d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div class="flex-1 min-w-0">
-                <a
-                  :href="fileUrl"
-                  target="_blank"
-                  class="text-sm font-medium hover:underline truncate block"
-                >
-                  {{ getFileName(fileUrl) }}
-                </a>
-                <p class="text-xs opacity-75 mt-0.5">Click to download</p>
-              </div>
-            </div>
-          </div>
+          <SubmissionFileList :file-urls="message.fileUrls" />
         </div>
       </div>
     </div>
@@ -84,6 +64,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { MessageEnrichedWithUserInfo } from "@/tanStackQueries/student/message/useMessagesWithStudent";
+import SubmissionFileList from "@/components/modals/assignmentDetailsModal/SubmissionFileList.vue";
 
 interface Props {
   message: MessageEnrichedWithUserInfo;
@@ -106,12 +87,6 @@ const messageBubbleClasses = computed(() => {
   return props.isOwnMessage
     ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white ml-2"
     : "bg-white text-gray-800 border border-gray-200 mr-2 hover:border-gray-300";
-});
-
-const fileAttachmentClasses = computed(() => {
-  return props.isOwnMessage
-    ? "bg-blue-400 bg-opacity-30 text-blue-50 border border-blue-400 border-opacity-30"
-    : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100";
 });
 
 const formatTime = (date: Date) => {
@@ -140,10 +115,6 @@ const formatTime = (date: Date) => {
       minute: "2-digit",
     });
   }
-};
-
-const getFileName = (url: string) => {
-  return url.split("/").pop() || "File";
 };
 
 const handleAvatarError = (event: Event) => {

@@ -143,11 +143,12 @@ export function getFileInfo(file: File): FileTypeInfo {
 
   return {
     type: meta.type,
-    label:
+    label: sanitizeFilename(
       meta.label ||
-      extension.toUpperCase() ||
-      mimeType.split("/")[1]?.toUpperCase() ||
-      "FILE",
+        extension.toUpperCase() ||
+        mimeType.split("/")[1]?.toUpperCase() ||
+        "FILE",
+    ),
     canPreview:
       meta.preview ??
       (mimeType.startsWith("image/") || mimeType.startsWith("text/")),
@@ -166,6 +167,7 @@ export function sanitizeFilename(filename: string): string {
   return filename
     .replace(/^"+|"+$/g, "")
     .replace(/^\s+|\s+$/g, "")
+    .replace(/\s+/g, "_")
     .replace(/[<>:"/\\|?*]/g, "_")
     .replace(/\s+/g, "_");
 }

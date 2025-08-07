@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useAuth } from "@/composables/useAuth";
 import { ROUTE_NAMES } from "@/constants";
+import stelarLogoUrl from "@/assets/images/stelar_logo.svg?url";
 
 interface NavItem {
   name: string;
@@ -93,7 +94,7 @@ defineExpose({
             <div class="flex h-16 shrink-0 items-center">
               <img
                 class="h-10 w-auto"
-                src="@/assets/images/stelar_logo.svg"
+                :src="stelarLogoUrl"
                 :alt="schoolName || 'School Logo'"
               />
               <span v-if="schoolName" class="ml-3 text-white font-semibold">{{
@@ -199,7 +200,7 @@ defineExpose({
         <div class="flex h-16 shrink-0 items-center">
           <img
             class="h-12 w-auto"
-            src="@/assets/images/stelar_logo.svg"
+            :src="stelarLogoUrl"
             :alt="schoolName || 'School Logo'"
           />
           <span v-if="schoolName" class="ml-3 text-white font-semibold">{{

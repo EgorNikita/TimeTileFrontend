@@ -1,4 +1,5 @@
 import { ref, computed } from "vue";
+import { sanitizeFilename } from "@/utils/fileUtils";
 
 export interface FileOperationOptions {
   onError?: (error: string) => void;
@@ -10,13 +11,6 @@ export interface FileOperationOptions {
  */
 function canPreviewFile(file: File) {
   return file.type.startsWith("image/") || file.type === "application/pdf";
-}
-
-/**
- * Sanitize filename to remove potentially unsafe characters
- */
-function sanitizeFilename(name: string) {
-  return name.replace(/[^a-z0-9_\-.]/gi, "_");
 }
 
 export function useFileOperations(options: FileOperationOptions = {}) {
