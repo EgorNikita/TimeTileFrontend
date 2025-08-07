@@ -10,8 +10,7 @@ import { Lesson } from "@/services/lessonApi";
 export interface StudentCourseInfo {
   courseId: number;
   course: Course;
-  examGradeId: number | null;
-  hasExam: boolean;
+  gradeId: number | null;
   positionX: number;
   positionY: number;
   averageGrade: number;
@@ -20,8 +19,7 @@ export interface StudentCourseInfo {
 export interface StudentCourseFilters {
   termIds?: number[];
   CourseId?: number;
-  ExamGradeId?: number | null;
-  HasExam?: boolean;
+  GradeId?: number | null;
   PositionX?: number;
   PositionY?: number;
 }

@@ -17,7 +17,7 @@ export interface Grade {
 }
 
 export enum GradeType {
-  Exam = "Exam",
+  TermMark = "TermMark",
   Classwork = "Classwork",
   Homework = "Homework",
 }

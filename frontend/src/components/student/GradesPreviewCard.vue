@@ -25,6 +25,10 @@ const formattedDate = computed(() => {
     day: "2-digit",
   }).format(date);
 });
+
+const formatNumber = (n: number) => {
+  return n % 1 === 0 ? n : n.toFixed(1);
+}
 </script>
 
 <template>
@@ -34,7 +38,7 @@ const formattedDate = computed(() => {
       class="w-14 h-14 rounded-full border-3 border-blue-400 flex items-center justify-center"
     >
       <span class="text-2xl font-bold text-blue-500">
-        {{ gradeInfo.value }}
+        {{ formatNumber(gradeInfo.value) }}
       </span>
     </div>
 
